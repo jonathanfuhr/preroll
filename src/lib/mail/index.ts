@@ -6,7 +6,7 @@ import { sendeUeberSmtp } from './smtp'
 import type { Mail, Versandergebnis } from './typen'
 
 export type { Mail, Versandergebnis } from './typen'
-export { SMTP_PRESETS } from './smtp'
+export { SMTP_PRESETS } from './presets'
 
 /**
  * Verschickt eine Mail über den in den Einstellungen gewählten Transport.

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { kalenderwoche, kalenderwochenJahr, pruefeFormat, verhaeltnisText, zipDateiname } from './format'
+import {
+  kalenderwoche,
+  kalenderwochenJahr,
+  pruefeFormat,
+  verhaeltnisText,
+  zipDateiname,
+  zipStempel,
+} from './format'
 
 describe('pruefeFormat', () => {
   it('lässt ein korrektes 4:5-Beitragsbild durch', () => {
@@ -80,5 +87,14 @@ describe('kalenderwoche', () => {
     const silvester = new Date(2027, 0, 1)
     expect(kalenderwoche(silvester)).toBe(53)
     expect(kalenderwochenJahr(silvester)).toBe(2026)
+  })
+})
+
+describe('zipStempel', () => {
+  it('benennt die Caption nach dem Post, nicht nach einem Slide', () => {
+    const am = new Date(2026, 7, 11, 10, 0)
+    expect(`${zipStempel(am)}_Caption.txt`).toBe('260811_1000_Caption.txt')
+    // Zur Abgrenzung: das Medium desselben Karussells trägt die Slide-Nummer.
+    expect(zipDateiname(am, 'KARUSSELL', 'SLIDE', 0)).toBe('260811_1000_Carousel_Slide1')
   })
 })

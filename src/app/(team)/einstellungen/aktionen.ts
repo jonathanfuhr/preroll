@@ -1,0 +1,135 @@
+'use server'
+
+import type { MailTransport } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { aktuellerNutzer } from '@/lib/auth'
+import { prisma } from '@/lib/db'
+import { ladeEinstellungen, speichereEinstellungen } from '@/lib/einstellungen'
+import { sendeMail } from '@/lib/mail'
+import { vorlageTestmail } from '@/lib/mail/vorlagen'
+import { vapidSchluessel } from '@/lib/push'
+
+async function adminOderRaus() {
+  const nutzer = await aktuellerNutzer()
+  if (!nutzer) redirect('/anmelden')
+  if (nutzer.rolle !== 'ADMIN') redirect('/kunden')
+  return nutzer
+}
+
+function text(formular: FormData, feld: string): string | null {
+  const wert = String(formular.get(feld) ?? '').trim()
+  return wert === '' ? null : wert
+}
+
+/**
+ * Geheimnisse werden nur überschrieben, wenn tatsächlich etwas eingegeben
+ * wurde — die Oberfläche zeigt sie nie im Klartext an.
+ */
+function geheimnis(formular: FormData, feld: string): string | undefined {
+  const wert = String(formular.get(feld) ?? '').trim()
+  return wert === '' ? undefined : wert
+}
+
+export async function workspaceSpeichern(formular: FormData) {
+  await adminOderRaus()
+  await speichereEinstellungen({
+    workspaceName: text(formular, 'workspaceName') ?? 'Preroll',
+    akzentfarbe: text(formular, 'akzentfarbe') ?? '#b00900',
+  })
+  revalidatePath('/einstellungen')
+}
+
+export async function mailSpeichern(formular: FormData) {
+  await adminOderRaus()
+
+  const transport = (text(formular, 'mailTransport') ?? 'DEAKTIVIERT') as MailTransport
+
+  await speichereEinstellungen({
+    mailTransport: transport,
+    mailVonName: text(formular, 'mailVonName'),
+    mailVonAdresse: text(formular, 'mailVonAdresse'),
+
+    smtpHost: text(formular, 'smtpHost'),
+    smtpPort: text(formular, 'smtpPort') ? Number(text(formular, 'smtpPort')) : null,
+    smtpSicher: formular.get('smtpSicher') === 'on',
+    smtpBenutzer: text(formular, 'smtpBenutzer'),
+    ...(geheimnis(formular, 'smtpPasswort') ? { smtpPasswort: geheimnis(formular, 'smtpPasswort') } : {}),
+
+    msTenantId: text(formular, 'msTenantId'),
+    msClientId: text(formular, 'msClientId'),
+    msPostfach: text(formular, 'msPostfach'),
+    ...(geheimnis(formular, 'msClientSecret')
+      ? { msClientSecret: geheimnis(formular, 'msClientSecret') }
+      : {}),
+
+    googleClientId: text(formular, 'googleClientId'),
+    googleAbsender: text(formular, 'googleAbsender'),
+    ...(geheimnis(formular, 'googleClientSecret')
+      ? { googleClientSecret: geheimnis(formular, 'googleClientSecret') }
+      : {}),
+    ...(geheimnis(formular, 'googleRefreshToken')
+      ? { googleRefreshToken: geheimnis(formular, 'googleRefreshToken') }
+      : {}),
+  })
+
+  revalidatePath('/einstellungen')
+}
+
+export async function testmailSenden(formular: FormData) {
+  const nutzer = await adminOderRaus()
+
+  const an = text(formular, 'testAn') ?? nutzer.email
+  const einstellungen = await ladeEinstellungen()
+  const ergebnis = await sendeMail(vorlageTestmail(an, einstellungen.mailTransport))
+
+  redirect(
+    ergebnis.ok
+      ? `/einstellungen?test=ok&an=${encodeURIComponent(an)}`
+      : `/einstellungen?test=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
+  )
+}
+
+export async function anmeldungSpeichern(formular: FormData) {
+  await adminOderRaus()
+  await speichereEinstellungen({
+    lokalerLoginErlaubt: formular.get('lokalerLoginErlaubt') === 'on',
+    m365LoginErlaubt: formular.get('m365LoginErlaubt') === 'on',
+    m365TenantId: text(formular, 'm365TenantId'),
+    m365ClientId: text(formular, 'm365ClientId'),
+    ...(geheimnis(formular, 'm365ClientSecret')
+      ? { m365ClientSecret: geheimnis(formular, 'm365ClientSecret') }
+      : {}),
+  })
+  revalidatePath('/einstellungen')
+}
+
+export async function klappeSpeichern(formular: FormData) {
+  await adminOderRaus()
+  await speichereEinstellungen({
+    klappeBasisUrl: text(formular, 'klappeBasisUrl')?.replace(/\/$/, '') ?? null,
+    ...(geheimnis(formular, 'klappeApiKey') ? { klappeApiKey: geheimnis(formular, 'klappeApiKey') } : {}),
+  })
+  revalidatePath('/einstellungen')
+}
+
+/** Erzeugt das VAPID-Paar, falls noch keines vorliegt. */
+export async function pushEinrichten() {
+  await adminOderRaus()
+  await vapidSchluessel()
+  revalidatePath('/einstellungen')
+}
+
+export async function benachrichtigungenSpeichern(formular: FormData) {
+  const nutzer = await aktuellerNutzer()
+  if (!nutzer) redirect('/anmelden')
+
+  await prisma.nutzer.update({
+    where: { id: nutzer.id },
+    data: {
+      mailBenachrichtigungen: formular.get('mailBenachrichtigungen') === 'on',
+      pushBenachrichtigungen: formular.get('pushBenachrichtigungen') === 'on',
+    },
+  })
+  revalidatePath('/einstellungen')
+}

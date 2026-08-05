@@ -62,21 +62,26 @@ export function pruefeFormat(
 }
 
 /**
- * Dateiname fürs ZIP: JJMMTT_HHMM_Typ. Da nie zwei Posts exakt zeitgleich
- * veröffentlicht werden, sind die Namen ohne Zusatz eindeutig.
+ * Zeitstempel JJMMTT_HHMM. Da nie zwei Posts exakt zeitgleich veröffentlicht
+ * werden, ist er je Post eindeutig.
  */
+export function zipStempel(postenAm: Date): string {
+  const jj = String(postenAm.getFullYear() % 100).padStart(2, '0')
+  const mm = String(postenAm.getMonth() + 1).padStart(2, '0')
+  const tt = String(postenAm.getDate()).padStart(2, '0')
+  const hh = String(postenAm.getHours()).padStart(2, '0')
+  const mi = String(postenAm.getMinutes()).padStart(2, '0')
+  return `${jj}${mm}${tt}_${hh}${mi}`
+}
+
+/** Dateiname eines Mediums fürs ZIP: JJMMTT_HHMM_Typ. */
 export function zipDateiname(
   postenAm: Date,
   typ: PostTyp,
   rolle: MediumRolle,
   position = 0,
 ): string {
-  const jj = String(postenAm.getFullYear() % 100).padStart(2, '0')
-  const mm = String(postenAm.getMonth() + 1).padStart(2, '0')
-  const tt = String(postenAm.getDate()).padStart(2, '0')
-  const hh = String(postenAm.getHours()).padStart(2, '0')
-  const mi = String(postenAm.getMinutes()).padStart(2, '0')
-  const stempel = `${jj}${mm}${tt}_${hh}${mi}`
+  const stempel = zipStempel(postenAm)
 
   if (rolle === 'THUMBNAIL') return `${stempel}_Reel_Thumbnail`
   if (typ === 'REEL') return `${stempel}_Reel`

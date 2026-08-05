@@ -42,13 +42,3 @@ export async function sendeUeberSmtp(
     return { ok: false, transport: 'SMTP', fehler: (fehler as Error).message }
   }
 }
-
-/** Vorbelegungen für gängige Anbieter — spart die Suche in deren Doku. */
-export const SMTP_PRESETS: Record<string, Omit<SmtpKonfiguration, 'benutzer' | 'passwort'>> = {
-  Brevo: { host: 'smtp-relay.brevo.com', port: 587, sicher: false },
-  Mailgun: { host: 'smtp.mailgun.org', port: 587, sicher: false },
-  Postmark: { host: 'smtp.postmarkapp.com', port: 587, sicher: false },
-  'Amazon SES': { host: 'email-smtp.eu-central-1.amazonaws.com', port: 587, sicher: false },
-  'Microsoft 365': { host: 'smtp.office365.com', port: 587, sicher: false },
-  Gmail: { host: 'smtp.gmail.com', port: 465, sicher: true },
-}
