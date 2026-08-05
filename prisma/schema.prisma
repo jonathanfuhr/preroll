@@ -1,0 +1,540 @@
+// Preroll — Planung und Kundenfreigabe von Social-Media-Konzepten.
+// Ein Workspace pro Container (kein Multi-Tenant), analog zu Klappe.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+// Die Verbindungs-URL steht seit Prisma 7 in prisma.config.ts.
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- Team & Auth
+
+enum Rolle {
+  ADMIN
+  MITGLIED
+}
+
+model Nutzer {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  name         String
+  initialen    String  @db.VarChar(4)
+  passwortHash String?
+  // Gesetzt, wenn das Konto über Microsoft Entra ID kommt.
+  oidcSubjekt  String? @unique
+  rolle        Rolle   @default(MITGLIED)
+  aktiv        Boolean @default(true)
+
+  mailBenachrichtigungen Boolean @default(true)
+  pushBenachrichtigungen Boolean @default(true)
+
+  sessions       NutzerSession[]
+  pushAbos       PushAbo[]
+  verantwortlich Post[]          @relation("Verantwortlich")
+  hochgeladen    Medium[]
+  kommentare     Kommentar[]
+  einladungen    ExportGast[]    @relation("Einladungen")
+
+  erstelltAm     DateTime  @default(now())
+  aktualisiertAm DateTime  @updatedAt
+  zuletztAktivAm DateTime?
+
+  @@map("nutzer")
+}
+
+model NutzerSession {
+  id         String   @id @default(cuid())
+  nutzerId   String
+  nutzer     Nutzer   @relation(fields: [nutzerId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  laeuftAbAm DateTime
+  erstelltAm DateTime @default(now())
+
+  @@index([nutzerId])
+  @@map("nutzer_session")
+}
+
+// Gäste sind Kundenkontakte, die sich passwortlos per Mail-Code anmelden.
+model Gast {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  zuletztAktivAm DateTime?
+  erstelltAm    DateTime  @default(now())
+
+  mailBenachrichtigungen Boolean @default(true)
+  pushBenachrichtigungen Boolean @default(false)
+
+  sessions     GastSession[]
+  pushAbos     PushAbo[]
+  kommentare   Kommentar[]
+  freigaben    Freigabe[]
+  beteiligungen ExportGast[]
+
+  @@map("gast")
+}
+
+// Verbindet Gast und Export. Entsteht durch Einladung aus dem Backend oder
+// beim ersten Anmelden über einen Link — trägt die Gast-Übersicht „meine Freigaben".
+model ExportGast {
+  id       String @id @default(cuid())
+  exportId String
+  export   Export @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  gastId   String
+  gast     Gast   @relation(fields: [gastId], references: [id], onDelete: Cascade)
+
+  eingeladenAm       DateTime  @default(now())
+  eingeladenVonId    String?
+  eingeladenVon      Nutzer?   @relation("Einladungen", fields: [eingeladenVonId], references: [id], onDelete: SetNull)
+  zuletztGeoeffnetAm DateTime?
+
+  @@unique([exportId, gastId])
+  @@index([gastId])
+  @@map("export_gast")
+}
+
+model GastSession {
+  id         String   @id @default(cuid())
+  gastId     String
+  gast       Gast     @relation(fields: [gastId], references: [id], onDelete: Cascade)
+  exportId   String?
+  export     Export?  @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  laeuftAbAm DateTime
+  erstelltAm DateTime @default(now())
+
+  @@index([gastId])
+  @@map("gast_session")
+}
+
+// Sechsstelliger Anmeldecode per E-Mail — für Gäste, optional auch fürs Team.
+model LoginCode {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  exportId   String?
+  versuche   Int       @default(0)
+  eingelöstAm DateTime?
+  laeuftAbAm DateTime
+  erstelltAm DateTime  @default(now())
+
+  @@index([email])
+  @@map("login_code")
+}
+
+// ------------------------------------------------------------------- Stammdaten
+
+model Kunde {
+  id         String  @id @default(cuid())
+  name       String
+  slug       String  @unique
+  handle     String? // Instagram-Handle ohne @
+  logoId     String?
+  logo       Medium? @relation("KundeLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  notiz      String?
+  archiviert Boolean @default(false)
+
+  // Profil-Kennzahlen. Aktuell manuell gepflegt; das Modell trägt bereits
+  // alles, was die Graph API (Business Discovery) später liefern würde.
+  follower       Int?
+  gefolgt        Int?
+  beitraege      Int?
+  bio            String?
+  website        String?
+  kennzahlenAm   DateTime?
+  kennzahlenTyp  KennzahlenQuelle @default(MANUELL)
+
+  ansprechpartner Ansprechpartner[]
+  posts           Post[]
+  medien          Medium[]
+  exporte         Export[]
+  customFelder    CustomFeldDefinition[]
+  kennzahlen      KennzahlVerlauf[]
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@map("kunde")
+}
+
+enum KennzahlenQuelle {
+  MANUELL
+  GRAPH_API
+}
+
+// Tageswerte der Profil-Kennzahlen — ergibt nebenbei die Follower-Kurve.
+model KennzahlVerlauf {
+  id        String           @id @default(cuid())
+  kundeId   String
+  kunde     Kunde            @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  datum     DateTime         @db.Date
+  follower  Int?
+  gefolgt   Int?
+  beitraege Int?
+  quelle    KennzahlenQuelle @default(MANUELL)
+
+  @@unique([kundeId, datum])
+  @@map("kennzahl_verlauf")
+}
+
+model Ansprechpartner {
+  id       String  @id @default(cuid())
+  kundeId  String
+  kunde    Kunde   @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  name     String
+  rolle    String?
+  telefon  String?
+  email    String?
+  adresse  String?
+  website  String?
+  fotoId   String?
+  foto     Medium? @relation("AnsprechpartnerFoto", fields: [fotoId], references: [id], onDelete: SetNull)
+  standard Boolean @default(false)
+
+  exporte Export[]
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@index([kundeId])
+  @@map("ansprechpartner")
+}
+
+// ---------------------------------------------------------------------- Medien
+
+model Medium {
+  id        String  @id @default(cuid())
+  kundeId   String?
+  kunde     Kunde?  @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  dateiname String
+  // Pfad relativ zum Upload-Verzeichnis, nie an den Browser durchgereicht.
+  pfad      String
+  mimeTyp   String
+  groesse   Int
+  breite    Int
+  hoehe     Int
+  // Vorschau im Raster; bei 9:16-Medien der mittige 4:5-Ausschnitt.
+  thumbPfad String?
+
+  // Gesetzt, wenn dieses Medium beim Auftrennen eines Gesamtbildes entstand.
+  quelleId String?
+  quelle   Medium?  @relation("Auftrennung", fields: [quelleId], references: [id], onDelete: SetNull)
+  abschnitte Medium[] @relation("Auftrennung")
+
+  hochgeladenVonId String?
+  hochgeladenVon   Nutzer? @relation(fields: [hochgeladenVonId], references: [id], onDelete: SetNull)
+
+  postMedien       PostMedium[]
+  kundeLogo        Kunde[]           @relation("KundeLogo")
+  ansprechpartnerFoto Ansprechpartner[] @relation("AnsprechpartnerFoto")
+
+  erstelltAm DateTime @default(now())
+
+  @@index([kundeId])
+  @@map("medium")
+}
+
+// ----------------------------------------------------------------------- Posts
+
+enum PostTyp {
+  REEL
+  KARUSSELL
+  BEITRAG
+}
+
+enum PostStatus {
+  KONZEPT
+  VORSCHAU
+  FINAL
+}
+
+model Post {
+  id      String     @id @default(cuid())
+  kundeId String
+  kunde   Kunde      @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  typ     PostTyp
+  status  PostStatus @default(KONZEPT)
+
+  // Datum und Uhrzeit der Veröffentlichung — trägt die ZIP-Dateinamen.
+  postenAm DateTime
+
+  titel            String
+  kurzbeschreibung String?
+  caption          String  @default("")
+
+  // Freie Eckdaten aus dem Editor.
+  laenge String?
+  ziel   String?
+  stil   String?
+
+  verantwortlichId String?
+  verantwortlich   Nutzer? @relation("Verantwortlich", fields: [verantwortlichId], references: [id], onDelete: SetNull)
+
+  // Reel: Szenenplan ist optional. Ohne ihn tritt das Freitextfeld an seine Stelle.
+  szenenplanAktiv Boolean @default(true)
+  inhalte         String?
+
+  referenzVideoUrl   String?
+  referenzVideoTitel String?
+  // Lokal abgelegte Kopie des Referenzvideos — zuverlässiger als ein iframe.
+  referenzVideoPfad  String?
+
+  // Finales Reel aus Klappe.
+  klappeVideoId  String?
+  klappeVideoUrl String?
+
+  szenen       Szene[]
+  medien       PostMedium[]
+  customWerte  CustomFeldWert[]
+  kommentare   Kommentar[]
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@index([kundeId, postenAm])
+  @@map("post")
+}
+
+enum MediumRolle {
+  MEDIUM // Beitragsbild oder Reel-Video
+  SLIDE // Karussell-Slide
+  THUMBNAIL // Reel-Thumbnail (9:16)
+}
+
+model PostMedium {
+  id       String      @id @default(cuid())
+  postId   String
+  post     Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediumId String
+  medium   Medium      @relation(fields: [mediumId], references: [id], onDelete: Cascade)
+  rolle    MediumRolle @default(MEDIUM)
+  position Int         @default(0)
+
+  @@unique([postId, rolle, position])
+  @@index([mediumId])
+  @@map("post_medium")
+}
+
+model Szene {
+  id               String  @id @default(cuid())
+  postId           String
+  post             Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  position         Int
+  abschnitt        String  @default("Szene") // Hook, Intro, Szene, Abbinder
+  bildSzene        String?
+  sprechertext     String?
+  texteinblendung  String?
+
+  @@unique([postId, position])
+  @@map("szene")
+}
+
+enum CustomFeldTyp {
+  TEXT
+  DATUM
+  JANEIN
+}
+
+// Eigene Felder werden pro Kunde definiert und je Post befüllt.
+model CustomFeldDefinition {
+  id       String        @id @default(cuid())
+  kundeId  String
+  kunde    Kunde         @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  name     String
+  typ      CustomFeldTyp @default(TEXT)
+  position Int           @default(0)
+
+  werte CustomFeldWert[]
+
+  @@unique([kundeId, name])
+  @@map("custom_feld_definition")
+}
+
+model CustomFeldWert {
+  id           String               @id @default(cuid())
+  postId       String
+  post         Post                 @relation(fields: [postId], references: [id], onDelete: Cascade)
+  definitionId String
+  definition   CustomFeldDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  wert         String?
+
+  @@unique([postId, definitionId])
+  @@map("custom_feld_wert")
+}
+
+// --------------------------------------------------------------------- Export
+
+model Export {
+  id      String @id @default(cuid())
+  kundeId String
+  kunde   Kunde  @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+
+  // Öffentlicher Token im Link /f/<token>.
+  token String @unique
+  titel String?
+
+  zeitraumVon DateTime  @db.Date
+  zeitraumBis DateTime  @db.Date
+  gueltigBis  DateTime?
+
+  // Überschreibt den Standard-Ansprechpartner des Kunden nur für diesen Link.
+  ansprechpartnerId String?
+  ansprechpartner   Ansprechpartner? @relation(fields: [ansprechpartnerId], references: [id], onDelete: SetNull)
+
+  kommentareErlaubt    Boolean @default(true)
+  freigabeButtonZeigen Boolean @default(true)
+  konzepteMitzeigen    Boolean @default(false)
+  // Gast muss sich per Mail-Code anmelden, bevor er den Inhalt sieht.
+  loginPflicht         Boolean @default(false)
+
+  aufrufe          Int       @default(0)
+  zuletztGeoeffnet DateTime?
+  // Gesetzt, sobald die erste Freigabe eingeht — trennt „im Review" von „freigegeben".
+  freigegebenAm    DateTime?
+
+  kommentare   Kommentar[]
+  freigaben    Freigabe[]
+  gastSessions GastSession[]
+  gaeste       ExportGast[]
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@index([kundeId])
+  @@map("export")
+}
+
+model Freigabe {
+  id         String   @id @default(cuid())
+  exportId   String
+  export     Export   @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  gastId     String?
+  gast       Gast?    @relation(fields: [gastId], references: [id], onDelete: SetNull)
+  autorName  String
+  notiz      String?
+  erstelltAm DateTime @default(now())
+
+  @@index([exportId])
+  @@map("freigabe")
+}
+
+enum KommentarStatus {
+  OFFEN
+  ERLEDIGT
+}
+
+model Kommentar {
+  id       String  @id @default(cuid())
+  postId   String?
+  post     Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  exportId String?
+  export   Export? @relation(fields: [exportId], references: [id], onDelete: SetNull)
+
+  // Welcher Abschnitt gemeint ist: "caption", "medium", "szene:3", "allgemein".
+  abschnitt String @default("allgemein")
+
+  autorName  String
+  autorEmail String?
+  gastId     String?
+  gast       Gast?   @relation(fields: [gastId], references: [id], onDelete: SetNull)
+  nutzerId   String?
+  nutzer     Nutzer? @relation(fields: [nutzerId], references: [id], onDelete: SetNull)
+
+  text   String
+  status KommentarStatus @default(OFFEN)
+
+  antwortAufId String?
+  antwortAuf   Kommentar?  @relation("Antworten", fields: [antwortAufId], references: [id], onDelete: Cascade)
+  antworten    Kommentar[] @relation("Antworten")
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@index([postId])
+  @@index([exportId])
+  @@map("kommentar")
+}
+
+// ------------------------------------------------------- Benachrichtigungen
+
+model PushAbo {
+  id       String  @id @default(cuid())
+  nutzerId String?
+  nutzer   Nutzer? @relation(fields: [nutzerId], references: [id], onDelete: Cascade)
+  gastId   String?
+  gast     Gast?   @relation(fields: [gastId], references: [id], onDelete: Cascade)
+
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  erstelltAm DateTime @default(now())
+
+  @@index([nutzerId])
+  @@index([gastId])
+  @@map("push_abo")
+}
+
+// ------------------------------------------------------------- Einstellungen
+
+enum MailTransport {
+  SMTP
+  MICROSOFT365
+  GOOGLE
+  DEAKTIVIERT
+}
+
+// Singleton — genau eine Zeile mit id = "singleton".
+model Einstellungen {
+  id String @id @default("singleton")
+
+  workspaceName String @default("Preroll")
+  logoUrl       String?
+  akzentfarbe   String @default("#b00900")
+
+  // Anmeldung
+  lokalerLoginErlaubt Boolean @default(true)
+  m365LoginErlaubt    Boolean @default(false)
+  m365TenantId        String?
+  m365ClientId        String?
+  m365ClientSecret    String?
+
+  // Mailversand — ein aktiver Transport, drei mögliche Wege.
+  mailTransport MailTransport @default(DEAKTIVIERT)
+  mailVonName   String?
+  mailVonAdresse String?
+
+  smtpHost     String?
+  smtpPort     Int?
+  smtpSicher   Boolean @default(true)
+  smtpBenutzer String?
+  smtpPasswort String?
+
+  // Microsoft 365: Graph sendMail per Client-Credentials.
+  msTenantId     String?
+  msClientId     String?
+  msClientSecret String?
+  msPostfach     String?
+
+  // Google: Gmail API per OAuth2-Refresh-Token.
+  googleClientId     String?
+  googleClientSecret String?
+  googleRefreshToken String?
+  googleAbsender     String?
+
+  // Web-Push
+  vapidPublicKey  String?
+  vapidPrivateKey String?
+
+  // Klappe-Anbindung für finale Reels.
+  klappeBasisUrl String?
+  klappeApiKey   String?
+
+  aktualisiertAm DateTime @updatedAt
+
+  @@map("einstellungen")
+}

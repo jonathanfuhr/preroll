@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #eceae7; font-family: 'Poppins', 'Helvetica Neue', Helvetica, sans-serif; color: #1c1a18; -webkit-font-smoothing: antialiased; }
+  a { color: #b00900; text-decoration: none; }
+  a:hover { color: #8b0700; }
+  * { box-sizing: border-box; }
+  input, textarea, button { font-family: 'Poppins', Helvetica, sans-serif; }
+  input:focus, textarea:focus { outline: none; border-color: #b00900; }
+</style>
+</helmet>
+
+<section style="padding:64px 72px 120px;">
+  <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px;">
+    <span style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8b8783;">preroll</span>
+    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#b0aca7;">Runde 1</span>
+  </div>
+  <h1 style="margin:0 0 6px;font-size:34px;font-weight:600;letter-spacing:-0.02em;">Kundenansicht — Export-Seite</h1>
+  <p style="margin:0 0 56px;font-size:14.5px;line-height:1.7;color:#6f6b67;max-width:720px;">Drei Ansichten aus einem System: <a href="#1a">1a</a> Desktop-Freigabeseite, <a href="#1b">1b</a> dieselbe Seite mobil, <a href="#1c">1c</a> die Kommentar-Interaktion im Detail. Beispielkunde: Beispiel Handwerk GmbH, Content-Plan August 2026.</p>
+
+  <div style="display:flex;flex-wrap:nowrap;width:max-content;align-items:flex-start;gap:96px;">
+
+    <!-- ============================= 1a DESKTOP ============================= -->
+    <div id="1a" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">1a</span>
+        <span style="font-size:13.5px;font-weight:500;">Export-Seite Desktop</span>
+        <span style="font-size:12px;color:#8b8783;">1440 × scroll</span>
+      </div>
+
+      <div data-screen-label="1a Export Desktop" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;">
+
+        <!-- Topbar -->
+        <div style="position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;height:68px;padding:0 40px;border-bottom:1px solid #eceae7;background:rgba(255,255,255,.96);">
+          <div style="display:flex;align-items:center;gap:20px;">
+            <span style="font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:#a5a09b;">preroll</span>
+            <span style="width:1px;height:22px;background:#e6e3df;display:block;"></span>
+            <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+            <span style="font-size:14px;font-weight:500;">Beispiel Handwerk GmbH</span>
+            <span style="font-size:13px;color:#8b8783;">Content-Plan August 2026</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:22px;">
+            <span style="font-size:12px;color:#a5a09b;">Freigabe-Link · nur für Sie sichtbar</span>
+            <sc-if value="{{ freigabe }}" hint-placeholder-val="{{ true }}">
+              <button style="border:none;background:#b00900;color:#fff;font-size:14.5px;font-weight:600;padding:15px 28px;border-radius:6px;cursor:pointer;box-shadow:0 3px 12px rgba(176,9,0,.32);" style-hover="background:#8b0700;box-shadow:0 4px 16px rgba(176,9,0,.42);">Freigabe erteilen</button>
+            </sc-if>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:64px;padding:72px 72px 48px;">
+          <div style="max-width:620px;">
+            <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#a5a09b;margin-bottom:22px;">Content-Plan zur Freigabe</div>
+            <h2 style="margin:0;font-size:60px;line-height:1.02;font-weight:600;letter-spacing:-0.03em;">Content-Plan</h2>
+            <div style="font-family:'Instrument Serif',Georgia,serif;font-size:56px;line-height:1.05;color:#b00900;margin-top:4px;">August 2026</div>
+            <p style="margin:26px 0 0;font-size:14.5px;line-height:1.75;color:#5f5b57;">Hier sehen Sie alle geplanten Beiträge für August — so, wie sie später auf Instagram erscheinen. Über den Kalender springen Sie direkt zum Beitrag. Ihre Anmerkungen schreiben Sie in der Spalte direkt neben dem Beitrag — wir sehen sie sofort.</p>
+          </div>
+          <div style="display:grid;gap:14px;min-width:240px;padding-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eceae7;padding-bottom:10px;"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Beiträge</span><span style="font-size:13px;">4 · KW 32–35</span></div>
+            <div style="display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eceae7;padding-bottom:10px;"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Kanal</span><span style="font-size:13px;">Instagram</span></div>
+            <div style="display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eceae7;padding-bottom:10px;"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Agentur</span><span style="font-size:13px;">THD Video</span></div>
+            <div style="display:flex;justify-content:space-between;gap:20px;"><span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Rückmeldung bis</span><span style="font-size:13px;">08.08.2026</span></div>
+          </div>
+        </div>
+
+        <!-- Kalender -->
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:32px;align-items:start;padding:0 72px 64px;">
+          <div style="border:1px solid #eceae7;border-radius:6px;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #eceae7;">
+              <div style="display:flex;align-items:baseline;gap:10px;">
+                <span style="font-size:17px;font-weight:600;">August</span>
+                <span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;">2026</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:22px;">
+                <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#b00900;display:block;"></span><span style="font-size:12px;color:#5f5b57;">Reel</span></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#2f4b8f;display:block;"></span><span style="font-size:12px;color:#5f5b57;">Karussell</span></div>
+                <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#0f7a6a;display:block;"></span><span style="font-size:12px;color:#5f5b57;">Beitrag</span></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:76px repeat(7,1fr);">
+              <div style="border-right:1px solid #eceae7;background:#faf9f7;"></div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Mo</div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Di</div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Mi</div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Do</div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Fr</div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Sa</div>
+              <div style="padding:10px 12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">So</div>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">31</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">27</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">28</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">29</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">30</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">31</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">1</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">2</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">32</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">3</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">4</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;background:#fdf7f6;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#b00900;color:#fff;font-size:12px;">5</span>
+                <a href="#post-1" style="display:flex;align-items:center;gap:7px;margin-top:10px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#b00900;display:block;flex:0 0 auto;"></span>
+                  <span style="font-size:11.5px;color:#3d3a37;">Reel · Recruiting</span>
+                </a>
+              </div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">6</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">7</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">8</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">9</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">33</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">10</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;">
+                <span style="font-size:12px;color:#57534f;">11</span>
+                <a href="#post-2" style="display:flex;align-items:center;gap:7px;margin-top:10px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#2f4b8f;display:block;flex:0 0 auto;"></span>
+                  <span style="font-size:11.5px;color:#3d3a37;">Karussell · Jobs</span>
+                </a>
+              </div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">12</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">13</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">14</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">15</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">16</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">34</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">17</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">18</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">19</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;">
+                <span style="font-size:12px;color:#57534f;">20</span>
+                <a href="#post-3" style="display:flex;align-items:center;gap:7px;margin-top:10px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#0f7a6a;display:block;flex:0 0 auto;"></span>
+                  <span style="font-size:11.5px;color:#3d3a37;">Beitrag · Vorher/Nachher</span>
+                </a>
+              </div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">21</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">22</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">23</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">35</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">24</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">25</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">26</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">27</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;">
+                <span style="font-size:12px;color:#57534f;">28</span>
+                <a href="#post-4" style="display:flex;align-items:center;gap:7px;margin-top:10px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#0f7a6a;display:block;flex:0 0 auto;"></span>
+                  <span style="font-size:11.5px;color:#3d3a37;">Beitrag · Leistungen</span>
+                </a>
+              </div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">29</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">30</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">36</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">31</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">1</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">2</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">3</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">4</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">5</span></div>
+              <div style="min-height:96px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">6</span></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;">
+              <span style="font-size:15px;font-weight:600;">Feed-Vorschau</span>
+              <span style="display:flex;align-items:center;gap:7px;"><span style="width:10px;height:10px;border-radius:2px;box-shadow:inset 0 0 0 2px #b00900;display:block;"></span><span style="font-size:11px;color:#5f5b57;">geplant</span></span>
+            </div>
+            <div style="width:326px;margin:0 auto;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 18px 44px rgba(30,20,14,.20);">
+              <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+                <div style="position:relative;background:#fff;border-radius:41px;overflow:hidden;">
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#000;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#000;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #000;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#000;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 16px 12px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:15px;font-weight:600;color:#0f0f10;">beispiel.handwerk</span>
+                    <span style="font-size:15px;letter-spacing:2px;color:#0f0f10;">···</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:22px;padding:0 16px 12px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:62px;height:62px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                    <div style="display:flex;flex:1;justify-content:space-around;text-align:center;">
+                      <div><div style="font-size:14px;font-weight:600;color:#0f0f10;">128</div><div style="font-size:11px;color:#3c3c43;">Beiträge</div></div>
+                      <div><div style="font-size:14px;font-weight:600;color:#0f0f10;">486</div><div style="font-size:11px;color:#3c3c43;">Follower</div></div>
+                      <div><div style="font-size:14px;font-weight:600;color:#0f0f10;">92</div><div style="font-size:11px;color:#3c3c43;">gefolgt</div></div>
+                    </div>
+                  </div>
+                  <div style="padding:0 16px 14px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <div style="font-size:12.5px;font-weight:600;color:#0f0f10;">Beispiel Handwerk GmbH</div>
+                    <div style="font-size:12.5px;line-height:1.45;color:#0f0f10;">Garten- &amp; Landschaftsbau · Facility Management<br />Plochingen · Esslingen · Stuttgart</div>
+                  </div>
+                  <div style="display:flex;border-top:1px solid #ededed;">
+                    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 0;border-bottom:1.5px solid #0f0f10;">
+                      <span style="display:grid;grid-template-columns:repeat(3,3.5px);gap:2px;"><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span></span>
+                    </div>
+                    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 0;border-bottom:1.5px solid transparent;">
+                      <span style="display:block;width:13px;height:13px;border:1.6px solid #b9b9be;border-radius:3px;transform:rotate(45deg);"></span>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px 0 14px;">
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/beitrag-facility.jpg" alt="Geplanter Beitrag 28.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">28.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/beitrag-vorhernachher.jpg" alt="Geplanter Beitrag 20.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">20.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/karussell-1.jpg" alt="Geplanter Beitrag 11.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">11.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/reel-1.jpg" alt="Geplanter Beitrag 05.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:0;height:0;border-left:9px solid #fff;border-top:5.5px solid transparent;border-bottom:5.5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));"></span>
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">05.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p1.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p2.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:0;height:0;border-left:9px solid #fff;border-top:5.5px solid transparent;border-bottom:5.5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));"></span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p3.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p4.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p5.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p6.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:0;height:0;border-left:9px solid #fff;border-top:5.5px solid transparent;border-bottom:5.5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));"></span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p7.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p8.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                              </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <span style="font-size:11.5px;line-height:1.65;color:#8b8783;">So sieht das Profil nach dem 28.08. aus — die vier geplanten Beiträge oben, darunter die bereits veröffentlichten.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Post 1 · Reel ===== -->
+        <div id="post-1" data-screen-label="Post KW32 Reel" style="position:relative;padding:56px 72px 68px;border-top:1px solid #eceae7;">
+          
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;">
+            <div style="display:flex;align-items:baseline;gap:14px;">
+              <span style="font-size:30px;font-weight:700;letter-spacing:-0.02em;">KW</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:42px;line-height:1;color:#b00900;">32</span>
+              <span style="font-size:14px;color:#77746f;padding-bottom:5px;">Reel</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:13px;color:#77746f;">Mi, 05.08.2026 · 11:00</span>
+              <sc-if value="{{ badges }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#eef6f0;color:#2f7a45;font-size:11.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#2f7a45;display:block;"></span>Final</span>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:326px minmax(0,1fr) 320px;gap:48px;align-items:start;">
+            <!-- iPhone: Reel -->
+            <div style="width:326px;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 18px 44px rgba(30,20,14,.20);">
+              <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+                <div style="position:relative;height:648px;background:#000;border-radius:41px;overflow:hidden;">
+                  <img src="assets/reel-1.jpg" alt="Reel Recruiting" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                  <div style="position:absolute;top:0;left:0;right:0;height:170px;background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,0));"></div>
+                  <div style="position:absolute;bottom:0;left:0;right:0;height:290px;background:linear-gradient(0deg,rgba(0,0,0,.74),rgba(0,0,0,0));"></div>
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#fff;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#fff;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#fff;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#fff;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#fff;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #fff;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#fff;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:8px 18px 0;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:17px;font-weight:600;color:#fff;">Reels</span>
+                    <span style="font-size:11.5px;color:#fff;padding:3px 9px;border-radius:4px;background:rgba(0,0,0,.35);">0:32</span>
+                  </div>
+                  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;">
+                    <span style="display:block;width:0;height:0;margin-left:5px;border-left:17px solid rgba(255,255,255,.95);border-top:10px solid transparent;border-bottom:10px solid transparent;"></span>
+                  </div>
+                  <div style="position:absolute;right:14px;bottom:124px;display:flex;flex-direction:column;align-items:center;gap:20px;color:#fff;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:24px;line-height:1;">♡</span><span style="font-size:11px;">52</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:7px;"><span style="position:relative;display:block;width:17px;height:14px;border:1.7px solid #fff;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid #fff;border-bottom:5px solid transparent;"></span><span style="font-size:11px;">7</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:7px;"><span style="display:block;width:14px;height:14px;border-left:1.7px solid #fff;border-bottom:1.7px solid #fff;transform:rotate(-45deg) skew(-10deg,-10deg);"></span><span style="font-size:11px;">3</span></div>
+                    <span style="font-size:16px;letter-spacing:2px;line-height:1;">···</span>
+                  </div>
+                  <div style="position:absolute;left:16px;right:70px;bottom:22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#fff;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+                      <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:30px;height:30px;border-radius:50%;object-fit:cover;background:#fff;border:1.5px solid rgba(255,255,255,.9);" />
+                      <span style="font-size:13px;font-weight:600;">beispiel.handwerk</span>
+                      <span style="font-size:11.5px;padding:3px 9px;border:1px solid rgba(255,255,255,.75);border-radius:4px;">Folgen</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.5;">Wir brauchen Verstärkung! Du möchtest draußen arbeiten, im Team anpacken und jeden Tag sehen, was du geschafft hast? <span style="color:rgba(255,255,255,.72);">mehr</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Text -->
+            <div>
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Caption</div>
+              <p style="margin:0;font-size:14.5px;line-height:1.75;color:#2e2b28;white-space:pre-line;max-width:600px;">Wir brauchen Verstärkung!
+
+Du möchtest draußen arbeiten, im Team anpacken und jeden Tag sehen, was du geschafft hast?
+
+Dann bist du bei Beispiel genau richtig.
+
+Bewirb dich jetzt als Garten- und Landschaftsbauer und werde Teil unseres Teams!</p>
+              <p style="margin:18px 0 0;font-size:13.5px;line-height:1.7;color:#6f6b67;max-width:600px;">#Beispiel #GartenUndLandschaftsbau #Jobs #Karriere #TeamBeispiel #JetztBewerben #Badenwürttemberg #Plochingen #Esslingen #Stuttgart</p>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,180px));gap:22px;margin-top:34px;padding-top:26px;border-top:1px solid #eceae7;">
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Format</div><div style="font-size:13.5px;">Reel · 9:16</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Länge</div><div style="font-size:13.5px;">0:32</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Ziel</div><div style="font-size:13.5px;">Recruiting</div></div>
+              </div>
+              <sc-if value="{{ ablaufDetail }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-top:34px;max-width:600px;border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Ablauf des Reels</span>
+                    <span style="font-size:11.5px;color:#928e89;">5 Abschnitte · ca. 32 Sek.</span>
+                  </div>
+                  <div style="padding:20px 20px 18px;">
+                    <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #f2f0ed;">
+                      <div style="display:flex;align-items:flex-start;gap:9px;">
+                        <span style="width:21px;height:21px;border-radius:50%;background:#b00900;color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">1</span>
+                        <span style="font-size:12px;font-weight:500;padding-top:3px;">Hook</span>
+                      </div>
+                      <div>
+                        <div style="font-size:13px;line-height:1.6;color:#2e2b28;">Drei Mitarbeiter stehen vor dem Firmengelände, einer dreht sich in die Kamera.</div>
+                        <div style="font-size:12.5px;line-height:1.6;color:#6f6b67;margin-top:6px;">„Wir suchen Verstärkung — und zwar dich."</div>
+                      <span style="display:inline-block;margin-top:10px;padding:4px 10px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11px;">Einblendung: GARTEN- &amp; LANDSCHAFTSBAUER GESUCHT!</span>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #f2f0ed;">
+                      <div style="display:flex;align-items:flex-start;gap:9px;">
+                        <span style="width:21px;height:21px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">2</span>
+                        <span style="font-size:12px;font-weight:500;padding-top:3px;">Intro</span>
+                      </div>
+                      <div>
+                        <div style="font-size:13px;line-height:1.6;color:#2e2b28;">Schwenk über die Baustelle, das Team setzt Randsteine.</div>
+                        <div style="font-size:12.5px;line-height:1.6;color:#6f6b67;margin-top:6px;">„Bei Beispiel arbeitest du draußen, im Team — und siehst abends, was du geschafft hast."</div>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #f2f0ed;">
+                      <div style="display:flex;align-items:flex-start;gap:9px;">
+                        <span style="width:21px;height:21px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">3</span>
+                        <span style="font-size:12px;font-weight:500;padding-top:3px;">Szene</span>
+                      </div>
+                      <div>
+                        <div style="font-size:13px;line-height:1.6;color:#2e2b28;">Nahaufnahmen: Heckenschere, Radlader, Pflanzarbeiten — schneller Schnitt.</div>
+                        <div style="font-size:12.5px;line-height:1.6;color:#6f6b67;margin-top:6px;">„Moderne Maschinen, feste Teams, klare Aufgaben."</div>
+                      <span style="display:inline-block;margin-top:10px;padding:4px 10px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11px;">Einblendung: Grünflächen · Maschinen · Team</span>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #f2f0ed;">
+                      <div style="display:flex;align-items:flex-start;gap:9px;">
+                        <span style="width:21px;height:21px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">4</span>
+                        <span style="font-size:12px;font-weight:500;padding-top:3px;">Szene</span>
+                      </div>
+                      <div>
+                        <div style="font-size:13px;line-height:1.6;color:#2e2b28;">Mitarbeiter im Gespräch, kurze Pause auf der Baustelle.</div>
+                        <div style="font-size:12.5px;line-height:1.6;color:#6f6b67;margin-top:6px;">„Lasst uns endlich anfangen."</div>
+                      <span style="display:inline-block;margin-top:10px;padding:4px 10px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11px;">Einblendung: LASST UNS ENDLICH …</span>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding-bottom:4px;margin-bottom:0px;">
+                      <div style="display:flex;align-items:flex-start;gap:9px;">
+                        <span style="width:21px;height:21px;border-radius:50%;background:#1c1a18;color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:0 0 auto;">5</span>
+                        <span style="font-size:12px;font-weight:500;padding-top:3px;">Abbinder</span>
+                      </div>
+                      <div>
+                        <div style="font-size:13px;line-height:1.6;color:#2e2b28;">Logo-Animation, Hinweis auf die Bewerbung.</div>
+                        <div style="font-size:12.5px;line-height:1.6;color:#6f6b67;margin-top:6px;">„Bewirb dich jetzt bei Beispiel."</div>
+                      <span style="display:inline-block;margin-top:10px;padding:4px 10px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11px;">Einblendung: JETZT BEWERBEN</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ ablaufFrei }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:34px;max-width:600px;border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Inhalte des Reels</span>
+                    <span style="font-size:11.5px;color:#928e89;">ca. 32 Sek.</span>
+                  </div>
+                  <div style="padding:20px;font-size:13.5px;line-height:1.75;color:#2e2b28;white-space:pre-line;">Kurzes Recruiting-Reel ohne festes Storyboard.
+
+Aufnahmen vom Team auf der Baustelle, dazwischen Nahaufnahmen von Maschinen und Pflanzarbeiten. Sprechertext aus dem Off, Untertitel durchgehend.
+
+Am Ende Logo-Abbinder mit Hinweis auf die offene Stelle.</div>
+                </div>
+              </sc-if>
+
+              </div>
+
+            <div style="position:sticky;top:88px;border:1px solid #e6e3df;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(28,22,16,.05);overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Anmerkungen</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 7px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:11px;font-weight:600;">{{ countP1 }}</span>
+              </div>
+              <div style="padding:18px 16px 4px;">
+                <sc-if value="{{ emptyP1 }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;line-height:1.6;color:#a5a09b;padding-bottom:16px;">Noch keine Anmerkungen zu diesem Beitrag.</div>
+                </sc-if>
+                <sc-for list="{{ commentsP1 }}" as="c" hint-placeholder-count="1">
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.02em;background:{{ c.tint }};color:{{ c.ink }};">{{ c.initials }}</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">{{ c.name }}</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">{{ c.ts }}</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">{{ c.text }}</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">{{ c.role }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <form data-post="p1" onSubmit="{{ submit }}" style="display:flex;align-items:flex-end;gap:8px;padding:12px 14px 14px;border-top:1px solid #eceae7;background:#fdfcfb;">
+                <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                <textarea name="text" rows="1" placeholder="Anmerkung schreiben …" style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:18px;background:#fff;padding:9px 14px;font-size:12.5px;line-height:1.5;color:#1c1a18;resize:none;"></textarea>
+                <button type="submit" style="flex:0 0 auto;width:34px;height:34px;border:none;border-radius:50%;background:#b00900;color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:#8b0700;">↑</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Post 2 · Karussell ===== -->
+        <div id="post-2" data-screen-label="Post KW33 Karussell" style="position:relative;padding:56px 72px 68px;border-top:1px solid #eceae7;">
+          
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;">
+            <div style="display:flex;align-items:baseline;gap:14px;">
+              <span style="font-size:30px;font-weight:700;letter-spacing:-0.02em;">KW</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:42px;line-height:1;color:#b00900;">33</span>
+              <span style="font-size:14px;color:#77746f;padding-bottom:5px;">Karussell · 2 Slides</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:13px;color:#77746f;">Di, 11.08.2026 · 17:30</span>
+              <sc-if value="{{ badges }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fdf4e7;color:#b5730a;font-size:11.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:326px minmax(0,1fr) 320px;gap:48px;align-items:start;">
+            <div style="width:326px;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 18px 44px rgba(30,20,14,.20);">
+              <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+                <div style="position:relative;background:#fff;border-radius:41px;overflow:hidden;">
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#000;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#000;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #000;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#000;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:4px 14px 10px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:34px;height:34px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:13px;font-weight:600;color:#0f0f10;">beispiel.handwerk</div>
+                      <div style="font-size:11.5px;color:#3c3c43;">Beispiel Handwerk GmbH</div>
+                    </div>
+                    <span style="color:#0f0f10;font-size:14px;letter-spacing:2px;">···</span>
+                  </div>
+                  <div onClick="{{ nextSlide }}" style="position:relative;cursor:pointer;">
+                    <img src="assets/karussell-1.jpg" alt="Karussell Slide 1" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;" />
+                    <sc-if value="{{ slide2 }}" hint-placeholder-val="{{ false }}">
+                      <img src="assets/karussell-2.jpg" alt="Karussell Slide 2" style="position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;" />
+                    </sc-if>
+                    <div style="position:absolute;top:12px;right:14px;padding:3px 9px;border-radius:11px;background:rgba(0,0,0,.5);color:#fff;font-size:11.5px;font-family:-apple-system,Helvetica,Arial,sans-serif;">{{ slideLabel }}</div>
+                    <div style="position:absolute;bottom:12px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:5px;">
+                      <sc-if value="{{ slide1 }}" hint-placeholder-val="{{ true }}">
+                        <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:block;box-shadow:0 0 3px rgba(0,0,0,.3);"></span>
+                      </sc-if>
+                      <sc-if value="{{ slide2 }}" hint-placeholder-val="{{ false }}">
+                        <span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);display:block;"></span>
+                      </sc-if>
+                      <sc-if value="{{ slide1 }}" hint-placeholder-val="{{ true }}">
+                        <span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);display:block;"></span>
+                      </sc-if>
+                      <sc-if value="{{ slide2 }}" hint-placeholder-val="{{ false }}">
+                        <span style="width:6px;height:6px;border-radius:50%;background:#fff;display:block;box-shadow:0 0 3px rgba(0,0,0,.3);"></span>
+                      </sc-if>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:16px;padding:12px 16px 4px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                    <span style="font-size:19px;line-height:1;color:#0f0f10;">♡</span>
+                    <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid #0f0f10;border-radius:4px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:6px solid #0f0f10;border-bottom:5px solid transparent;"></span>
+                    <span style="display:block;width:13px;height:13px;border-left:1.6px solid #0f0f10;border-bottom:1.6px solid #0f0f10;transform:rotate(-45deg) skew(-10deg,-10deg);"></span>
+                    <span style="flex:1;"></span>
+                    <span style="display:block;width:13px;height:16px;background:#0f0f10;clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);"></span>
+                  </div>
+                  <div style="padding:8px 16px 20px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;color:#0f0f10;">
+                    <span style="font-weight:600;">beispiel.handwerk</span> Wir suchen Garten- &amp; Landschaftsbauer. Du arbeitest gerne an der frischen Luft und möchtest sichtbare Ergebnisse schaffen? <span style="color:#8e8e93;">mehr</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Caption</div>
+              <p style="margin:0;font-size:14.5px;line-height:1.75;color:#2e2b28;white-space:pre-line;max-width:600px;">Wir suchen Garten- &amp; Landschaftsbauer
+
+Du arbeitest gerne an der frischen Luft und möchtest sichtbare Ergebnisse schaffen?
+
+Dann werde Teil unseres Teams! Als Garten- und Landschaftsbauer bei Beispiel gestaltest und pflegst du Außenanlagen, arbeitest mit modernen Maschinen und bist Teil eines starken Teams.</p>
+              <p style="margin:18px 0 0;font-size:13.5px;line-height:1.7;color:#6f6b67;max-width:600px;">#Beispiel #Karriere #GartenUndLandschaftsbau #Jobs #TeamBeispiel #JetztBewerben #Plochingen #Esslingen #Stuttgart</p>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,180px));gap:22px;margin-top:34px;padding-top:26px;border-top:1px solid #eceae7;">
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Format</div><div style="font-size:13.5px;">Karussell · 4:5</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Slides</div><div style="font-size:13.5px;">2</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Ziel</div><div style="font-size:13.5px;">Recruiting</div></div>
+              </div>
+              </div>
+
+            <div style="position:sticky;top:88px;border:1px solid #e6e3df;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(28,22,16,.05);overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Anmerkungen</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 7px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:11px;font-weight:600;">{{ countP2 }}</span>
+              </div>
+              <div style="padding:18px 16px 4px;">
+                <sc-if value="{{ emptyP2 }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;line-height:1.6;color:#a5a09b;padding-bottom:16px;">Noch keine Anmerkungen zu diesem Beitrag.</div>
+                </sc-if>
+                <sc-for list="{{ commentsP2 }}" as="c" hint-placeholder-count="1">
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.02em;background:{{ c.tint }};color:{{ c.ink }};">{{ c.initials }}</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">{{ c.name }}</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">{{ c.ts }}</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">{{ c.text }}</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">{{ c.role }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <form data-post="p2" onSubmit="{{ submit }}" style="display:flex;align-items:flex-end;gap:8px;padding:12px 14px 14px;border-top:1px solid #eceae7;background:#fdfcfb;">
+                <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                <textarea name="text" rows="1" placeholder="Anmerkung schreiben …" style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:18px;background:#fff;padding:9px 14px;font-size:12.5px;line-height:1.5;color:#1c1a18;resize:none;"></textarea>
+                <button type="submit" style="flex:0 0 auto;width:34px;height:34px;border:none;border-radius:50%;background:#b00900;color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:#8b0700;">↑</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Post 3 · Beitrag Vorher/Nachher ===== -->
+        <div id="post-3" data-screen-label="Post KW34 Beitrag" style="position:relative;padding:56px 72px 68px;border-top:1px solid #eceae7;">
+          
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;">
+            <div style="display:flex;align-items:baseline;gap:14px;">
+              <span style="font-size:30px;font-weight:700;letter-spacing:-0.02em;">KW</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:42px;line-height:1;color:#b00900;">34</span>
+              <span style="font-size:14px;color:#77746f;padding-bottom:5px;">Beitrag · Vorher/Nachher</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:13px;color:#77746f;">Do, 20.08.2026 · 09:00</span>
+              <sc-if value="{{ badges }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fdf4e7;color:#b5730a;font-size:11.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:326px minmax(0,1fr) 320px;gap:48px;align-items:start;">
+            <div style="width:326px;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 18px 44px rgba(30,20,14,.20);">
+              <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+                <div style="position:relative;background:#fff;border-radius:41px;overflow:hidden;">
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#000;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#000;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #000;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#000;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:4px 14px 10px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:34px;height:34px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:13px;font-weight:600;color:#0f0f10;">beispiel.handwerk</div>
+                      <div style="font-size:11.5px;color:#3c3c43;">Beispiel Handwerk GmbH</div>
+                    </div>
+                    <span style="color:#0f0f10;font-size:14px;letter-spacing:2px;">···</span>
+                  </div>
+                  <img src="assets/beitrag-vorhernachher.jpg" alt="Vorher Nachher Hecke" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;" />
+                  <div style="display:flex;align-items:center;gap:16px;padding:12px 16px 4px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                    <span style="font-size:19px;line-height:1;color:#0f0f10;">♡</span>
+                    <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid #0f0f10;border-radius:4px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:6px solid #0f0f10;border-bottom:5px solid transparent;"></span>
+                    <span style="display:block;width:13px;height:13px;border-left:1.6px solid #0f0f10;border-bottom:1.6px solid #0f0f10;transform:rotate(-45deg) skew(-10deg,-10deg);"></span>
+                    <span style="flex:1;"></span>
+                    <span style="display:block;width:13px;height:16px;background:#0f0f10;clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);"></span>
+                  </div>
+                  <div style="padding:8px 16px 20px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;color:#0f0f10;">
+                    <span style="font-weight:600;">beispiel.handwerk</span> Der Unterschied liegt oft im Detail. Regelmäßig gepflegte Außenanlagen sorgen nicht nur für einen professionellen ersten Eindruck … <span style="color:#8e8e93;">mehr</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Caption</div>
+              <p style="margin:0;font-size:14.5px;line-height:1.75;color:#2e2b28;white-space:pre-line;max-width:600px;">Der Unterschied liegt oft im Detail.
+
+Regelmäßig gepflegte Außenanlagen sorgen nicht nur für einen professionellen ersten Eindruck, sondern tragen auch zum Werterhalt Ihrer Immobilie bei.
+
+Mit Beispiel bleiben Ihre Außenbereiche das ganze Jahr über gepflegt.</p>
+              <p style="margin:18px 0 0;font-size:13.5px;line-height:1.7;color:#6f6b67;max-width:600px;">#Beispiel #VorherNachher #GartenUndLandschaftsbau #Werterhalt #FacilityManagement #Plochingen #Esslingen #Stuttgart</p>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,180px));gap:22px;margin-top:34px;padding-top:26px;border-top:1px solid #eceae7;">
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Format</div><div style="font-size:13.5px;">Beitrag · 4:5</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Motiv</div><div style="font-size:13.5px;">Heckenschnitt Plochingen</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Ziel</div><div style="font-size:13.5px;">Leistungsnachweis</div></div>
+              </div>
+              </div>
+
+            <div style="position:sticky;top:88px;border:1px solid #e6e3df;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(28,22,16,.05);overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Anmerkungen</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 7px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:11px;font-weight:600;">{{ countP3 }}</span>
+              </div>
+              <div style="padding:18px 16px 4px;">
+                <sc-if value="{{ emptyP3 }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;line-height:1.6;color:#a5a09b;padding-bottom:16px;">Noch keine Anmerkungen zu diesem Beitrag.</div>
+                </sc-if>
+                <sc-for list="{{ commentsP3 }}" as="c" hint-placeholder-count="1">
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.02em;background:{{ c.tint }};color:{{ c.ink }};">{{ c.initials }}</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">{{ c.name }}</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">{{ c.ts }}</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">{{ c.text }}</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">{{ c.role }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <form data-post="p3" onSubmit="{{ submit }}" style="display:flex;align-items:flex-end;gap:8px;padding:12px 14px 14px;border-top:1px solid #eceae7;background:#fdfcfb;">
+                <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                <textarea name="text" rows="1" placeholder="Anmerkung schreiben …" style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:18px;background:#fff;padding:9px 14px;font-size:12.5px;line-height:1.5;color:#1c1a18;resize:none;"></textarea>
+                <button type="submit" style="flex:0 0 auto;width:34px;height:34px;border:none;border-radius:50%;background:#b00900;color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:#8b0700;">↑</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Post 4 · Beitrag Leistungen ===== -->
+        <div id="post-4" data-screen-label="Post KW35 Beitrag" style="position:relative;padding:56px 72px 68px;border-top:1px solid #eceae7;">
+          
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;">
+            <div style="display:flex;align-items:baseline;gap:14px;">
+              <span style="font-size:30px;font-weight:700;letter-spacing:-0.02em;">KW</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:42px;line-height:1;color:#b00900;">35</span>
+              <span style="font-size:14px;color:#77746f;padding-bottom:5px;">Beitrag · Leistungen</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span style="font-size:13px;color:#77746f;">Fr, 28.08.2026 · 12:00</span>
+              <sc-if value="{{ badges }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#75716c;font-size:11.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#8a8784;display:block;"></span>Konzept</span>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:326px minmax(0,1fr) 320px;gap:48px;align-items:start;">
+            <div style="width:326px;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 18px 44px rgba(30,20,14,.20);">
+              <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+                <div style="position:relative;background:#fff;border-radius:41px;overflow:hidden;">
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#000;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#000;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #000;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#000;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:4px 14px 10px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:34px;height:34px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:13px;font-weight:600;color:#0f0f10;">beispiel.handwerk</div>
+                      <div style="font-size:11.5px;color:#3c3c43;">Beispiel Handwerk GmbH</div>
+                    </div>
+                    <span style="color:#0f0f10;font-size:14px;letter-spacing:2px;">···</span>
+                  </div>
+                  <img src="assets/beitrag-facility.jpg" alt="Was gehört zu Facility Management" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;" />
+                  <div style="display:flex;align-items:center;gap:16px;padding:12px 16px 4px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                    <span style="font-size:19px;line-height:1;color:#0f0f10;">♡</span>
+                    <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid #0f0f10;border-radius:4px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:6px solid #0f0f10;border-bottom:5px solid transparent;"></span>
+                    <span style="display:block;width:13px;height:13px;border-left:1.6px solid #0f0f10;border-bottom:1.6px solid #0f0f10;transform:rotate(-45deg) skew(-10deg,-10deg);"></span>
+                    <span style="flex:1;"></span>
+                    <span style="display:block;width:13px;height:16px;background:#0f0f10;clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);"></span>
+                  </div>
+                  <div style="padding:8px 16px 20px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;color:#0f0f10;">
+                    <span style="font-weight:600;">beispiel.handwerk</span> Facility Management ist mehr als nur Gebäudereinigung. Bei Beispiel kümmern wir uns um die ganzheitliche Betreuung Ihrer Immobilie … <span style="color:#8e8e93;">mehr</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Caption</div>
+              <p style="margin:0;font-size:14.5px;line-height:1.75;color:#2e2b28;white-space:pre-line;max-width:600px;">Facility Management ist mehr als nur Gebäudereinigung.
+
+Bei Beispiel kümmern wir uns um die ganzheitliche Betreuung Ihrer Immobilie – von der Reinigung über Hausmeisterservices bis hin zu technischen Dienstleistungen und der Pflege Ihrer Außenanlagen.
+
+Alles aus einer Hand. Für reibungslose Abläufe und einen festen Ansprechpartner.</p>
+              <p style="margin:18px 0 0;font-size:13.5px;line-height:1.7;color:#6f6b67;max-width:600px;">#Beispiel #FacilityManagement #Gebäudedienstleistungen #AllesAusEinerHand #Plochingen #Esslingen #Stuttgart</p>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,180px));gap:22px;margin-top:34px;padding-top:26px;border-top:1px solid #eceae7;">
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Format</div><div style="font-size:13.5px;">Beitrag · 4:5</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Stand</div><div style="font-size:13.5px;">Grafik in Arbeit</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Ziel</div><div style="font-size:13.5px;">Leistungsüberblick</div></div>
+              </div>
+              </div>
+
+            <div style="position:sticky;top:88px;border:1px solid #e6e3df;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(28,22,16,.05);overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Anmerkungen</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 7px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:11px;font-weight:600;">{{ countP4 }}</span>
+              </div>
+              <div style="padding:18px 16px 4px;">
+                <sc-if value="{{ emptyP4 }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;line-height:1.6;color:#a5a09b;padding-bottom:16px;">Noch keine Anmerkungen zu diesem Beitrag.</div>
+                </sc-if>
+                <sc-for list="{{ commentsP4 }}" as="c" hint-placeholder-count="1">
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;letter-spacing:.02em;background:{{ c.tint }};color:{{ c.ink }};">{{ c.initials }}</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">{{ c.name }}</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">{{ c.ts }}</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">{{ c.text }}</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">{{ c.role }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <form data-post="p4" onSubmit="{{ submit }}" style="display:flex;align-items:flex-end;gap:8px;padding:12px 14px 14px;border-top:1px solid #eceae7;background:#fdfcfb;">
+                <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                <textarea name="text" rows="1" placeholder="Anmerkung schreiben …" style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:18px;background:#fff;padding:9px 14px;font-size:12.5px;line-height:1.5;color:#1c1a18;resize:none;"></textarea>
+                <button type="submit" style="flex:0 0 auto;width:34px;height:34px;border:none;border-radius:50%;background:#b00900;color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;" style-hover="background:#8b0700;">↑</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Kontakt -->
+        <div style="border-top:1px solid #eceae7;background:#faf9f7;padding:72px 72px 76px;">
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:64px;align-items:end;">
+            <div>
+              <div style="font-family:'Instrument Serif',Georgia,serif;font-size:52px;line-height:1;color:#b00900;margin-bottom:36px;">Kontakt</div>
+              <p style="margin:0 0 32px;font-size:14px;line-height:1.75;color:#5f5b57;max-width:440px;">Fragen zum Plan oder etwas Dringendes? Melden Sie sich direkt bei Ihrer Ansprechpartnerin.</p>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,220px));gap:22px 48px;">
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:5px;">Telefon</div><div style="font-size:14px;">+49 7024 40982917</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:5px;">E-Mail</div><div style="font-size:14px;"><a href="mailto:avdijaj@thdvideo.de">avdijaj@thdvideo.de</a></div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:5px;">Adresse</div><div style="font-size:14px;line-height:1.55;">Stuttgarter Str. 1<br />73240 Wendlingen</div></div>
+                <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:5px;">Web</div><div style="font-size:14px;"><a href="https://www.thdvideo.de">www.thdvideo.de</a></div></div>
+              </div>
+            </div>
+            <div style="position:relative;">
+              <img src="assets/kontakt-portrait.jpg" alt="Helena Avdijaj" style="display:block;width:300px;height:340px;object-fit:cover;object-position:60% 20%;filter:grayscale(1);" />
+              <div style="position:absolute;left:-24px;bottom:-18px;background:#b00900;color:#fff;padding:16px 22px 14px;">
+                <div style="font-family:'Instrument Serif',Georgia,serif;font-size:26px;line-height:1.1;">Helena Avdijaj</div>
+                <div style="font-size:11.5px;color:rgba(255,255,255,.85);margin-top:2px;">Ansprechpartnerin · THD Video</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================= 1b MOBILE ============================= -->
+    <div id="1b" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">1b</span>
+        <span style="font-size:13.5px;font-weight:500;">Export-Seite Mobile</span>
+        <span style="font-size:12px;color:#8b8783;">390 × scroll</span>
+      </div>
+
+      <div data-screen-label="1b Export Mobile" style="width:390px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:58px;padding:0 20px;border-bottom:1px solid #eceae7;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:26px;height:26px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+            <div>
+              <div style="font-size:13px;font-weight:500;line-height:1.2;">Beispiel Handwerk GmbH</div>
+              <div style="font-size:10.5px;color:#a5a09b;">August 2026</div>
+            </div>
+          </div>
+          <span style="font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#c0bbb5;">preroll</span>
+        </div>
+
+        <div style="padding:34px 20px 26px;">
+          <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Content-Plan zur Freigabe</div>
+          <h2 style="margin:0;font-size:32px;line-height:1.05;font-weight:600;letter-spacing:-0.02em;">Content-Plan</h2>
+          <div style="font-family:'Instrument Serif',Georgia,serif;font-size:32px;line-height:1.1;color:#b00900;">August 2026</div>
+          <p style="margin:18px 0 0;font-size:13.5px;line-height:1.7;color:#5f5b57;">4 Beiträge, KW 32–35. Tippen Sie einen Punkt im Kalender an, um zum Beitrag zu springen. Anmerkungen schreiben Sie direkt unter dem jeweiligen Beitrag.</p>
+          <sc-if value="{{ freigabe }}" hint-placeholder-val="{{ true }}">
+            <button style="margin-top:22px;width:100%;border:none;background:#b00900;color:#fff;font-size:15px;font-weight:600;padding:17px 20px;border-radius:6px;cursor:pointer;box-shadow:0 3px 12px rgba(176,9,0,.32);" style-hover="background:#8b0700;">Freigabe erteilen</button>
+          </sc-if>
+        </div>
+
+        <!-- Kalender mobil -->
+        <div style="padding:0 20px 30px;">
+          <div style="border:1px solid #eceae7;border-radius:6px;overflow:hidden;">
+            <div style="display:flex;align-items:baseline;gap:8px;padding:14px 16px;border-bottom:1px solid #eceae7;">
+              <span style="font-size:14px;font-weight:600;">August</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:18px;color:#b00900;">2026</span>
+            </div>
+            <div style="display:grid;grid-template-columns:38px repeat(7,1fr);">
+              <div style="background:#faf9f7;border-right:1px solid #eceae7;"></div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Mo</div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Di</div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Mi</div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Do</div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Fr</div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Sa</div>
+              <div style="padding:7px 0;text-align:center;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">So</div>
+
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:8.5px;color:#b5b0aa;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:15px;color:#b00900;line-height:1;">31</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#c9c5c0;">27</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#c9c5c0;">28</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#c9c5c0;">29</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#c9c5c0;">30</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#c9c5c0;">31</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">1</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">2</span></div>
+
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:8.5px;color:#b5b0aa;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:15px;color:#b00900;line-height:1;">32</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">3</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">4</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;background:#fdf7f6;">
+                <a href="#m-post-1" style="display:block;">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#b00900;color:#fff;font-size:11px;">5</span>
+                  <span style="display:block;width:7px;height:7px;border-radius:50%;background:#b00900;margin:5px auto 0;"></span>
+                </a>
+              </div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">6</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">7</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">8</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">9</span></div>
+
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:8.5px;color:#b5b0aa;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:15px;color:#b00900;line-height:1;">33</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">10</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;">
+                <a href="#m-post-2" style="display:block;">
+                  <span style="font-size:11px;color:#57534f;">11</span>
+                  <span style="display:block;width:7px;height:7px;border-radius:50%;background:#2f4b8f;margin:5px auto 0;"></span>
+                </a>
+              </div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">12</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">13</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">14</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">15</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">16</span></div>
+
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:8.5px;color:#b5b0aa;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:15px;color:#b00900;line-height:1;">34</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">17</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">18</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">19</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;">
+                <span style="font-size:11px;color:#57534f;">20</span>
+                <span style="display:block;width:7px;height:7px;border-radius:50%;background:#0f7a6a;margin:5px auto 0;"></span>
+              </div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">21</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">22</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">23</span></div>
+
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:8.5px;color:#b5b0aa;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:15px;color:#b00900;line-height:1;">35</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">24</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">25</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">26</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">27</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;">
+                <span style="font-size:11px;color:#57534f;">28</span>
+                <span style="display:block;width:7px;height:7px;border-radius:50%;background:#0f7a6a;margin:5px auto 0;"></span>
+              </div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">29</span></div>
+              <div style="min-height:44px;padding:6px 0;text-align:center;border-top:1px solid #eceae7;"><span style="font-size:11px;color:#57534f;">30</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;border-top:1px solid #eceae7;">
+              <div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#b00900;display:block;"></span><span style="font-size:11px;color:#5f5b57;">Reel</span></div>
+              <div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#2f4b8f;display:block;"></span><span style="font-size:11px;color:#5f5b57;">Karussell</span></div>
+              <div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#0f7a6a;display:block;"></span><span style="font-size:11px;color:#5f5b57;">Beitrag</span></div>
+            </div>
+          </div>
+
+          
+
+
+          <div style="margin-top:26px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;">
+              <span style="font-size:14px;font-weight:600;">Feed-Vorschau</span>
+              <span style="display:flex;align-items:center;gap:7px;"><span style="width:10px;height:10px;border-radius:2px;box-shadow:inset 0 0 0 2px #b00900;display:block;"></span><span style="font-size:11px;color:#5f5b57;">geplant</span></span>
+            </div>
+            <div style="width:326px;margin:0 auto;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 18px 44px rgba(30,20,14,.20);">
+              <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+                <div style="position:relative;background:#fff;border-radius:41px;overflow:hidden;">
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#000;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#000;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #000;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#000;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 16px 12px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:15px;font-weight:600;color:#0f0f10;">beispiel.handwerk</span>
+                    <span style="font-size:15px;letter-spacing:2px;color:#0f0f10;">···</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:22px;padding:0 16px 12px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:62px;height:62px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                    <div style="display:flex;flex:1;justify-content:space-around;text-align:center;">
+                      <div><div style="font-size:14px;font-weight:600;color:#0f0f10;">128</div><div style="font-size:11px;color:#3c3c43;">Beiträge</div></div>
+                      <div><div style="font-size:14px;font-weight:600;color:#0f0f10;">486</div><div style="font-size:11px;color:#3c3c43;">Follower</div></div>
+                      <div><div style="font-size:14px;font-weight:600;color:#0f0f10;">92</div><div style="font-size:11px;color:#3c3c43;">gefolgt</div></div>
+                    </div>
+                  </div>
+                  <div style="padding:0 16px 14px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <div style="font-size:12.5px;font-weight:600;color:#0f0f10;">Beispiel Handwerk GmbH</div>
+                    <div style="font-size:12.5px;line-height:1.45;color:#0f0f10;">Garten- &amp; Landschaftsbau · Facility Management<br />Plochingen · Esslingen · Stuttgart</div>
+                  </div>
+                  <div style="display:flex;border-top:1px solid #ededed;">
+                    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 0;border-bottom:1.5px solid #0f0f10;">
+                      <span style="display:grid;grid-template-columns:repeat(3,3.5px);gap:2px;"><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span><span style="display:block;width:3.5px;height:3.5px;background:#0f0f10;"></span></span>
+                    </div>
+                    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 0;border-bottom:1.5px solid transparent;">
+                      <span style="display:block;width:13px;height:13px;border:1.6px solid #b9b9be;border-radius:3px;transform:rotate(45deg);"></span>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:2px 0 14px;">
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/beitrag-facility.jpg" alt="Geplanter Beitrag 28.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">28.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/beitrag-vorhernachher.jpg" alt="Geplanter Beitrag 20.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">20.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/karussell-1.jpg" alt="Geplanter Beitrag 11.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">11.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b00900;">
+                                <img src="assets/reel-1.jpg" alt="Geplanter Beitrag 05.08." style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:0;height:0;border-left:9px solid #fff;border-top:5.5px solid transparent;border-bottom:5.5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));"></span>
+                                <span style="position:absolute;left:4px;bottom:4px;padding:2px 5px;border-radius:3px;background:rgba(255,255,255,.94);color:#b00900;font-size:8.5px;font-weight:600;">05.08.</span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p1.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p2.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:0;height:0;border-left:9px solid #fff;border-top:5.5px solid transparent;border-bottom:5.5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));"></span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p3.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p4.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p5.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p6.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:0;height:0;border-left:9px solid #fff;border-top:5.5px solid transparent;border-bottom:5.5px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));"></span>
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p7.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                              </div>
+                              <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#f2f0ed;">
+                                <img src="assets/feed-p8.jpg" alt="Veröffentlichter Beitrag" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                                <span style="position:absolute;top:5px;right:6px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                              </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:16px;">
+              <span style="font-size:11.5px;line-height:1.65;color:#8b8783;">So sieht das Profil nach dem 28.08. aus — die vier geplanten Beiträge oben, darunter die bereits veröffentlichten.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Post 1 -->
+        <div id="m-post-1" style="position:relative;overflow:hidden;padding:30px 20px 34px;border-top:1px solid #eceae7;">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:6px;">
+            <div style="display:flex;align-items:baseline;gap:9px;">
+              <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">KW</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:30px;line-height:1;color:#b00900;">32</span>
+              <span style="font-size:12.5px;color:#77746f;padding-bottom:3px;">Reel</span>
+            </div>
+            <sc-if value="{{ badges }}" hint-placeholder-val="{{ true }}">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:3px;background:#eef6f0;color:#2f7a45;font-size:11px;font-weight:500;"><span style="width:5px;height:5px;border-radius:50%;background:#2f7a45;display:block;"></span>Final</span>
+            </sc-if>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;">
+            <span style="font-size:12.5px;color:#77746f;">Mi, 05.08.2026 · 11:00</span>
+            
+          </div>
+
+          <div style="width:326px;margin:0 auto;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 14px 34px rgba(30,20,14,.18);">
+            <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+              <div style="position:relative;height:648px;background:#000;border-radius:41px;overflow:hidden;">
+                  <img src="assets/reel-2.jpg" alt="Reel Recruiting" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                  <div style="position:absolute;top:0;left:0;right:0;height:170px;background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,0));"></div>
+                  <div style="position:absolute;bottom:0;left:0;right:0;height:290px;background:linear-gradient(0deg,rgba(0,0,0,.74),rgba(0,0,0,0));"></div>
+                  <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:13px;font-weight:600;color:#fff;">15:15</span>
+                    <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                    <div style="display:flex;align-items:flex-end;gap:6px;">
+                      <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#fff;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#fff;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#fff;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#fff;border-radius:1px;"></span></div>
+                      <div style="position:relative;width:23px;height:11px;border:1.4px solid #fff;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#fff;border-radius:1px;"></span></div>
+                    </div>
+                  </div>
+                  <div style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:8px 18px 0;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <span style="font-size:17px;font-weight:600;color:#fff;">Reels</span>
+                    <span style="font-size:11.5px;color:#fff;padding:3px 9px;border-radius:4px;background:rgba(0,0,0,.35);">0:32</span>
+                  </div>
+                  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;">
+                    <span style="display:block;width:0;height:0;margin-left:5px;border-left:17px solid rgba(255,255,255,.95);border-top:10px solid transparent;border-bottom:10px solid transparent;"></span>
+                  </div>
+                  <div style="position:absolute;right:14px;bottom:124px;display:flex;flex-direction:column;align-items:center;gap:20px;color:#fff;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="font-size:24px;line-height:1;">♡</span><span style="font-size:11px;">52</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:7px;"><span style="position:relative;display:block;width:17px;height:14px;border:1.7px solid #fff;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid #fff;border-bottom:5px solid transparent;"></span><span style="font-size:11px;">7</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:7px;"><span style="display:block;width:14px;height:14px;border-left:1.7px solid #fff;border-bottom:1.7px solid #fff;transform:rotate(-45deg) skew(-10deg,-10deg);"></span><span style="font-size:11px;">3</span></div>
+                    <span style="font-size:16px;letter-spacing:2px;line-height:1;">···</span>
+                  </div>
+                  <div style="position:absolute;left:16px;right:70px;bottom:22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;color:#fff;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+                      <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:30px;height:30px;border-radius:50%;object-fit:cover;background:#fff;border:1.5px solid rgba(255,255,255,.9);" />
+                      <span style="font-size:13px;font-weight:600;">beispiel.handwerk</span>
+                      <span style="font-size:11.5px;padding:3px 9px;border:1px solid rgba(255,255,255,.75);border-radius:4px;">Folgen</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.5;">Wir brauchen Verstärkung! Du möchtest draußen arbeiten, im Team anpacken und jeden Tag sehen, was du geschafft hast? <span style="color:rgba(255,255,255,.72);">mehr</span></div>
+                  </div>
+                </div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;">
+            <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#a5a09b;margin-bottom:10px;">Caption</div>
+            <p style="margin:0;font-size:13.5px;line-height:1.7;color:#2e2b28;white-space:pre-line;">Wir brauchen Verstärkung!
+
+Du möchtest draußen arbeiten, im Team anpacken und jeden Tag sehen, was du geschafft hast?
+
+Dann bist du bei Beispiel genau richtig.</p>
+            <p style="margin:14px 0 0;font-size:12.5px;line-height:1.65;color:#6f6b67;">#Beispiel #GartenUndLandschaftsbau #Jobs #Karriere #TeamBeispiel #JetztBewerben</p>
+          </div>
+          <sc-if value="{{ ablaufDetail }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:24px;border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Ablauf des Reels</span>
+                <span style="font-size:11px;color:#928e89;">5 Abschnitte</span>
+              </div>
+              <div style="padding:16px;">
+                  <div style="padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid #f2f0ed;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                      <span style="width:20px;height:20px;border-radius:50%;background:#b00900;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;">1</span>
+                      <span style="font-size:11.5px;font-weight:500;">Hook</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#2e2b28;">Drei Mitarbeiter stehen vor dem Firmengelände, einer dreht sich in die Kamera.</div>
+                    <div style="font-size:12px;line-height:1.6;color:#6f6b67;margin-top:5px;">„Wir suchen Verstärkung — und zwar dich."</div>
+                  <span style="display:inline-block;margin-top:9px;padding:4px 9px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:10.5px;">Einblendung: GARTEN- &amp; LANDSCHAFTSBAUER GESUCHT!</span>
+                  </div>
+                  <div style="padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid #f2f0ed;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                      <span style="width:20px;height:20px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;">2</span>
+                      <span style="font-size:11.5px;font-weight:500;">Intro</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#2e2b28;">Schwenk über die Baustelle, das Team setzt Randsteine.</div>
+                    <div style="font-size:12px;line-height:1.6;color:#6f6b67;margin-top:5px;">„Bei Beispiel arbeitest du draußen, im Team — und siehst abends, was du geschafft hast."</div>
+                  </div>
+                  <div style="padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid #f2f0ed;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                      <span style="width:20px;height:20px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;">3</span>
+                      <span style="font-size:11.5px;font-weight:500;">Szene</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#2e2b28;">Nahaufnahmen: Heckenschere, Radlader, Pflanzarbeiten — schneller Schnitt.</div>
+                    <div style="font-size:12px;line-height:1.6;color:#6f6b67;margin-top:5px;">„Moderne Maschinen, feste Teams, klare Aufgaben."</div>
+                  <span style="display:inline-block;margin-top:9px;padding:4px 9px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:10.5px;">Einblendung: Grünflächen · Maschinen · Team</span>
+                  </div>
+                  <div style="padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid #f2f0ed;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                      <span style="width:20px;height:20px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;">4</span>
+                      <span style="font-size:11.5px;font-weight:500;">Szene</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#2e2b28;">Mitarbeiter im Gespräch, kurze Pause auf der Baustelle.</div>
+                    <div style="font-size:12px;line-height:1.6;color:#6f6b67;margin-top:5px;">„Lasst uns endlich anfangen."</div>
+                  <span style="display:inline-block;margin-top:9px;padding:4px 9px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:10.5px;">Einblendung: LASST UNS ENDLICH …</span>
+                  </div>
+                  <div style="padding-bottom:2px;margin-bottom:0px;">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
+                      <span style="width:20px;height:20px;border-radius:50%;background:#1c1a18;color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;">5</span>
+                      <span style="font-size:11.5px;font-weight:500;">Abbinder</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#2e2b28;">Logo-Animation, Hinweis auf die Bewerbung.</div>
+                    <div style="font-size:12px;line-height:1.6;color:#6f6b67;margin-top:5px;">„Bewirb dich jetzt bei Beispiel."</div>
+                  <span style="display:inline-block;margin-top:9px;padding:4px 9px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:10.5px;">Einblendung: JETZT BEWERBEN</span>
+                  </div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ ablaufFrei }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:24px;border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                <span style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Inhalte des Reels</span>
+                <span style="font-size:11px;color:#928e89;">ca. 32 Sek.</span>
+              </div>
+              <div style="padding:16px;font-size:13px;line-height:1.75;color:#2e2b28;white-space:pre-line;">Kurzes Recruiting-Reel ohne festes Storyboard.
+
+Aufnahmen vom Team auf der Baustelle, dazwischen Nahaufnahmen von Maschinen und Pflanzarbeiten. Sprechertext aus dem Off, Untertitel durchgehend.
+
+Am Ende Logo-Abbinder mit Hinweis auf die offene Stelle.</div>
+            </div>
+          </sc-if>
+
+          <button data-post="p1" onClick="{{ toggle }}" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:22px;border:1px solid #e0ddd9;background:#fff;border-radius:8px;padding:15px 16px;cursor:pointer;color:#3a3733;" style-hover="border-color:#b00900;color:#b00900;">
+            <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid currentColor;border-radius:3px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:5px solid currentColor;border-bottom:4px solid transparent;"></span>
+            <span style="font-size:13.5px;font-weight:500;">Anmerkungen</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 6px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:10.5px;font-weight:600;">{{ countP1 }}</span>
+          </button>
+          <sc-if value="{{ openP1 }}" hint-placeholder-val="{{ false }}">
+            <div data-post="p1" onClick="{{ toggle }}" style="position:absolute;inset:0;background:rgba(20,16,12,.42);z-index:5;"></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;z-index:6;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -14px 44px rgba(20,16,12,.22);padding:10px 18px 20px;">
+              <div style="width:38px;height:4px;border-radius:2px;background:#e0ddd9;margin:0 auto 16px;"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <span style="font-size:15px;font-weight:600;">Anmerkungen</span>
+                <button data-post="p1" onClick="{{ toggle }}" style="border:none;background:none;color:#b00900;font-size:13px;font-weight:500;cursor:pointer;padding:0;">Fertig</button>
+              </div>
+              <sc-if value="{{ emptyP1 }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;line-height:1.6;color:#a5a09b;padding-bottom:18px;">Noch keine Anmerkungen zu diesem Beitrag.</div>
+              </sc-if>
+              <sc-for list="{{ commentsP1 }}" as="c" hint-placeholder-count="1">
+                <div style="display:flex;gap:10px;margin-bottom:18px;">
+                  <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:{{ c.tint }};color:{{ c.ink }};">{{ c.initials }}</span>
+                  <div style="min-width:0;">
+                    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                      <span style="font-size:13px;font-weight:500;">{{ c.name }}</span>
+                      <span style="font-size:10.5px;color:#b5b0aa;">{{ c.ts }}</span>
+                    </div>
+                    <div style="font-size:13px;line-height:1.6;color:#3a3733;margin-top:4px;">{{ c.text }}</div>
+                    <div style="font-size:10.5px;color:#928e89;margin-top:6px;">{{ c.role }}</div>
+                  </div>
+                </div>
+              </sc-for>
+              <form data-post="p1" onSubmit="{{ submit }}" style="display:flex;align-items:flex-end;gap:8px;padding-top:14px;border-top:1px solid #eceae7;">
+                <textarea name="text" rows="1" placeholder="Anmerkung schreiben …" style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:20px;background:#faf9f7;padding:11px 15px;font-size:13px;line-height:1.5;color:#1c1a18;resize:none;"></textarea>
+                <button type="submit" style="flex:0 0 auto;width:40px;height:40px;border:none;border-radius:50%;background:#b00900;color:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">↑</button>
+              </form>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- Mobile Post 2 -->
+        <div id="m-post-2" style="position:relative;overflow:hidden;padding:30px 20px 34px;border-top:1px solid #eceae7;">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:6px;">
+            <div style="display:flex;align-items:baseline;gap:9px;">
+              <span style="font-size:22px;font-weight:700;letter-spacing:-0.02em;">KW</span>
+              <span style="font-family:'Instrument Serif',Georgia,serif;font-size:30px;line-height:1;color:#b00900;">33</span>
+              <span style="font-size:12.5px;color:#77746f;padding-bottom:3px;">Karussell</span>
+            </div>
+            <sc-if value="{{ badges }}" hint-placeholder-val="{{ true }}">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:3px;background:#fdf4e7;color:#b5730a;font-size:11px;font-weight:500;"><span style="width:5px;height:5px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+            </sc-if>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;">
+            <span style="font-size:12.5px;color:#77746f;">Di, 11.08.2026 · 17:30</span>
+            
+          </div>
+
+          <div style="width:326px;margin:0 auto;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:52px;padding:3px;box-shadow:0 14px 34px rgba(30,20,14,.18);">
+            <div style="background:#0b0b0c;border-radius:49px;padding:9px;">
+              <div style="position:relative;background:#fff;border-radius:41px;overflow:hidden;">
+                <div style="position:relative;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                  <span style="font-size:13px;font-weight:600;color:#000;">15:15</span>
+                  <div style="position:absolute;left:50%;top:7px;transform:translateX(-50%);width:84px;height:27px;border-radius:14px;background:#0b0b0c;"></div>
+                  <div style="display:flex;align-items:flex-end;gap:6px;">
+                    <div style="display:flex;align-items:flex-end;gap:2px;"><span style="display:block;width:3px;height:4px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:6px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:8px;background:#000;border-radius:1px;"></span><span style="display:block;width:3px;height:10px;background:#000;border-radius:1px;"></span></div>
+                    <div style="position:relative;width:23px;height:11px;border:1.4px solid #000;border-radius:3px;padding:1.5px;"><span style="display:block;width:60%;height:100%;background:#000;border-radius:1px;"></span></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:4px 14px 10px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                  <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:34px;height:34px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:#0f0f10;">beispiel.handwerk</div>
+                    <div style="font-size:11.5px;color:#3c3c43;">Beispiel Handwerk GmbH</div>
+                  </div>
+                  <span style="color:#0f0f10;font-size:14px;letter-spacing:2px;">···</span>
+                </div>
+                <div onClick="{{ nextSlide }}" style="position:relative;cursor:pointer;">
+                  <img src="assets/karussell-1.jpg" alt="Karussell Slide 1" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;" />
+                  <sc-if value="{{ slide2 }}" hint-placeholder-val="{{ false }}">
+                    <img src="assets/karussell-2.jpg" alt="Karussell Slide 2" style="position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;" />
+                  </sc-if>
+                  <div style="position:absolute;top:12px;right:14px;padding:3px 9px;border-radius:11px;background:rgba(0,0,0,.5);color:#fff;font-size:11.5px;font-family:-apple-system,Helvetica,Arial,sans-serif;">{{ slideLabel }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:16px;padding:12px 16px 4px;font-family:-apple-system,Helvetica,Arial,sans-serif;">
+                  <span style="font-size:19px;line-height:1;color:#0f0f10;">♡</span>
+                  <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid #0f0f10;border-radius:4px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:6px solid #0f0f10;border-bottom:5px solid transparent;"></span>
+                  <span style="display:block;width:13px;height:13px;border-left:1.6px solid #0f0f10;border-bottom:1.6px solid #0f0f10;transform:rotate(-45deg) skew(-10deg,-10deg);"></span>
+                  <span style="flex:1;"></span>
+                  <span style="display:block;width:13px;height:16px;background:#0f0f10;clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);"></span>
+                </div>
+                <div style="padding:8px 16px 20px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12.5px;line-height:1.5;color:#0f0f10;">
+                  <span style="font-weight:600;">beispiel.handwerk</span> Wir suchen Garten- &amp; Landschaftsbauer. Du arbeitest gerne an der frischen Luft? <span style="color:#8e8e93;">mehr</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;">
+            <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#a5a09b;margin-bottom:10px;">Caption</div>
+            <p style="margin:0;font-size:13.5px;line-height:1.7;color:#2e2b28;white-space:pre-line;">Wir suchen Garten- &amp; Landschaftsbauer
+
+Du arbeitest gerne an der frischen Luft und möchtest sichtbare Ergebnisse schaffen? Dann werde Teil unseres Teams!</p>
+            <p style="margin:14px 0 0;font-size:12.5px;line-height:1.65;color:#6f6b67;">#Beispiel #Karriere #Jobs #TeamBeispiel #JetztBewerben</p>
+          </div>
+
+          <button data-post="p2" onClick="{{ toggle }}" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:22px;border:1px solid #e0ddd9;background:#fff;border-radius:8px;padding:15px 16px;cursor:pointer;color:#3a3733;" style-hover="border-color:#b00900;color:#b00900;">
+            <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid currentColor;border-radius:3px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:5px solid currentColor;border-bottom:4px solid transparent;"></span>
+            <span style="font-size:13.5px;font-weight:500;">Anmerkungen</span>
+            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 6px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:10.5px;font-weight:600;">{{ countP2 }}</span>
+          </button>
+          <sc-if value="{{ openP2 }}" hint-placeholder-val="{{ false }}">
+            <div data-post="p2" onClick="{{ toggle }}" style="position:absolute;inset:0;background:rgba(20,16,12,.42);z-index:5;"></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;z-index:6;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -14px 44px rgba(20,16,12,.22);padding:10px 18px 20px;">
+              <div style="width:38px;height:4px;border-radius:2px;background:#e0ddd9;margin:0 auto 16px;"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <span style="font-size:15px;font-weight:600;">Anmerkungen</span>
+                <button data-post="p2" onClick="{{ toggle }}" style="border:none;background:none;color:#b00900;font-size:13px;font-weight:500;cursor:pointer;padding:0;">Fertig</button>
+              </div>
+              <sc-if value="{{ emptyP2 }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px;line-height:1.6;color:#a5a09b;padding-bottom:18px;">Noch keine Anmerkungen zu diesem Beitrag.</div>
+              </sc-if>
+              <sc-for list="{{ commentsP2 }}" as="c" hint-placeholder-count="1">
+                <div style="display:flex;gap:10px;margin-bottom:18px;">
+                  <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:{{ c.tint }};color:{{ c.ink }};">{{ c.initials }}</span>
+                  <div style="min-width:0;">
+                    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                      <span style="font-size:13px;font-weight:500;">{{ c.name }}</span>
+                      <span style="font-size:10.5px;color:#b5b0aa;">{{ c.ts }}</span>
+                    </div>
+                    <div style="font-size:13px;line-height:1.6;color:#3a3733;margin-top:4px;">{{ c.text }}</div>
+                    <div style="font-size:10.5px;color:#928e89;margin-top:6px;">{{ c.role }}</div>
+                  </div>
+                </div>
+              </sc-for>
+              <form data-post="p2" onSubmit="{{ submit }}" style="display:flex;align-items:flex-end;gap:8px;padding-top:14px;border-top:1px solid #eceae7;">
+                <textarea name="text" rows="1" placeholder="Anmerkung schreiben …" style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:20px;background:#faf9f7;padding:11px 15px;font-size:13px;line-height:1.5;color:#1c1a18;resize:none;"></textarea>
+                <button type="submit" style="flex:0 0 auto;width:40px;height:40px;border:none;border-radius:50%;background:#b00900;color:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">↑</button>
+              </form>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="padding:22px 20px 30px;border-top:1px solid #eceae7;text-align:center;">
+          <span style="font-size:12.5px;color:#a5a09b;">Weitere Beiträge: KW 34 · KW 35</span>
+        </div>
+
+        <!-- Footer mobil -->
+        <div style="border-top:1px solid #eceae7;background:#faf9f7;padding:34px 20px 40px;">
+          <div style="font-family:'Instrument Serif',Georgia,serif;font-size:36px;line-height:1;color:#b00900;margin-bottom:22px;">Kontakt</div>
+          <div style="position:relative;margin-bottom:26px;">
+            <img src="assets/kontakt-portrait.jpg" alt="Helena Avdijaj" style="display:block;width:100%;height:240px;object-fit:cover;object-position:60% 18%;filter:grayscale(1);" />
+            <div style="position:absolute;left:0;bottom:-14px;background:#b00900;color:#fff;padding:13px 18px 11px;">
+              <div style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;line-height:1.1;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:rgba(255,255,255,.85);margin-top:2px;">Ansprechpartnerin · THD Video</div>
+            </div>
+          </div>
+          <div style="display:grid;gap:18px;margin-top:34px;">
+            <div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:4px;">Telefon</div><div style="font-size:14px;">+49 7024 40982917</div></div>
+            <div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:4px;">E-Mail</div><div style="font-size:14px;"><a href="mailto:avdijaj@thdvideo.de">avdijaj@thdvideo.de</a></div></div>
+            <div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:4px;">Adresse</div><div style="font-size:14px;line-height:1.55;">Stuttgarter Str. 1<br />73240 Wendlingen</div></div>
+            <div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:4px;">Web</div><div style="font-size:14px;"><a href="https://www.thdvideo.de">www.thdvideo.de</a></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================= 1c KOMMENTARE ============================= -->
+    <div id="1c" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">1c</span>
+        <span style="font-size:13.5px;font-weight:500;">Kommentar-Interaktion</span>
+        <span style="font-size:12px;color:#8b8783;">Desktop-Spalte · Antwort · Mobil-Popup</span>
+      </div>
+
+      <div data-screen-label="1c Kommentar-Interaktion" style="width:760px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);padding:48px 48px 56px;">
+        <p style="margin:0 0 44px;font-size:14px;line-height:1.75;color:#5f5b57;max-width:560px;">Der Kunde ist angemeldet — es wird kein Name abgefragt, es wird nur kommentiert. Am Desktop läuft die Diskussion in einer Spalte direkt neben dem Beitrag, am Handy öffnet die Schaltfläche unter den Beitragsdaten ein Popup.</p>
+
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+          <span style="font-family:'Instrument Serif',Georgia,serif;font-size:26px;line-height:1;color:#b00900;">1</span>
+          <span style="font-size:14px;font-weight:500;">Desktop — Seitenleiste neben dem Beitrag</span>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;align-items:start;margin-bottom:56px;">
+          <div style="border:1px dashed #e0ddd9;border-radius:8px;min-height:320px;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;">
+            <span style="font-size:12.5px;line-height:1.8;color:#b5b0aa;">iPhone-Vorschau<br />Caption, Hashtags, Format-Angaben</span>
+          </div>
+          <div style="border:1px solid #e6e3df;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(28,22,16,.05);overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+              <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Anmerkungen</span>
+              <span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 7px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:11px;font-weight:600;">2</span>
+            </div>
+            <div style="padding:18px 16px 4px;">
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">Sabine Ott</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">03.08.2026, 14:12</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">Der Hook ist stark. Können wir den Untertitel etwas kürzen?</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">Beispiel Handwerk GmbH · Marketing</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#fbeceb;color:#b00900;">HA</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">Helena Avdijaj</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">03.08.2026, 16:40</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">Klar — wir kürzen auf „Jetzt bewerben".</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">THD Video · Agentur</div>
+                    </div>
+                  </div>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:8px;padding:12px 14px 14px;border-top:1px solid #eceae7;background:#fdfcfb;">
+              <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+              <span style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:18px;background:#fff;padding:9px 14px;font-size:12.5px;color:#b5b0aa;">Anmerkung schreiben …</span>
+              <span style="flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:#b00900;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;">↑</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+          <span style="font-family:'Instrument Serif',Georgia,serif;font-size:26px;line-height:1;color:#b00900;">2</span>
+          <span style="font-size:14px;font-weight:500;">Antwort der Agentur &amp; interner Status</span>
+        </div>
+        <div style="border:1px solid #e6e3df;border-radius:10px;overflow:hidden;margin-bottom:56px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+            <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Anmerkungen · KW 32 Reel</span>
+            <span style="font-size:12px;color:#8b8783;">2</span>
+          </div>
+          <div style="padding:20px 18px 6px;">
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">Sabine Ott</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">03.08.2026, 14:12</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">Der Hook ist stark. Können wir den Untertitel etwas kürzen?</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">Beispiel Handwerk GmbH · Marketing</div>
+                    </div>
+                  </div>
+            <div style="display:flex;gap:10px;margin-bottom:18px;padding:14px 16px;border-left:2px solid #b00900;background:#fdf7f6;">
+              <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#fbeceb;color:#b00900;">HA</span>
+              <div style="min-width:0;">
+                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                  <span style="font-size:12.5px;font-weight:500;">Helena Avdijaj</span>
+                  <span style="font-size:10.5px;color:#b5b0aa;">03.08.2026, 16:40</span>
+                  <span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:3px;background:#eef6f0;color:#2f7a45;font-size:10.5px;font-weight:500;">erledigt</span>
+                </div>
+                <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">Klar — wir kürzen auf „Jetzt bewerben". Die neue Version ist ab morgen hier sichtbar.</div>
+                <div style="font-size:10.5px;color:#928e89;margin-top:6px;">THD Video · Agentur</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11.5px;line-height:1.7;color:#a5a09b;padding:0 18px 18px;">Das Kürzel <strong style="font-weight:500;color:#75716c;">erledigt</strong> setzt das Team im Backend — der Kunde sieht nur, dass die Anmerkung bearbeitet wurde.</div>
+        </div>
+
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:20px;">
+          <span style="font-family:'Instrument Serif',Georgia,serif;font-size:26px;line-height:1;color:#b00900;">3</span>
+          <span style="font-size:14px;font-weight:500;">Mobil — Popup über die Schaltfläche</span>
+        </div>
+        <div style="display:grid;grid-template-columns:300px minmax(0,1fr);gap:40px;align-items:start;">
+          <div style="position:relative;height:440px;border:1px solid #e6e3df;border-radius:22px;overflow:hidden;background:#fff;">
+            <div style="padding:20px 18px;">
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px;">
+                <span style="font-size:18px;font-weight:700;">KW</span>
+                <span style="font-family:'Instrument Serif',Georgia,serif;font-size:24px;line-height:1;color:#b00900;">32</span>
+                <span style="font-size:11.5px;color:#77746f;">Reel</span>
+              </div>
+              <div style="height:210px;border-radius:10px;background:#f2f0ed;"></div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;border:1px solid #e0ddd9;border-radius:8px;padding:13px 16px;color:#3a3733;">
+                <span style="position:relative;display:block;width:16px;height:13px;border:1.6px solid currentColor;border-radius:3px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:5px solid currentColor;border-bottom:4px solid transparent;"></span>
+                <span style="font-size:13px;font-weight:500;">Anmerkungen</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 6px;border-radius:10px;background:#f0eeeb;color:#75716c;font-size:10.5px;font-weight:600;">2</span>
+              </div>
+            </div>
+            <div style="position:absolute;inset:0;background:rgba(20,16,12,.42);"></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -14px 44px rgba(20,16,12,.22);padding:10px 16px 18px;">
+              <div style="width:38px;height:4px;border-radius:2px;background:#e0ddd9;margin:0 auto 16px;"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <span style="font-size:14px;font-weight:600;">Anmerkungen</span>
+                <span style="font-size:12.5px;font-weight:500;color:#b00900;">Fertig</span>
+              </div>
+                  <div style="display:flex;gap:10px;margin-bottom:18px;">
+                    <span style="flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;background:#f0eeeb;color:#5f5b57;">SO</span>
+                    <div style="min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:12.5px;font-weight:500;">Sabine Ott</span>
+                        <span style="font-size:10.5px;color:#b5b0aa;">03.08.2026, 14:12</span>
+                      </div>
+                      <div style="font-size:12.5px;line-height:1.6;color:#3a3733;margin-top:4px;">Der Hook ist stark. Können wir den Untertitel etwas kürzen?</div>
+                      <div style="font-size:10.5px;color:#928e89;margin-top:6px;">Beispiel Handwerk GmbH · Marketing</div>
+                    </div>
+                  </div>
+              <div style="display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid #eceae7;">
+                <span style="flex:1;min-width:0;border:1px solid #e0ddd9;border-radius:20px;background:#faf9f7;padding:11px 15px;font-size:12.5px;color:#b5b0aa;">Anmerkung schreiben …</span>
+                <span style="flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:#b00900;color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;">↑</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;gap:20px;padding-top:6px;">
+            <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Ort</div><div style="font-size:13.5px;line-height:1.7;color:#3a3733;">Die Schaltfläche steht direkt unter Caption und Format-Angaben — am Ende des Beitrags, nicht am Seitenrand.</div></div>
+            <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Popup</div><div style="font-size:13.5px;line-height:1.7;color:#3a3733;">Das Popup legt sich über die Seite, die Scrollposition bleibt beim Beitrag. Schließen über „Fertig" oder Tippen auf den Hintergrund.</div></div>
+            <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Anmeldung</div><div style="font-size:13.5px;line-height:1.7;color:#3a3733;">Kein Namensfeld: Der angemeldete Kunde ist bekannt, Name und Zeitstempel setzt das System.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;statusBadgesSichtbar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Kundenansicht&quot;},&quot;freigabeAktion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Kundenansicht&quot;},&quot;kommentareImmerSichtbar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Kommentare&quot;},&quot;reelSzenenplan&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reel&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const openAll = props.kommentareImmerSichtbar ?? false;
+    this.state = {
+      open: { p1: openAll, p2: false, p3: false, p4: false },
+      slide: 0,
+      comments: {
+        p1: [
+          { name: 'Sabine Ott', role: 'Beispiel Handwerk GmbH · Marketing', ts: '03.08.2026, 14:12', initials: 'SO', tint: '#f0eeeb', ink: '#5f5b57', text: 'Der Hook ist stark. Können wir den Untertitel etwas kürzen?' },
+          { name: 'Helena Avdijaj', role: 'THD Video · Agentur', ts: '03.08.2026, 16:40', initials: 'HA', tint: '#fbeceb', ink: '#b00900', text: 'Klar — wir kürzen auf „Jetzt bewerben". Die neue Version ist ab morgen hier sichtbar.' }
+        ],
+        p2: [],
+        p3: [
+          { name: 'Sabine Ott', role: 'Beispiel Handwerk GmbH · Marketing', ts: '04.08.2026, 09:05', initials: 'SO', tint: '#f0eeeb', ink: '#5f5b57', text: 'Bitte die Reihenfolge tauschen: erst Nachher, dann Vorher.' }
+        ],
+        p4: []
+      }
+    };
+  }
+
+  toggle = (e) => {
+    const p = e.currentTarget.getAttribute('data-post');
+    this.setState((s) => ({ open: { ...s.open, [p]: !s.open[p] } }));
+  };
+
+  nextSlide = () => this.setState((s) => ({ slide: s.slide === 0 ? 1 : 0 }));
+
+  submit = (e) => {
+    e.preventDefault();
+    const f = e.currentTarget;
+    const p = f.getAttribute('data-post');
+    const text = (f.elements.text.value || '').trim();
+    if (!text) return;
+    const eigen = { name: 'Sabine Ott', role: 'Beispiel Handwerk GmbH · Marketing', ts: 'gerade eben', initials: 'SO', tint: '#f0eeeb', ink: '#5f5b57', text };
+    this.setState((s) => ({
+      comments: { ...s.comments, [p]: [...s.comments[p], eigen] }
+    }));
+    f.reset();
+  };
+
+  renderVals() {
+    const c = this.state.comments;
+    const o = this.state.open;
+    return {
+      badges: this.props.statusBadgesSichtbar ?? true,
+      ablaufDetail: this.props.reelSzenenplan ?? true,
+      ablaufFrei: !(this.props.reelSzenenplan ?? true),
+      freigabe: this.props.freigabeAktion ?? true,
+      toggle: this.toggle,
+      submit: this.submit,
+      nextSlide: this.nextSlide,
+      slide1: this.state.slide === 0,
+      slide2: this.state.slide === 1,
+      slideLabel: (this.state.slide + 1) + '/2',
+      openP1: o.p1, openP2: o.p2, openP3: o.p3, openP4: o.p4,
+      commentsP1: c.p1, commentsP2: c.p2, commentsP3: c.p3, commentsP4: c.p4,
+      countP1: c.p1.length, countP2: c.p2.length, countP3: c.p3.length, countP4: c.p4.length,
+      emptyP1: c.p1.length === 0, emptyP2: c.p2.length === 0, emptyP3: c.p3.length === 0, emptyP4: c.p4.length === 0
+    };
+  }
+}
+
+</script>
+</body>
+</html>

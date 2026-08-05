@@ -1,0 +1,145 @@
+@import 'tailwindcss';
+
+/*
+ * Design-Tokens, ausgelesen aus den Mockups in design/.
+ * Zurückhaltende, helle Optik — die Kundenmarke soll im Vordergrund stehen,
+ * nicht das Werkzeug.
+ */
+@theme {
+  --font-sans: 'Poppins', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+
+  /* Flächen */
+  --color-grund: #eceae7;
+  --color-flaeche: #ffffff;
+  --color-flaeche-leise: #faf9f7;
+  --color-flaeche-tief: #f2f0ed;
+  --color-flaeche-zart: #fdfcfb;
+
+  /* Text */
+  --color-tinte: #1c1a18;
+  --color-tinte-2: #3a3733;
+  --color-tinte-3: #57534f;
+  --color-leise: #6f6b67;
+  --color-leiser: #8b8783;
+  --color-still: #a5a09b;
+  --color-stiller: #b5b0aa;
+
+  /* Rahmen */
+  --color-rahmen: #e6e3df;
+  --color-rahmen-2: #e0ddd9;
+  --color-rahmen-3: #d5d1cc;
+  --color-rahmen-4: #c9c4be;
+
+  /* Akzent */
+  --color-akzent: #b00900;
+  --color-akzent-dunkel: #8b0700;
+  --color-akzent-zart: #fbeceb;
+
+  /* Status der Posts */
+  --color-konzept: #75716c;
+  --color-konzept-flaeche: #f2f0ed;
+  --color-vorschau: #b5730a;
+  --color-vorschau-flaeche: #fdf4e7;
+  --color-final: #2f7a45;
+  --color-final-flaeche: #eef6f0;
+
+  /* Post-Typen — auch die Punkte im Kalender */
+  --color-typ-reel: #b00900;
+  --color-typ-karussell: #2f4b8f;
+  --color-typ-beitrag: #0f7a6a;
+
+  /* Gerät */
+  --color-geraet: #0b0b0c;
+}
+
+@layer base {
+  html {
+    background: var(--color-grund);
+    color: var(--color-tinte);
+    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  a {
+    color: var(--color-akzent);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-akzent-dunkel);
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-akzent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Der Geräterahmen aus den Mockups: 344 × 645 außen, 320 × 621 Bildschirm. */
+  .geraet {
+    width: 344px;
+    padding: 3px;
+    border-radius: 51px;
+    background: linear-gradient(
+      150deg,
+      #f4cbb4 0%,
+      #c4765b 26%,
+      #eeba9f 50%,
+      #b56a4f 76%,
+      #efb497 100%
+    );
+    box-shadow: 0 18px 44px rgb(30 20 14 / 0.2);
+  }
+
+  .geraet-innen {
+    background: var(--color-geraet);
+    border-radius: 48px;
+    padding: 9px;
+  }
+
+  .geraet-schirm {
+    width: 320px;
+    height: 621px;
+    border-radius: 40px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+  }
+
+  /* Platzhalter-Schraffur, solange kein Medium hinterlegt ist. */
+  .schraffur {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--color-grund) 0 8px,
+      #f5f3f1 8px 16px
+    );
+  }
+}
+
+/* Die Export-Seite wird von Kunden häufig ausgedruckt oder als PDF gesichert. */
+@media print {
+  .nicht-drucken {
+    display: none !important;
+  }
+}

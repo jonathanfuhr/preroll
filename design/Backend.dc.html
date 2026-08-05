@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #eceae7; font-family: 'Poppins', 'Helvetica Neue', Helvetica, sans-serif; color: #1c1a18; -webkit-font-smoothing: antialiased; }
+  a { color: #b00900; text-decoration: none; }
+  a:hover { color: #8b0700; }
+  * { box-sizing: border-box; }
+  input, textarea, button, select { font-family: 'Poppins', Helvetica, sans-serif; }
+  input:focus { outline: none; border-color: #b00900; }
+</style>
+</helmet>
+
+<section style="padding:64px 72px 120px;">
+  <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px;">
+    <span style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8b8783;">preroll</span>
+    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#b0aca7;">Runde 2 · Backend</span>
+  </div>
+  <h1 style="margin:0 0 6px;font-size:34px;font-weight:600;letter-spacing:-0.02em;">Agentur-Backend — Übersichten</h1>
+  <p style="margin:0 0 56px;font-size:14.5px;line-height:1.7;color:#6f6b67;max-width:740px;">Desktop-Arbeitsansichten: <a href="#2a">2a</a> Kundenübersicht, <a href="#2b">2b</a> Post-Liste, <a href="#2c">2c</a> Feed-Vorschau, <a href="#2d">2d</a> Kalender, <a href="#2e">2e</a> Reel-Editor, <a href="#2f">2f</a> Beitrag/Karussell-Editor, <a href="#2g">2g</a> Karussell-Upload, <a href="#2h">2h</a> Export je Kunde, <a href="#2i">2i</a> Ansprechpartner. Gleiche Farben, Typo und Status-Logik wie die Kundenseite.</p>
+
+  <div style="display:flex;flex-wrap:nowrap;width:max-content;align-items:flex-start;gap:96px;">
+
+    <!-- ============================ 2a KUNDENÜBERSICHT ============================ -->
+    <div id="2a" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2a</span>
+        <span style="font-size:13.5px;font-weight:500;">Kundenübersicht</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2a Kundenübersicht" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;min-height:900px;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#b00900;display:block;"></span>Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kalender</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Team</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <span style="font-size:13px;color:#8b8783;">Kunden</span>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span style="display:inline-flex;align-items:center;width:240px;border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:12.5px;color:#b5b0aa;">Kunde suchen …</span>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:4px;cursor:pointer;" style-hover="background:#8b0700;">Neuer Kunde</button>
+            </div>
+          </div>
+
+          <div style="padding:40px 32px 48px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;">
+              <div>
+                <h2 style="margin:0 0 8px;font-size:30px;font-weight:600;letter-spacing:-0.02em;">Kunden</h2>
+                <p style="margin:0;font-size:13.5px;color:#77746f;">6 aktive Kunden · 20 Beiträge in Arbeit</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="padding:8px 14px;border:1px solid #1c1a18;border-radius:20px;font-size:12.5px;">Alle</span>
+                <span style="padding:8px 14px;border:1px solid #e6e3df;border-radius:20px;font-size:12.5px;color:#6f6b67;">Freigabe offen</span>
+                <span style="padding:8px 14px;border:1px solid #e6e3df;border-radius:20px;font-size:12.5px;color:#6f6b67;">Neue Kommentare</span>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;">
+
+              <div style="border:1px solid #e6e3df;border-radius:8px;padding:22px;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 20px rgba(28,22,16,.07);">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                  <img src="assets/avatar-kunde.png" alt="Beispiel Handwerk GmbH" style="width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f3f2f0;" />
+                  <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:600;">Beispiel Handwerk GmbH</div>
+                    <div style="font-size:12px;color:#928e89;">@beispiel.handwerk · Garten- &amp; Landschaftsbau</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #eceae7;">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Nächster Post</span>
+                  <span style="font-size:13px;">Mi, 05.08. · 11:00</span>
+                </div>
+                <sc-if value="{{ kennzahlen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11.5px;">4 Posts in Freigabe</span>
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fbeceb;color:#b00900;font-size:11.5px;font-weight:500;">2 neue Kommentare</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;">
+                  <span style="font-size:11.5px;color:#928e89;">Freigabe-Link aktiv seit 01.08.</span>
+                  <span style="font-size:12.5px;color:#b00900;font-weight:500;">Öffnen</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #e6e3df;border-radius:8px;padding:22px;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 20px rgba(28,22,16,.07);">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                  <span style="width:46px;height:46px;border-radius:8px;background:#f0eeeb;color:#57534f;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;">EB</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:600;">Elektro Baumann</div>
+                    <div style="font-size:12px;color:#928e89;">@elektro.baumann · Elektrotechnik</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #eceae7;">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Nächster Post</span>
+                  <span style="font-size:13px;">Do, 06.08. · 09:00</span>
+                </div>
+                <sc-if value="{{ kennzahlen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11.5px;">3 Posts in Freigabe</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;">
+                  <span style="font-size:11.5px;color:#928e89;">Freigabe-Link aktiv seit 28.07.</span>
+                  <span style="font-size:12.5px;color:#b00900;font-weight:500;">Öffnen</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #e6e3df;border-radius:8px;padding:22px;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 20px rgba(28,22,16,.07);">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                  <span style="width:46px;height:46px;border-radius:8px;background:#f0eeeb;color:#57534f;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;">KJ</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:600;">Nordlicht Kabeltechnik</div>
+                    <div style="font-size:12px;color:#928e89;">@nordlicht.kabel · Kabelkonfektion</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #eceae7;">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Nächster Post</span>
+                  <span style="font-size:13px;">Fr, 07.08. · 17:00</span>
+                </div>
+                <sc-if value="{{ kennzahlen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11.5px;">5 Posts in Freigabe</span>
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fbeceb;color:#b00900;font-size:11.5px;font-weight:500;">1 neuer Kommentar</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;">
+                  <span style="font-size:11.5px;color:#928e89;">Freigabe-Link aktiv seit 30.07.</span>
+                  <span style="font-size:12.5px;color:#b00900;font-weight:500;">Öffnen</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #e6e3df;border-radius:8px;padding:22px;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 20px rgba(28,22,16,.07);">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                  <span style="width:46px;height:46px;border-radius:8px;background:#f0eeeb;color:#57534f;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;">MK</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:600;">Malerwerkstatt Kienzle</div>
+                    <div style="font-size:12px;color:#928e89;">@kienzle.maler · Malerbetrieb</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #eceae7;">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Nächster Post</span>
+                  <span style="font-size:13px;">Mo, 10.08. · 12:00</span>
+                </div>
+                <sc-if value="{{ kennzahlen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11.5px;">2 Posts in Freigabe</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;">
+                  <span style="font-size:11.5px;color:#928e89;">Freigabe-Link aktiv seit 03.08.</span>
+                  <span style="font-size:12.5px;color:#b00900;font-weight:500;">Öffnen</span>
+                </div>
+              </div>
+
+              <div style="border:1px solid #e6e3df;border-radius:8px;padding:22px;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 20px rgba(28,22,16,.07);">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                  <span style="width:46px;height:46px;border-radius:8px;background:#f0eeeb;color:#57534f;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;">ZM</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:600;">Praxis am Markt</div>
+                    <div style="font-size:12px;color:#928e89;">@praxis.ammarkt · Zahnmedizin</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #eceae7;">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Nächster Post</span>
+                  <span style="font-size:13px;">Di, 11.08. · 08:30</span>
+                </div>
+                <sc-if value="{{ kennzahlen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#57534f;font-size:11.5px;">6 Posts in Freigabe</span>
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fbeceb;color:#b00900;font-size:11.5px;font-weight:500;">3 neue Kommentare</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;">
+                  <span style="font-size:11.5px;color:#928e89;">Freigabe-Link aktiv seit 27.07.</span>
+                  <span style="font-size:12.5px;color:#b00900;font-weight:500;">Öffnen</span>
+                </div>
+              </div>
+
+              <div style="border:1px dashed #ddd9d4;border-radius:8px;padding:22px;background:#fdfcfb;" style-hover="border-color:#b00900;">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                  <span style="width:46px;height:46px;border-radius:8px;background:#f4f3f1;color:#a5a09b;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;">SR</span>
+                  <div style="min-width:0;">
+                    <div style="font-size:15px;font-weight:600;color:#57534f;">Sanitär Renz</div>
+                    <div style="font-size:12px;color:#a5a09b;">@sanitaer.renz · Haustechnik</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:16px;border-bottom:1px solid #eceae7;">
+                  <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Nächster Post</span>
+                  <span style="font-size:13px;color:#a5a09b;">noch nicht geplant</span>
+                </div>
+                <sc-if value="{{ kennzahlen }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#928e89;font-size:11.5px;">Onboarding läuft</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;">
+                  <span style="font-size:11.5px;color:#a5a09b;">Kein Freigabe-Link</span>
+                  <span style="font-size:12.5px;color:#b00900;font-weight:500;">Plan anlegen</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2b LISTEN-VIEW ============================ -->
+    <div id="2b" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2b</span>
+        <span style="font-size:13.5px;font-weight:500;">Post-Übersicht · Liste</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2b Post-Liste" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;min-height:900px;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><img src="assets/avatar-kunde.png" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" />Beispiel Handwerk GmbH</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#b00900;font-weight:500;">Posts</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Kommentare</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Freigaben</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Export</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;margin-top:6px;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8b8783;">
+              <span>Kunden</span><span style="color:#c9c4be;">/</span><span style="color:#1c1a18;">Beispiel Handwerk GmbH</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span style="font-size:12.5px;color:#6f6b67;">Freigabe-Link</span>
+              <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:4px;cursor:pointer;" style-hover="background:#8b0700;">Neuer Post</button>
+            </div>
+          </div>
+
+          <div style="padding:36px 32px 20px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px;">
+              <div style="display:flex;align-items:baseline;gap:12px;">
+                <h2 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-0.02em;">August</h2>
+                <span style="font-family:'Instrument Serif',Georgia,serif;font-size:30px;color:#b00900;">2026</span>
+                <span style="font-size:13px;color:#77746f;padding-left:8px;">6 Beiträge · 3 in Freigabe</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div style="display:flex;align-items:center;gap:6px;border:1px solid #e6e3df;border-radius:6px;padding:3px;">
+                  <span style="padding:7px 14px;border-radius:4px;background:#1c1a18;color:#fff;font-size:12.5px;font-weight:500;">Liste</span>
+                  <span style="padding:7px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Feed</span>
+                  <span style="padding:7px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Kalender</span>
+                </div>
+                <span style="display:inline-flex;align-items:center;gap:8px;border:1px solid #e6e3df;border-radius:6px;padding:9px 14px;font-size:12.5px;color:#6f6b67;">Status: Alle</span>
+              </div>
+            </div>
+
+            <div style="border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:12px 20px;background:#faf9f7;border-bottom:1px solid #eceae7;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}"><span>Vorschau</span></sc-if><sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if><span>Typ</span><span>Termin</span><span>Titel</span><span>Status</span><span>Kommentare</span><span></span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f2f0ed;" style-hover="background:#fdfcfb;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}">
+                  <img src="assets/reel-1.jpg" alt="" style="width:48px;height:60px;border-radius:4px;object-fit:cover;background:#f2f0ed;" />
+                </sc-if>
+                <sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;"><span style="width:8px;height:8px;border-radius:50%;background:#b00900;display:block;"></span>Reel</span>
+                <div><div style="font-size:13px;">Mi, 05.08.</div><div style="font-size:11.5px;color:#928e89;">11:00 Uhr</div></div>
+                <div><div style="font-size:13.5px;font-weight:500;">Recruiting: Garten- &amp; Landschaftsbauer</div><div style="font-size:11.5px;color:#928e89;">5 Szenen · 0:32</div></div>
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#eef6f0;color:#2f7a45;font-size:11.5px;font-weight:500;width:fit-content;"><span style="width:6px;height:6px;border-radius:50%;background:#2f7a45;display:block;"></span>Final</span>
+                <span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#b00900;font-weight:500;"><span style="position:relative;display:block;width:15px;height:12px;border:1.6px solid currentColor;border-radius:3px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:5px solid currentColor;border-bottom:4px solid transparent;"></span>2</span>
+                <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f2f0ed;" style-hover="background:#fdfcfb;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}">
+                  <img src="assets/karussell-1.jpg" alt="" style="width:48px;height:60px;border-radius:4px;object-fit:cover;background:#f2f0ed;" />
+                </sc-if>
+                <sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;"><span style="width:8px;height:8px;border-radius:50%;background:#2f4b8f;display:block;"></span>Karussell</span>
+                <div><div style="font-size:13px;">Di, 11.08.</div><div style="font-size:11.5px;color:#928e89;">17:30 Uhr</div></div>
+                <div><div style="font-size:13.5px;font-weight:500;">Deine Aufgaben bei Beispiel</div><div style="font-size:11.5px;color:#928e89;">2 Slides</div></div>
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fdf4e7;color:#b5730a;font-size:11.5px;font-weight:500;width:fit-content;"><span style="width:6px;height:6px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+                <span style="font-size:12.5px;color:#b5b0aa;">—</span>
+                <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f2f0ed;" style-hover="background:#fdfcfb;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}">
+                  <img src="assets/beitrag-vorhernachher.jpg" alt="" style="width:48px;height:60px;border-radius:4px;object-fit:cover;background:#f2f0ed;" />
+                </sc-if>
+                <sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;"><span style="width:8px;height:8px;border-radius:50%;background:#0f7a6a;display:block;"></span>Beitrag</span>
+                <div><div style="font-size:13px;">Do, 20.08.</div><div style="font-size:11.5px;color:#928e89;">09:00 Uhr</div></div>
+                <div><div style="font-size:13.5px;font-weight:500;">Vorher/Nachher: Heckenschnitt</div><div style="font-size:11.5px;color:#928e89;">Plochingen</div></div>
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#fdf4e7;color:#b5730a;font-size:11.5px;font-weight:500;width:fit-content;"><span style="width:6px;height:6px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+                <span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#b00900;font-weight:500;"><span style="position:relative;display:block;width:15px;height:12px;border:1.6px solid currentColor;border-radius:3px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:5px solid currentColor;border-bottom:4px solid transparent;"></span>1</span>
+                <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f2f0ed;" style-hover="background:#fdfcfb;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}">
+                  <img src="assets/beitrag-facility.jpg" alt="" style="width:48px;height:60px;border-radius:4px;object-fit:cover;background:#f2f0ed;" />
+                </sc-if>
+                <sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;"><span style="width:8px;height:8px;border-radius:50%;background:#0f7a6a;display:block;"></span>Beitrag</span>
+                <div><div style="font-size:13px;">Fr, 28.08.</div><div style="font-size:11.5px;color:#928e89;">12:00 Uhr</div></div>
+                <div><div style="font-size:13.5px;font-weight:500;">Was gehört zu Facility Management?</div><div style="font-size:11.5px;color:#928e89;">Grafik in Arbeit</div></div>
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#75716c;font-size:11.5px;font-weight:500;width:fit-content;"><span style="width:6px;height:6px;border-radius:50%;background:#8a8784;display:block;"></span>Konzept</span>
+                <span style="font-size:12.5px;color:#b5b0aa;">—</span>
+                <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+              </div>
+
+              <div style="padding:10px 20px;background:#faf9f7;border-bottom:1px solid #f2f0ed;border-top:1px solid #f2f0ed;">
+                <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">September · in Planung</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:14px 20px;border-bottom:1px solid #f2f0ed;" style-hover="background:#fdfcfb;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}">
+                  <img src="assets/feed-p2.jpg" alt="" style="width:48px;height:60px;border-radius:4px;object-fit:cover;background:#f2f0ed;" />
+                </sc-if>
+                <sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;"><span style="width:8px;height:8px;border-radius:50%;background:#b00900;display:block;"></span>Reel</span>
+                <div><div style="font-size:13px;">Mi, 02.09.</div><div style="font-size:11.5px;color:#928e89;">11:00 Uhr</div></div>
+                <div><div style="font-size:13.5px;font-weight:500;">Maschinenpark: der neue Radlader</div><div style="font-size:11.5px;color:#928e89;">Dreh am 21.08.</div></div>
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#75716c;font-size:11.5px;font-weight:500;width:fit-content;"><span style="width:6px;height:6px;border-radius:50%;background:#8a8784;display:block;"></span>Konzept</span>
+                <span style="font-size:12.5px;color:#b5b0aa;">—</span>
+                <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+              </div>
+
+              <div style="display:grid;grid-template-columns:76px 130px 150px minmax(0,1fr) 130px 130px 60px;align-items:center;gap:16px;padding:14px 20px;" style-hover="background:#fdfcfb;">
+                <sc-if value="{{ thumbs }}" hint-placeholder-val="{{ true }}">
+                  <img src="assets/feed-p8.jpg" alt="" style="width:48px;height:60px;border-radius:4px;object-fit:cover;background:#f2f0ed;" />
+                </sc-if>
+                <sc-if value="{{ keineThumbs }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+                <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;"><span style="width:8px;height:8px;border-radius:50%;background:#2f4b8f;display:block;"></span>Karussell</span>
+                <div><div style="font-size:13px;">Di, 08.09.</div><div style="font-size:11.5px;color:#928e89;">17:00 Uhr</div></div>
+                <div><div style="font-size:13.5px;font-weight:500;">3 Tipps für gepflegte Außenanlagen</div><div style="font-size:11.5px;color:#928e89;">Texte offen</div></div>
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#f4f3f1;color:#75716c;font-size:11.5px;font-weight:500;width:fit-content;"><span style="width:6px;height:6px;border-radius:50%;background:#8a8784;display:block;"></span>Konzept</span>
+                <span style="font-size:12.5px;color:#b5b0aa;">—</span>
+                <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2c FEED-VIEW ============================ -->
+    <div id="2c" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2c</span>
+        <span style="font-size:13.5px;font-weight:500;">Post-Übersicht · Feed-Vorschau</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2c Feed-Vorschau" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;min-height:900px;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><img src="assets/avatar-kunde.png" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" />Beispiel Handwerk GmbH</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#b00900;font-weight:500;">Posts</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Kommentare</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Freigaben</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Export</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;margin-top:6px;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8b8783;">
+              <span>Kunden</span><span style="color:#c9c4be;">/</span><span style="color:#1c1a18;">Beispiel Handwerk GmbH</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span style="font-size:12.5px;color:#6f6b67;">Freigabe-Link</span>
+              <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:4px;cursor:pointer;" style-hover="background:#8b0700;">Neuer Post</button>
+            </div>
+          </div>
+
+          <div style="padding:36px 32px 48px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:32px;">
+              <div style="display:flex;align-items:baseline;gap:12px;">
+                <h2 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-0.02em;">Feed-Vorschau</h2>
+                <span style="font-size:13px;color:#77746f;padding-left:8px;">Profilraster inkl. nicht freigegebener Beiträge</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div style="display:flex;align-items:center;gap:6px;border:1px solid #e6e3df;border-radius:6px;padding:3px;">
+                  <span style="padding:7px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Liste</span>
+                  <span style="padding:7px 14px;border-radius:4px;background:#1c1a18;color:#fff;font-size:12.5px;font-weight:500;">Feed</span>
+                  <span style="padding:7px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Kalender</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:48px;align-items:start;">
+              <div style="max-width:720px;">
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+
+                  <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #8a8784;">
+                    <img src="assets/feed-p8.jpg" alt="3 Tipps" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;" />
+                    <span style="position:absolute;top:8px;left:8px;padding:4px 9px;border-radius:3px;background:rgba(255,255,255,.94);color:#75716c;font-size:10.5px;font-weight:600;">Konzept</span>
+                    <span style="position:absolute;bottom:8px;left:8px;padding:3px 8px;border-radius:3px;background:rgba(28,22,16,.72);color:#fff;font-size:10px;">08.09.</span>
+                    <span style="position:absolute;top:8px;right:9px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                  </div>
+
+                  <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #8a8784;">
+                    <img src="assets/feed-p2.jpg" alt="Maschinenpark" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;" />
+                    <span style="position:absolute;top:8px;left:8px;padding:4px 9px;border-radius:3px;background:rgba(255,255,255,.94);color:#75716c;font-size:10.5px;font-weight:600;">Konzept</span>
+                    <span style="position:absolute;bottom:8px;left:8px;padding:3px 8px;border-radius:3px;background:rgba(28,22,16,.72);color:#fff;font-size:10px;">02.09.</span>
+                    <span style="position:absolute;top:8px;right:9px;display:block;width:0;height:0;border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));"></span>
+                  </div>
+
+                  <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #8a8784;">
+                    <img src="assets/beitrag-facility.jpg" alt="Facility Management" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55;" />
+                    <span style="position:absolute;top:8px;left:8px;padding:4px 9px;border-radius:3px;background:rgba(255,255,255,.94);color:#75716c;font-size:10.5px;font-weight:600;">Konzept</span>
+                    <span style="position:absolute;bottom:8px;left:8px;padding:3px 8px;border-radius:3px;background:rgba(28,22,16,.72);color:#fff;font-size:10px;">28.08.</span>
+                  </div>
+
+                  <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b5730a;">
+                    <img src="assets/beitrag-vorhernachher.jpg" alt="Vorher Nachher" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    <span style="position:absolute;top:8px;left:8px;padding:4px 9px;border-radius:3px;background:rgba(255,255,255,.94);color:#b5730a;font-size:10.5px;font-weight:600;">Vorschau</span>
+                    <span style="position:absolute;bottom:8px;left:8px;padding:3px 8px;border-radius:3px;background:rgba(28,22,16,.72);color:#fff;font-size:10px;">20.08.</span>
+                  </div>
+
+                  <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #b5730a;">
+                    <img src="assets/karussell-1.jpg" alt="Deine Aufgaben" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    <span style="position:absolute;top:8px;left:8px;padding:4px 9px;border-radius:3px;background:rgba(255,255,255,.94);color:#b5730a;font-size:10.5px;font-weight:600;">Vorschau</span>
+                    <span style="position:absolute;bottom:8px;left:8px;padding:3px 8px;border-radius:3px;background:rgba(28,22,16,.72);color:#fff;font-size:10px;">11.08.</span>
+                    <span style="position:absolute;top:8px;right:9px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                  </div>
+
+                  <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;box-shadow:inset 0 0 0 2px #2f7a45;">
+                    <img src="assets/reel-1.jpg" alt="Recruiting Reel" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    <span style="position:absolute;top:8px;left:8px;padding:4px 9px;border-radius:3px;background:rgba(255,255,255,.94);color:#2f7a45;font-size:10.5px;font-weight:600;">Final</span>
+                    <span style="position:absolute;bottom:8px;left:8px;padding:3px 8px;border-radius:3px;background:rgba(28,22,16,.72);color:#fff;font-size:10px;">05.08.</span>
+                    <span style="position:absolute;top:8px;right:9px;display:block;width:0;height:0;border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));"></span>
+                  </div>
+
+                  <sc-if value="{{ veroeffentlichte }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;">
+                      <img src="assets/feed-p1.jpg" alt="Veröffentlicht" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                      <span style="position:absolute;top:8px;right:9px;display:block;width:8px;height:8px;border:1.5px solid #fff;border-radius:2px;box-shadow:3px -3px 0 -1px #fff,0 1px 2px rgba(0,0,0,.35);"></span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ veroeffentlichte }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;">
+                      <img src="assets/feed-p3.jpg" alt="Veröffentlicht" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ veroeffentlichte }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;">
+                      <img src="assets/feed-p4.jpg" alt="Veröffentlicht" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ veroeffentlichte }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;">
+                      <img src="assets/feed-p5.jpg" alt="Veröffentlicht" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ veroeffentlichte }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;">
+                      <img src="assets/feed-p6.jpg" alt="Veröffentlicht" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                      <span style="position:absolute;top:8px;right:9px;display:block;width:0;height:0;border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));"></span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ veroeffentlichte }}" hint-placeholder-val="{{ true }}">
+                    <div style="position:relative;aspect-ratio:4/5;border-radius:6px;overflow:hidden;background:#f2f0ed;">
+                      <img src="assets/feed-p7.jpg" alt="Veröffentlicht" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+
+              <div style="display:grid;gap:26px;padding-top:4px;">
+                <div>
+                  <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Status im Raster</div>
+                  <div style="display:grid;gap:11px;">
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:16px;height:16px;border-radius:3px;box-shadow:inset 0 0 0 2px #2f7a45;display:block;"></span><span style="font-size:12.5px;color:#3a3733;">Final — freigegeben</span></div>
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:16px;height:16px;border-radius:3px;box-shadow:inset 0 0 0 2px #b5730a;display:block;"></span><span style="font-size:12.5px;color:#3a3733;">Vorschau — beim Kunden</span></div>
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:16px;height:16px;border-radius:3px;box-shadow:inset 0 0 0 2px #8a8784;display:block;"></span><span style="font-size:12.5px;color:#3a3733;">Konzept — intern, abgeblendet</span></div>
+                    <div style="display:flex;align-items:center;gap:10px;"><span style="width:16px;height:16px;border-radius:3px;background:#eceae7;display:block;"></span><span style="font-size:12.5px;color:#3a3733;">veröffentlicht</span></div>
+                  </div>
+                </div>
+                <div style="border-top:1px solid #eceae7;padding-top:22px;">
+                  <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Reihenfolge</div>
+                  <p style="margin:0;font-size:12.5px;line-height:1.7;color:#5f5b57;">Neuester Beitrag oben links. Kacheln lassen sich per Drag &amp; Drop tauschen — das ändert den Posting-Termin, nicht den Inhalt.</p>
+                </div>
+                <div style="border-top:1px solid #eceae7;padding-top:22px;">
+                  <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:14px;">Auswahl</div>
+                  <p style="margin:0 0 14px;font-size:12.5px;line-height:1.7;color:#5f5b57;">Klick auf eine Kachel öffnet den Post-Editor.</p>
+                  <button style="width:100%;border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:11px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Freigabe-Vorschau öffnen</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2d KALENDER-VIEW ============================ -->
+    <div id="2d" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2d</span>
+        <span style="font-size:13.5px;font-weight:500;">Post-Übersicht · Kalender</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2d Kalender" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;min-height:900px;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><img src="assets/avatar-kunde.png" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" />Beispiel Handwerk GmbH</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#b00900;font-weight:500;">Posts</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Kommentare</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Freigaben</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Export</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;margin-top:6px;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8b8783;">
+              <span>Kunden</span><span style="color:#c9c4be;">/</span><span style="color:#1c1a18;">Beispiel Handwerk GmbH</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span style="font-size:12.5px;color:#6f6b67;">Freigabe-Link</span>
+              <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:4px;cursor:pointer;" style-hover="background:#8b0700;">Neuer Post</button>
+            </div>
+          </div>
+
+          <div style="padding:36px 32px 48px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;">
+              <div style="display:flex;align-items:baseline;gap:12px;">
+                <span style="font-size:18px;color:#a5a09b;padding-right:6px;">‹</span>
+                <h2 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-0.02em;">August</h2>
+                <span style="font-family:'Instrument Serif',Georgia,serif;font-size:30px;color:#b00900;">2026</span>
+                <span style="font-size:18px;color:#a5a09b;padding-left:6px;">›</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div style="display:flex;align-items:center;gap:22px;">
+                  <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#b00900;display:block;"></span><span style="font-size:12px;color:#5f5b57;">Reel</span></div>
+                  <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#2f4b8f;display:block;"></span><span style="font-size:12px;color:#5f5b57;">Karussell</span></div>
+                  <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#0f7a6a;display:block;"></span><span style="font-size:12px;color:#5f5b57;">Beitrag</span></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;border:1px solid #e6e3df;border-radius:6px;padding:3px;">
+                  <span style="padding:7px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Liste</span>
+                  <span style="padding:7px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Feed</span>
+                  <span style="padding:7px 14px;border-radius:4px;background:#1c1a18;color:#fff;font-size:12.5px;font-weight:500;">Kalender</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+              <div style="display:grid;grid-template-columns:76px repeat(7,1fr);">
+                <div style="background:#faf9f7;border-right:1px solid #eceae7;"></div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Mo</div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Di</div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Mi</div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Do</div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Fr</div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">Sa</div>
+                <div style="padding:11px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;background:#faf9f7;">So</div>
+
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">31</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">27</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">28</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">29</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">30</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">31</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">1</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">2</span></div>
+
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">32</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">3</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">4</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;background:#fdf7f6;">
+                  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#b00900;color:#fff;font-size:12px;">5</span>
+                  <div style="display:flex;gap:8px;margin-top:10px;padding:8px 9px;border-radius:5px;background:#fff;border:1px solid #eceae7;">
+                    <span style="width:3px;border-radius:2px;background:#b00900;display:block;flex:0 0 auto;"></span>
+                    <div style="min-width:0;">
+                      <div style="font-size:11px;color:#928e89;">11:00 · Reel</div>
+                      <div style="font-size:11.5px;line-height:1.35;margin-top:2px;">Recruiting-Reel</div>
+                      <span style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:#2f7a45;"><span style="width:5px;height:5px;border-radius:50%;background:#2f7a45;display:block;"></span>Final</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">6</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">7</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">8</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">9</span></div>
+
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">33</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">10</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;">
+                  <span style="font-size:12px;color:#57534f;">11</span>
+                  <div style="display:flex;gap:8px;margin-top:10px;padding:8px 9px;border-radius:5px;background:#fff;border:1px solid #eceae7;">
+                    <span style="width:3px;border-radius:2px;background:#2f4b8f;display:block;flex:0 0 auto;"></span>
+                    <div style="min-width:0;">
+                      <div style="font-size:11px;color:#928e89;">17:30 · Karussell</div>
+                      <div style="font-size:11.5px;line-height:1.35;margin-top:2px;">Deine Aufgaben</div>
+                      <span style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:#b5730a;"><span style="width:5px;height:5px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">12</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">13</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">14</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">15</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">16</span></div>
+
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">34</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">17</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">18</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">19</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;">
+                  <span style="font-size:12px;color:#57534f;">20</span>
+                  <div style="display:flex;gap:8px;margin-top:10px;padding:8px 9px;border-radius:5px;background:#fff;border:1px solid #eceae7;">
+                    <span style="width:3px;border-radius:2px;background:#0f7a6a;display:block;flex:0 0 auto;"></span>
+                    <div style="min-width:0;">
+                      <div style="font-size:11px;color:#928e89;">09:00 · Beitrag</div>
+                      <div style="font-size:11.5px;line-height:1.35;margin-top:2px;">Vorher/Nachher</div>
+                      <span style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:#b5730a;"><span style="width:5px;height:5px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">21</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">22</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">23</span></div>
+
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">35</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">24</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">25</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">26</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">27</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;">
+                  <span style="font-size:12px;color:#57534f;">28</span>
+                  <div style="display:flex;gap:8px;margin-top:10px;padding:8px 9px;border-radius:5px;background:#faf9f7;border:1px dashed #ddd9d4;">
+                    <span style="width:3px;border-radius:2px;background:#0f7a6a;display:block;flex:0 0 auto;"></span>
+                    <div style="min-width:0;">
+                      <div style="font-size:11px;color:#928e89;">12:00 · Beitrag</div>
+                      <div style="font-size:11.5px;line-height:1.35;margin-top:2px;">Facility Management</div>
+                      <span style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:#75716c;"><span style="width:5px;height:5px;border-radius:50%;background:#8a8784;display:block;"></span>Konzept</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">29</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">30</span></div>
+
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-top:1px solid #eceae7;border-right:1px solid #eceae7;background:#faf9f7;"><span style="font-size:10px;letter-spacing:.1em;color:#a5a09b;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;color:#b00900;line-height:1;">36</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#57534f;">31</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;">
+                  <span style="font-size:12px;color:#c4c0bb;">1</span>
+                </div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;">
+                  <span style="font-size:12px;color:#c4c0bb;">2</span>
+                  <div style="display:flex;gap:8px;margin-top:10px;padding:8px 9px;border-radius:5px;background:#faf9f7;border:1px dashed #ddd9d4;">
+                    <span style="width:3px;border-radius:2px;background:#b00900;display:block;flex:0 0 auto;"></span>
+                    <div style="min-width:0;">
+                      <div style="font-size:11px;color:#928e89;">11:00 · Reel</div>
+                      <div style="font-size:11.5px;line-height:1.35;margin-top:2px;">Maschinenpark</div>
+                      <span style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;color:#75716c;"><span style="width:5px;height:5px;border-radius:50%;background:#8a8784;display:block;"></span>Konzept</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">3</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">4</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">5</span></div>
+                <div style="min-height:118px;padding:10px 12px;border-top:1px solid #eceae7;"><span style="font-size:12px;color:#c4c0bb;">6</span></div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:24px;margin-top:20px;">
+              <span style="font-size:11.5px;color:#8b8783;">Termin ändern: Karte in einen anderen Tag ziehen.</span>
+              <span style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;color:#8b8783;"><span style="width:14px;height:14px;border-radius:3px;border:1px dashed #ddd9d4;display:block;"></span>gestrichelt = noch nicht beim Kunden</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2e REEL-EDITOR ============================ -->
+    <div id="2e" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2e</span>
+        <span style="font-size:13.5px;font-weight:500;">Post-Editor · Reel</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2e Reel-Editor" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><img src="assets/avatar-kunde.png" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" />Beispiel Handwerk GmbH</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#b00900;font-weight:500;">Posts</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Kommentare</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Freigaben</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Export</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;margin-top:6px;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8b8783;">
+              <span>Kunden</span><span style="color:#c9c4be;">/</span><span>Beispiel Handwerk GmbH</span><span style="color:#c9c4be;">/</span><span style="color:#1c1a18;">Reel · KW 32</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:12px;color:#a5a09b;">Zuletzt gespeichert 14:02</span>
+              <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Entwurf speichern</button>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:12px 22px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Zur Freigabe senden</button>
+            </div>
+          </div>
+
+          <div style="padding:32px 32px 48px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;margin-bottom:28px;">
+              <div style="min-width:0;flex:1;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                  <span style="display:inline-flex;align-items:center;gap:8px;padding:5px 11px;border-radius:3px;background:#fbeceb;color:#b00900;font-size:11.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#b00900;display:block;"></span>Reel</span>
+                  <span style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:15px;font-weight:700;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;line-height:1;color:#b00900;">32</span></span>
+                  <span style="font-size:12.5px;color:#928e89;">Mi, 05.08.2026 · 11:00</span>
+                </div>
+                <input value="Recruiting: Garten- &amp; Landschaftsbauer gesucht" style="width:100%;max-width:640px;border:1px solid transparent;border-radius:5px;background:transparent;padding:6px 8px;margin-left:-8px;font-size:26px;font-weight:600;letter-spacing:-0.02em;color:#1c1a18;" style-hover="border-color:#e6e3df;background:#fdfcfb;" />
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+                <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Status</span>
+                <div style="display:flex;align-items:center;gap:4px;border:1px solid #e6e3df;border-radius:6px;padding:3px;background:#fff;">
+                  <span style="padding:8px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Konzept</span>
+                  <span style="padding:8px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Vorschau</span>
+                  <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:4px;background:#eef6f0;color:#2f7a45;font-size:12.5px;font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:#2f7a45;display:block;"></span>Final</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;align-items:start;">
+
+              <div style="display:grid;gap:20px;min-width:0;">
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:20px;">Eckdaten</div>
+                  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;">
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Posting-Datum</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">05.08.2026</div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Uhrzeit</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">11:00</div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Format</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;">Reel · 9:16 <span style="color:#a5a09b;">▾</span></div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Länge</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">ca. 30–35 Sek.</div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Ziel</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">Recruiting</div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Stil</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">nahbar, direkt</div></div>
+                    <div style="grid-column:span 2;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Verantwortlich</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:8px 12px;font-size:13px;display:flex;align-items:center;gap:9px;"><span style="width:24px;height:24px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>Helena Avdijaj</div></div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid #eceae7;">
+                    <div>
+                      <div style="font-size:13px;font-weight:600;">Szenen</div>
+                      <div style="font-size:11.5px;color:#928e89;margin-top:3px;">Optional — ohne Szenenplan tritt ein freies Inhalte-Feld an seine Stelle</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:18px;">
+                      <button onClick="{{ toggleSzenen }}" style="display:flex;align-items:center;gap:10px;border:none;background:none;cursor:pointer;padding:0;">
+                        <span style="font-size:12.5px;color:#3a3733;">Szenenplan</span>
+                        <sc-if value="{{ szenenplan }}" hint-placeholder-val="{{ true }}">
+                          <span style="position:relative;display:block;width:38px;height:22px;border-radius:11px;background:#b00900;" style-after="content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:#fff;"></span>
+                        </sc-if>
+                        <sc-if value="{{ freitext }}" hint-placeholder-val="{{ false }}">
+                          <span style="position:relative;display:block;width:38px;height:22px;border-radius:11px;background:#ddd9d4;" style-after="content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;"></span>
+                        </sc-if>
+                      </button>
+                      <sc-if value="{{ szenenplan }}" hint-placeholder-val="{{ true }}">
+                        <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:9px 14px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Szene hinzufügen</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                  <sc-if value="{{ szenenplan }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:grid;grid-template-columns:132px minmax(0,1.1fr) minmax(0,1fr) minmax(0,0.9fr);gap:18px;padding:11px 24px;background:#faf9f7;border-bottom:1px solid #eceae7;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">
+                    <span>Abschnitt</span><span>Bild / Szene</span><span>Sprechertext</span><span>Texteinblendung</span>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:132px minmax(0,1.1fr) minmax(0,1fr) minmax(0,0.9fr);gap:18px;padding:16px 24px;border-bottom:1px solid #f2f0ed;align-items:start;" style-hover="background:#fdfcfb;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;flex:0 0 auto;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:#b00900;color:#fff;font-size:11.5px;font-weight:600;"><span style="width:16px;height:16px;border-radius:50%;background:#fff;color:#b00900;font-size:9.5px;display:flex;align-items:center;justify-content:center;">1</span>Hook</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">Drei Mitarbeiter stehen vor dem Firmengelände, einer dreht sich in die Kamera.</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">„Wir suchen Verstärkung — und zwar dich."</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">GARTEN- &amp; LANDSCHAFTSBAUER GESUCHT!</div>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:132px minmax(0,1.1fr) minmax(0,1fr) minmax(0,0.9fr);gap:18px;padding:16px 24px;border-bottom:1px solid #f2f0ed;align-items:start;" style-hover="background:#fdfcfb;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;flex:0 0 auto;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:#f4f3f1;color:#57534f;font-size:11.5px;font-weight:500;"><span style="width:16px;height:16px;border-radius:50%;background:#fff;color:#57534f;font-size:9.5px;display:flex;align-items:center;justify-content:center;">2</span>Intro</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">Schwenk über die Baustelle, Team beim Setzen der Randsteine.</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">„Bei Beispiel arbeitest du draußen, im Team — und siehst abends, was du geschafft hast."</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#a5a09b;">—</div>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:132px minmax(0,1.1fr) minmax(0,1fr) minmax(0,0.9fr);gap:18px;padding:16px 24px;border-bottom:1px solid #f2f0ed;align-items:start;" style-hover="background:#fdfcfb;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;flex:0 0 auto;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:#f4f3f1;color:#57534f;font-size:11.5px;font-weight:500;"><span style="width:16px;height:16px;border-radius:50%;background:#fff;color:#57534f;font-size:9.5px;display:flex;align-items:center;justify-content:center;">3</span>Szene</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">Nahaufnahmen: Heckenschere, Radlader, Pflanzarbeiten — schneller Schnitt.</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">„Moderne Maschinen, feste Teams, klare Aufgaben."</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">Grünflächen · Maschinen · Team</div>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:132px minmax(0,1.1fr) minmax(0,1fr) minmax(0,0.9fr);gap:18px;padding:16px 24px;border-bottom:1px solid #f2f0ed;align-items:start;" style-hover="background:#fdfcfb;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;flex:0 0 auto;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:#f4f3f1;color:#57534f;font-size:11.5px;font-weight:500;"><span style="width:16px;height:16px;border-radius:50%;background:#fff;color:#57534f;font-size:9.5px;display:flex;align-items:center;justify-content:center;">4</span>Szene</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">Mitarbeiter im Gespräch, lachen, Wasserflasche in der Pause.</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">„Lasst uns endlich anfangen."</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">LASST UNS ENDLICH …</div>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:132px minmax(0,1.1fr) minmax(0,1fr) minmax(0,0.9fr);gap:18px;padding:16px 24px;align-items:start;" style-hover="background:#fdfcfb;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;flex:0 0 auto;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                      <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:#1c1a18;color:#fff;font-size:11.5px;font-weight:500;"><span style="width:16px;height:16px;border-radius:50%;background:#fff;color:#1c1a18;font-size:9.5px;display:flex;align-items:center;justify-content:center;">5</span>Abbinder</span>
+                    </div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">Logo-Animation auf grünem Grund, Bewerbungs-Hinweis.</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">„Bewirb dich jetzt bei Beispiel."</div>
+                    <div style="font-size:12.5px;line-height:1.6;color:#3a3733;">JETZT BEWERBEN</div>
+                  </div>
+                  </sc-if>
+                  <sc-if value="{{ freitext }}" hint-placeholder-val="{{ false }}">
+                    <div style="padding:22px 24px;">
+                      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:8px;">Inhalte</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:14px;font-size:13px;line-height:1.7;color:#3a3733;white-space:pre-line;min-height:200px;">Kurzes Recruiting-Reel ohne festes Storyboard.
+
+Aufnahmen vom Team auf der Baustelle, dazwischen Nahaufnahmen von Maschinen und Pflanzarbeiten. Sprechertext aus dem Off, Untertitel durchgehend.
+
+Am Ende Logo-Abbinder mit Hinweis auf die offene Stelle.</div>
+                      <div style="font-size:11.5px;color:#928e89;margin-top:10px;">Freitext — erscheint so auch in der Kundenvorschau.</div>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Referenzvideo</div>
+                  <div style="font-size:11.5px;color:#928e89;margin-bottom:18px;">Link auf ein Vorbild-Reel — wird im Editor und in der Kundenvorschau eingebettet.</div>
+                  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+                    <div style="flex:1;min-width:0;border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;color:#3a3733;">https://www.instagram.com/reel/CxK2f8pM1qA/</div>
+                    <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Einbetten</button>
+                  </div>
+                  <div style="display:flex;gap:18px;align-items:center;padding:14px;border-radius:6px;background:#faf9f7;">
+                    <div style="position:relative;width:96px;height:170px;border-radius:6px;overflow:hidden;background:#0b0b0c;flex:0 0 auto;">
+                      <img src="assets/feed-p6.jpg" alt="Referenz" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;" />
+                      <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;"><span style="display:block;width:0;height:0;margin-left:3px;border-left:10px solid #fff;border-top:6px solid transparent;border-bottom:6px solid transparent;"></span></span>
+                    </div>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Referenz: „Handwerk sucht dich" — @gruen.kollektiv</div>
+                      <div style="font-size:12px;line-height:1.65;color:#5f5b57;">Schnitt-Tempo und Texteinblendungen als Vorbild. Hook in den ersten 1,5 Sekunden, Untertitel durchgehend.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+                    <div>
+                      <div style="font-size:13px;font-weight:600;">Eigene Felder</div>
+                      <div style="font-size:11.5px;color:#928e89;margin-top:3px;">Pro Kunde frei definierbar — erscheinen auch in der Kundenvorschau</div>
+                    </div>
+                    <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:9px 14px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Feld hinzufügen</button>
+                  </div>
+                  <div style="display:grid;gap:10px;">
+                    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 110px 32px;gap:12px;align-items:center;">
+                      <div style="font-size:12.5px;color:#5f5b57;">Drehort</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:13px;">Betriebshof Plochingen</div>
+                      <span style="font-size:11.5px;color:#a5a09b;">Text</span>
+                      <span style="font-size:14px;color:#c9c4be;text-align:center;">×</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 110px 32px;gap:12px;align-items:center;">
+                      <div style="font-size:12.5px;color:#5f5b57;">Drehtermin</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:13px;">29.07.2026, 07:30</div>
+                      <span style="font-size:11.5px;color:#a5a09b;">Datum</span>
+                      <span style="font-size:14px;color:#c9c4be;text-align:center;">×</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 110px 32px;gap:12px;align-items:center;">
+                      <div style="font-size:12.5px;color:#5f5b57;">Musik-Lizenz</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:13px;">Epidemic Sound · „Fieldwork"</div>
+                      <span style="font-size:11.5px;color:#a5a09b;">Text</span>
+                      <span style="font-size:14px;color:#c9c4be;text-align:center;">×</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 110px 32px;gap:12px;align-items:center;">
+                      <div style="font-size:12.5px;color:#5f5b57;">Untertitel geprüft</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:13px;display:flex;align-items:center;gap:9px;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>ja</div>
+                      <span style="font-size:11.5px;color:#a5a09b;">Ja/Nein</span>
+                      <span style="font-size:14px;color:#c9c4be;text-align:center;">×</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:16px;">Caption</div>
+                  <div style="border:1px solid #e6e3df;border-radius:5px;padding:14px;font-size:13px;line-height:1.7;color:#3a3733;white-space:pre-line;min-height:150px;">Wir brauchen Verstärkung!
+
+Du möchtest draußen arbeiten, im Team anpacken und jeden Tag sehen, was du geschafft hast?
+
+Dann bist du bei Beispiel genau richtig.</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;">
+                    <span style="font-size:11.5px;color:#928e89;">#Beispiel #GartenUndLandschaftsbau #Jobs #Karriere #TeamBeispiel</span>
+                    <span style="font-size:11.5px;color:#a5a09b;">312 / 2200 Zeichen</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <div style="display:grid;gap:20px;position:sticky;top:24px;">
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Vorschau</span>
+                    <span style="font-size:11.5px;color:#b00900;font-weight:500;">Vollbild</span>
+                  </div>
+                  <div style="width:258px;margin:0 auto;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:42px;padding:2px;box-shadow:0 12px 30px rgba(30,20,14,.18);">
+                    <div style="background:#0b0b0c;border-radius:40px;padding:7px;">
+                      <div style="position:relative;height:512px;background:#000;border-radius:34px;overflow:hidden;">
+                        <img src="assets/reel-1.jpg" alt="Reel Vorschau" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                        <div style="position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(0deg,rgba(0,0,0,.72),rgba(0,0,0,0));"></div>
+                        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.32);border:1.5px solid rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;">
+                          <span style="display:block;width:0;height:0;margin-left:4px;border-left:14px solid rgba(255,255,255,.95);border-top:8px solid transparent;border-bottom:8px solid transparent;"></span>
+                        </div>
+                        <div style="position:absolute;left:14px;right:14px;bottom:16px;color:#fff;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                            <img src="assets/avatar-kunde.png" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;background:#fff;border:1.5px solid rgba(255,255,255,.9);" />
+                            <span style="font-size:12px;font-weight:600;">beispiel.handwerk</span>
+                          </div>
+                          <div style="font-size:11.5px;line-height:1.45;">Wir brauchen Verstärkung! Du möchtest draußen arbeiten … <span style="color:rgba(255,255,255,.7);">mehr</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;">
+                  <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;margin-bottom:16px;">Verlauf</div>
+                  <div style="display:grid;gap:14px;">
+                    <div style="display:flex;gap:10px;">
+                      <span style="flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#f0eeeb;color:#5f5b57;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">SO</span>
+                      <div style="min-width:0;"><div style="font-size:12px;line-height:1.5;color:#3a3733;">Kommentar: „Untertitel etwas kürzen"</div><div style="font-size:10.5px;color:#b5b0aa;margin-top:3px;">03.08., 14:12</div></div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                      <span style="flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+                      <div style="min-width:0;"><div style="font-size:12px;line-height:1.5;color:#3a3733;">Status auf <strong style="font-weight:500;">Final</strong> gesetzt</div><div style="font-size:10.5px;color:#b5b0aa;margin-top:3px;">03.08., 16:44</div></div>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                      <span style="flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+                      <div style="min-width:0;"><div style="font-size:12px;line-height:1.5;color:#3a3733;">Schnittfassung v3 hochgeladen</div><div style="font-size:10.5px;color:#b5b0aa;margin-top:3px;">02.08., 09:20</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2f BEITRAG / KARUSSELL ============================ -->
+    <div id="2f" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2f</span>
+        <span style="font-size:13.5px;font-weight:500;">Post-Editor · Beitrag / Karussell</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2f Karussell-Editor" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><img src="assets/avatar-kunde.png" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" />Beispiel Handwerk GmbH</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#b00900;font-weight:500;">Posts</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Kommentare</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Freigaben</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Export</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;margin-top:6px;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8b8783;">
+              <span>Kunden</span><span style="color:#c9c4be;">/</span><span>Beispiel Handwerk GmbH</span><span style="color:#c9c4be;">/</span><span style="color:#1c1a18;">Karussell · KW 33</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:12px;color:#a5a09b;">Zuletzt gespeichert 11:48</span>
+              <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Entwurf speichern</button>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:12px 22px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Zur Freigabe senden</button>
+            </div>
+          </div>
+
+          <div style="padding:32px 32px 48px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;margin-bottom:28px;">
+              <div style="min-width:0;flex:1;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                  <div style="display:flex;align-items:center;gap:4px;border:1px solid #e6e3df;border-radius:6px;padding:3px;background:#fff;">
+                    <span style="padding:6px 12px;border-radius:4px;font-size:12px;color:#6f6b67;">Beitrag</span>
+                    <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:4px;background:#2f4b8f;color:#fff;font-size:12px;font-weight:500;">Karussell</span>
+                  </div>
+                  <span style="display:flex;align-items:baseline;gap:8px;"><span style="font-size:15px;font-weight:700;">KW</span><span style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;line-height:1;color:#b00900;">33</span></span>
+                  <span style="font-size:12.5px;color:#928e89;">Di, 11.08.2026 · 17:30</span>
+                </div>
+                <input value="Deine Aufgaben bei Beispiel" style="width:100%;max-width:640px;border:1px solid transparent;border-radius:5px;background:transparent;padding:6px 8px;margin-left:-8px;font-size:26px;font-weight:600;letter-spacing:-0.02em;color:#1c1a18;" style-hover="border-color:#e6e3df;background:#fdfcfb;" />
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+                <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Status</span>
+                <div style="display:flex;align-items:center;gap:4px;border:1px solid #e6e3df;border-radius:6px;padding:3px;background:#fff;">
+                  <span style="padding:8px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Konzept</span>
+                  <span style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:4px;background:#fdf4e7;color:#b5730a;font-size:12.5px;font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:#b5730a;display:block;"></span>Vorschau</span>
+                  <span style="padding:8px 14px;border-radius:4px;font-size:12.5px;color:#6f6b67;">Final</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;align-items:start;">
+              <div style="display:grid;gap:20px;min-width:0;">
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:20px;">Eckdaten</div>
+                  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;">
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Posting-Datum</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">11.08.2026</div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Uhrzeit</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">17:30</div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Seitenverhältnis</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;display:flex;justify-content:space-between;">4:5 <span style="color:#a5a09b;">▾</span></div></div>
+                    <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Ziel</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">Recruiting</div></div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 24px;border-bottom:1px solid #eceae7;">
+                    <div>
+                      <div style="font-size:13px;font-weight:600;">Slides <span style="color:#928e89;font-weight:400;">· 4</span></div>
+                      <div style="font-size:11.5px;color:#928e89;margin-top:3px;">Ziehen zum Sortieren · × zum Löschen · max. 10 Slides</div>
+                    </div>
+                    <button style="border:none;background:#b00900;color:#fff;font-size:12.5px;font-weight:500;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="background:#8b0700;">Bilder hinzufügen</button>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;padding:22px 24px;">
+
+                    <div style="border:1px solid #eceae7;border-radius:6px;overflow:hidden;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 18px rgba(28,22,16,.09);">
+                      <div style="position:relative;aspect-ratio:4/5;background:#f2f0ed;">
+                        <img src="assets/karussell-1.jpg" alt="Slide 1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                        <span style="position:absolute;top:6px;left:7px;width:20px;height:20px;border-radius:50%;background:rgba(28,22,16,.78);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">1</span>
+                        <span style="position:absolute;top:6px;right:7px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);color:#57534f;font-size:11px;display:flex;align-items:center;justify-content:center;">×</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 0;background:#faf9f7;">
+                        <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                        <span style="font-size:10.5px;color:#928e89;">ziehen</span>
+                      </div>
+                    </div>
+
+                    <div style="border:1px solid #eceae7;border-radius:6px;overflow:hidden;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 18px rgba(28,22,16,.09);">
+                      <div style="position:relative;aspect-ratio:4/5;background:#f2f0ed;">
+                        <img src="assets/karussell-2.jpg" alt="Slide 2" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                        <span style="position:absolute;top:6px;left:7px;width:20px;height:20px;border-radius:50%;background:rgba(28,22,16,.78);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">2</span>
+                        <span style="position:absolute;top:6px;right:7px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);color:#57534f;font-size:11px;display:flex;align-items:center;justify-content:center;">×</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 0;background:#faf9f7;">
+                        <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                        <span style="font-size:10.5px;color:#928e89;">ziehen</span>
+                      </div>
+                    </div>
+
+                    <div style="border:1px solid #eceae7;border-radius:6px;overflow:hidden;background:#fff;" style-hover="border-color:#c9c4be;box-shadow:0 6px 18px rgba(28,22,16,.09);">
+                      <div style="position:relative;aspect-ratio:4/5;background:#f2f0ed;">
+                        <img src="assets/feed-p4.jpg" alt="Slide 3" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                        <span style="position:absolute;top:6px;left:7px;width:20px;height:20px;border-radius:50%;background:rgba(28,22,16,.78);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">3</span>
+                        <span style="position:absolute;top:6px;right:7px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);color:#57534f;font-size:11px;display:flex;align-items:center;justify-content:center;">×</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 0;background:#faf9f7;">
+                        <span style="display:grid;grid-template-columns:repeat(2,3px);gap:3px;"><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span><span style="width:3px;height:3px;background:#c9c4be;display:block;"></span></span>
+                        <span style="font-size:10.5px;color:#928e89;">ziehen</span>
+                      </div>
+                    </div>
+
+                    <div style="border:2px solid #b00900;border-radius:6px;overflow:hidden;background:#fff;box-shadow:0 8px 22px rgba(28,22,16,.14);transform:rotate(-1.5deg);">
+                      <div style="position:relative;aspect-ratio:4/5;background:#f2f0ed;">
+                        <img src="assets/feed-p8.jpg" alt="Slide 4" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                        <span style="position:absolute;top:6px;left:7px;width:20px;height:20px;border-radius:50%;background:#b00900;color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">4</span>
+                        <span style="position:absolute;top:6px;right:7px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.92);color:#57534f;font-size:11px;display:flex;align-items:center;justify-content:center;">×</span>
+                      </div>
+                      <div style="display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 0;background:#fdf7f6;">
+                        <span style="font-size:10.5px;color:#b00900;font-weight:500;">wird verschoben</span>
+                      </div>
+                    </div>
+
+                    <div style="border:1.5px dashed #ddd9d4;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#a5a09b;background:#fdfcfb;min-height:100%;padding:16px;text-align:center;" style-hover="border-color:#b00900;color:#b00900;background:#fdf7f6;">
+                      <span style="font-size:22px;line-height:1;">+</span>
+                      <span style="font-size:11.5px;line-height:1.5;">Slide hinzufügen<br />oder Bild ablegen</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+                    <div>
+                      <div style="font-size:13px;font-weight:600;">Eigene Felder</div>
+                      <div style="font-size:11.5px;color:#928e89;margin-top:3px;">Pro Kunde frei definierbar</div>
+                    </div>
+                    <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:9px 14px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Feld hinzufügen</button>
+                  </div>
+                  <div style="display:grid;gap:10px;">
+                    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 110px 32px;gap:12px;align-items:center;">
+                      <div style="font-size:12.5px;color:#5f5b57;">Kampagne</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:13px;">Recruiting Sommer 2026</div>
+                      <span style="font-size:11.5px;color:#a5a09b;">Text</span>
+                      <span style="font-size:14px;color:#c9c4be;text-align:center;">×</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:200px minmax(0,1fr) 110px 32px;gap:12px;align-items:center;">
+                      <div style="font-size:12.5px;color:#5f5b57;">Link in Bio nötig</div>
+                      <div style="border:1px solid #e6e3df;border-radius:5px;padding:9px 12px;font-size:13px;display:flex;align-items:center;gap:9px;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>ja — Karriereseite</div>
+                      <span style="font-size:11.5px;color:#a5a09b;">Ja/Nein</span>
+                      <span style="font-size:14px;color:#c9c4be;text-align:center;">×</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:16px;">Caption</div>
+                  <div style="border:1px solid #e6e3df;border-radius:5px;padding:14px;font-size:13px;line-height:1.7;color:#3a3733;white-space:pre-line;min-height:130px;">Wir suchen Garten- &amp; Landschaftsbauer
+
+Du arbeitest gerne an der frischen Luft und möchtest sichtbare Ergebnisse schaffen? Dann werde Teil unseres Teams!</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;">
+                    <span style="font-size:11.5px;color:#928e89;">#Beispiel #Karriere #Jobs #TeamBeispiel #JetztBewerben</span>
+                    <span style="font-size:11.5px;color:#a5a09b;">248 / 2200 Zeichen</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;gap:20px;position:sticky;top:24px;">
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">
+                    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;">Vorschau</span>
+                    <span style="font-size:11.5px;color:#928e89;">Slide 1 / 4</span>
+                  </div>
+                  <div style="width:258px;margin:0 auto;background:linear-gradient(150deg,#f4cbb4 0%,#c4765b 26%,#eeba9f 50%,#b56a4f 76%,#efb497 100%);border-radius:42px;padding:2px;box-shadow:0 12px 30px rgba(30,20,14,.18);">
+                    <div style="background:#0b0b0c;border-radius:40px;padding:7px;">
+                      <div style="position:relative;background:#fff;border-radius:34px;overflow:hidden;">
+                        <div style="display:flex;align-items:center;gap:9px;padding:14px 12px 10px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                          <img src="assets/avatar-kunde.png" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#f3f2f0;" />
+                          <div style="flex:1;min-width:0;">
+                            <div style="font-size:11.5px;font-weight:600;color:#0f0f10;">beispiel.handwerk</div>
+                            <div style="font-size:10.5px;color:#3c3c43;">Beispiel Handwerk GmbH</div>
+                          </div>
+                          <span style="color:#0f0f10;font-size:12px;letter-spacing:2px;">···</span>
+                        </div>
+                        <div style="position:relative;">
+                          <img src="assets/karussell-1.jpg" alt="Slide 1" style="display:block;width:100%;aspect-ratio:4/5;object-fit:cover;" />
+                          <div style="position:absolute;top:10px;right:12px;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.5);color:#fff;font-size:10.5px;font-family:-apple-system,Helvetica,Arial,sans-serif;">1/4</div>
+                          <div style="position:absolute;bottom:10px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:4px;">
+                            <span style="width:5px;height:5px;border-radius:50%;background:#fff;display:block;"></span>
+                            <span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);display:block;"></span>
+                            <span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);display:block;"></span>
+                            <span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);display:block;"></span>
+                          </div>
+                        </div>
+                        <div style="padding:12px;font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.45;color:#0f0f10;">
+                          <span style="font-weight:600;">beispiel.handwerk</span> Wir suchen Garten- &amp; Landschaftsbauer … <span style="color:#8e8e93;">mehr</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;">
+                  <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;margin-bottom:14px;">Freigabe</div>
+                  <div style="font-size:12.5px;line-height:1.65;color:#5f5b57;margin-bottom:16px;">Beim Kunden sichtbar seit 04.08. — noch keine Rückmeldung.</div>
+                  <button style="width:100%;border:none;background:#b00900;color:#fff;font-size:13px;font-weight:600;padding:12px 18px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Erinnerung senden</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2g UPLOAD-DIALOG ============================ -->
+    <div id="2g" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2g</span>
+        <span style="font-size:13.5px;font-weight:500;">Karussell-Upload · Dialog</span>
+        <span style="font-size:12px;color:#8b8783;">Modal über dem Editor</span>
+      </div>
+
+      <div data-screen-label="2g Upload-Dialog" style="position:relative;width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;">
+        <div style="padding:32px;filter:blur(1px);opacity:.5;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px;">
+            <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-size:22px;font-weight:600;">Deine Aufgaben bei Beispiel</span><span style="font-size:12.5px;color:#928e89;">Karussell · KW 33</span></div>
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:3px;background:#fdf4e7;color:#b5730a;font-size:11.5px;font-weight:500;">Vorschau</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;">
+            <div style="aspect-ratio:4/5;border-radius:6px;background:#f2f0ed;"></div>
+            <div style="aspect-ratio:4/5;border-radius:6px;background:#f2f0ed;"></div>
+            <div style="aspect-ratio:4/5;border-radius:6px;background:#f2f0ed;"></div>
+            <div style="aspect-ratio:4/5;border-radius:6px;background:#f4f3f1;"></div>
+            <div style="aspect-ratio:4/5;border-radius:6px;border:1.5px dashed #ddd9d4;"></div>
+          </div>
+          <div style="height:200px;border-radius:8px;background:#faf9f7;margin-top:22px;"></div>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(20,16,12,.42);"></div>
+
+        <div style="position:absolute;left:50%;top:40px;transform:translateX(-50%);width:960px;background:#fff;border-radius:12px;box-shadow:0 30px 80px rgba(20,16,12,.32);overflow:hidden;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:26px 28px 22px;border-bottom:1px solid #eceae7;">
+            <div>
+              <div style="font-size:18px;font-weight:600;">Karussell-Bilder hinzufügen</div>
+              <div style="font-size:12.5px;color:#928e89;margin-top:5px;">Zwei Wege: fertige Einzelbilder hochladen oder ein durchgehendes Motiv automatisch auftrennen.</div>
+            </div>
+            <span style="font-size:18px;color:#a5a09b;cursor:pointer;">×</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:24px 28px 20px;">
+            <div style="border:1px solid #e6e3df;border-radius:8px;padding:18px 20px;background:#fff;" style-hover="border-color:#c9c4be;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <span style="width:20px;height:20px;border-radius:50%;border:1.5px solid #ddd9d4;display:block;flex:0 0 auto;"></span>
+                <span style="font-size:14px;font-weight:600;">Mehrere Einzelbilder</span>
+              </div>
+              <div style="font-size:12.5px;line-height:1.65;color:#5f5b57;padding-left:32px;">Fertige 4:5-Grafiken — Reihenfolge entspricht der Auswahl und lässt sich danach ziehen.</div>
+            </div>
+            <div style="border:2px solid #b00900;border-radius:8px;padding:17px 19px;background:#fdf7f6;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <span style="width:20px;height:20px;border-radius:50%;border:1.5px solid #b00900;display:flex;align-items:center;justify-content:center;flex:0 0 auto;"><span style="width:10px;height:10px;border-radius:50%;background:#b00900;display:block;"></span></span>
+                <span style="font-size:14px;font-weight:600;">Ein Gesamtbild auftrennen</span>
+              </div>
+              <div style="font-size:12.5px;line-height:1.65;color:#5f5b57;padding-left:32px;">Ein breites Motiv wird in gleich große Slides zerlegt — für durchlaufende Panoramen.</div>
+            </div>
+          </div>
+
+          <div style="padding:4px 28px 24px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">Gesamtbild</span>
+                <span style="font-size:12.5px;">Karussell_Recruiting_gesamt.jpg</span>
+                <span style="font-size:11.5px;color:#a5a09b;">2560 × 1600 px · 4,2 MB</span>
+              </div>
+              <span style="font-size:12.5px;color:#b00900;font-weight:500;">Anderes Bild wählen</span>
+            </div>
+
+            <div style="position:relative;border-radius:8px;overflow:hidden;background:#f2f0ed;margin-bottom:20px;">
+              <img src="assets/karussell-gesamt.jpg" alt="Gesamtbild" style="display:block;width:100%;aspect-ratio:16/10;object-fit:cover;" />
+              <div style="position:absolute;top:0;bottom:0;left:50%;width:0;border-left:2px dashed #fff;filter:drop-shadow(0 0 2px rgba(0,0,0,.6));"></div>
+              <span style="position:absolute;top:10px;left:calc(25% - 26px);padding:3px 9px;border-radius:3px;background:rgba(28,22,16,.75);color:#fff;font-size:10.5px;font-weight:600;">Slide 1</span>
+              <span style="position:absolute;top:10px;left:calc(75% - 26px);padding:3px 9px;border-radius:3px;background:rgba(28,22,16,.75);color:#fff;font-size:10.5px;font-weight:600;">Slide 2</span>
+              <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:44px;border-radius:13px;background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;gap:2px;">
+                <span style="width:2px;height:14px;background:#a5a09b;display:block;"></span>
+                <span style="width:2px;height:14px;background:#a5a09b;display:block;"></span>
+              </span>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:32px;padding:16px 18px;border:1px solid #eceae7;border-radius:8px;background:#faf9f7;margin-bottom:20px;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <span style="font-size:12.5px;color:#3a3733;">Anzahl Slides</span>
+                <div style="display:flex;align-items:center;gap:2px;border:1px solid #e6e3df;border-radius:5px;background:#fff;overflow:hidden;">
+                  <span style="padding:8px 13px;font-size:14px;color:#a5a09b;">−</span>
+                  <span style="padding:8px 14px;font-size:13.5px;font-weight:600;border-left:1px solid #eceae7;border-right:1px solid #eceae7;">2</span>
+                  <span style="padding:8px 13px;font-size:14px;color:#1c1a18;">+</span>
+                </div>
+                <span style="font-size:11.5px;color:#928e89;">1280 × 1600 px je Slide</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:22px;">
+                <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#3a3733;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>Schnittkanten am Motiv ausrichten</span>
+                <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#5f5b57;"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid #ddd9d4;display:block;"></span>Überlappung 2 %</span>
+              </div>
+            </div>
+
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:12px;">Ergebnis</div>
+            <div style="display:flex;gap:14px;">
+              <div style="width:132px;border:1px solid #eceae7;border-radius:6px;overflow:hidden;">
+                <div style="position:relative;aspect-ratio:4/5;background:#f2f0ed;">
+                  <img src="assets/karussell-1.jpg" alt="Slide 1" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                  <span style="position:absolute;top:6px;left:7px;width:20px;height:20px;border-radius:50%;background:rgba(28,22,16,.78);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">1</span>
+                </div>
+              </div>
+              <div style="width:132px;border:1px solid #eceae7;border-radius:6px;overflow:hidden;">
+                <div style="position:relative;aspect-ratio:4/5;background:#f2f0ed;">
+                  <img src="assets/karussell-2.jpg" alt="Slide 2" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+                  <span style="position:absolute;top:6px;left:7px;width:20px;height:20px;border-radius:50%;background:rgba(28,22,16,.78);color:#fff;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">2</span>
+                </div>
+              </div>
+              <div style="flex:1;display:flex;align-items:flex-end;">
+                <span style="font-size:11.5px;line-height:1.65;color:#928e89;">Die Slides werden als eigene Bilder gespeichert und lassen sich danach einzeln tauschen oder löschen.</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;border-top:1px solid #eceae7;background:#faf9f7;">
+            <span style="font-size:12px;color:#928e89;">Original bleibt in der Bibliothek erhalten.</span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:11px 18px;border-radius:5px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Abbrechen</button>
+              <button style="border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:12px 22px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">2 Slides erstellen</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:1180px;"></div>
+      </div>
+    </div>
+
+    <!-- ============================ 2h EXPORT JE KUNDE ============================ -->
+    <div id="2h" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2h</span>
+        <span style="font-size:13.5px;font-weight:500;">Export · im Kunden</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2h Export je Kunde" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;min-height:900px;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-size:13.5px;font-weight:500;"><img src="assets/avatar-kunde.png" alt="" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" />Beispiel Handwerk GmbH</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Posts</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Kommentare</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#6f6b67;">Freigaben</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:8px 12px 8px 40px;border-radius:5px;font-size:12.5px;color:#b00900;font-weight:500;">Export</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;margin-top:6px;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#8b8783;">
+              <span>Kunden</span><span style="color:#c9c4be;">/</span><span>Beispiel Handwerk GmbH</span><span style="color:#c9c4be;">/</span><span style="color:#1c1a18;">Export</span>
+            </div>
+            <button style="border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Neuer Export-Link</button>
+          </div>
+
+          <div style="padding:36px 32px 48px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;">
+              <div>
+                <h2 style="margin:0 0 8px;font-size:30px;font-weight:600;letter-spacing:-0.02em;">Export</h2>
+                <p style="margin:0;font-size:13.5px;color:#77746f;">Freigabe-Links und Dateiausgabe für Beispiel Handwerk GmbH</p>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:32px;align-items:start;">
+
+              <div style="display:grid;gap:20px;min-width:0;">
+                <div style="border:1px solid #eceae7;border-radius:8px;overflow:hidden;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid #eceae7;">
+                    <span style="font-size:13px;font-weight:600;">Export-Links</span>
+                    <span style="font-size:11.5px;color:#928e89;">1 aktiv · 2 abgelaufen</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:118px 148px minmax(0,1fr) 72px 100px 28px;align-items:center;gap:14px;padding:12px 20px;background:#faf9f7;border-bottom:1px solid #eceae7;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">
+                    <span>Zeitraum</span><span>Ansprechpartner</span><span>Link</span><span>Komm.</span><span>Gültig bis</span><span></span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:118px 148px minmax(0,1fr) 72px 100px 28px;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid #f2f0ed;" style-hover="background:#fdfcfb;">
+                    <span style="font-size:13px;font-weight:500;color:#1c1a18;white-space:nowrap;">August 2026</span>
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;">
+                      <span style="font-size:12.5px;color:#3a3733;">Helena Avdijaj</span>
+                      
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                      <span style="flex:1;min-width:0;font-size:12px;color:#6f6b67;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">preroll.de/f/beispiel-aug26</span>
+                      <button style="border:1px solid #e6e3df;background:#fff;color:#57534f;font-size:11.5px;padding:6px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+                    </div>
+                    <span style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:#b00900;font-weight:500;"><span style="position:relative;display:block;width:15px;height:12px;border:1.6px solid currentColor;border-radius:3px;" style-after="content:'';position:absolute;left:2.5px;bottom:-4.5px;width:0;height:0;border-left:5px solid currentColor;border-bottom:4px solid transparent;"></span>2</span>
+                    <span style="font-size:12.5px;color:#3a3733;white-space:nowrap;">30.09.2026</span>
+                    <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:118px 148px minmax(0,1fr) 72px 100px 28px;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid #f2f0ed;background:#fdfcfb;" style-hover="background:#fdfcfb;">
+                    <span style="font-size:13px;font-weight:500;color:#77746f;white-space:nowrap;">Juli 2026</span>
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;">
+                      <span style="font-size:12.5px;color:#3a3733;">Helena Avdijaj</span>
+                      
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                      <span style="flex:1;min-width:0;font-size:12px;color:#6f6b67;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">preroll.de/f/beispiel-jul26</span>
+                      <button style="border:1px solid #e6e3df;background:#fff;color:#57534f;font-size:11.5px;padding:6px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+                    </div>
+                    <span style="font-size:12.5px;color:#b5b0aa;">—</span>
+                    <span style="font-size:12.5px;color:#b5b0aa;white-space:nowrap;">abgelaufen</span>
+                    <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:118px 148px minmax(0,1fr) 72px 100px 28px;align-items:center;gap:14px;padding:15px 20px;background:#fdfcfb;" style-hover="background:#fdfcfb;">
+                    <span style="font-size:13px;font-weight:500;color:#77746f;white-space:nowrap;">Juni 2026</span>
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;">
+                      <span style="font-size:12.5px;color:#3a3733;">Marco Denk</span>
+                      <span style="padding:3px 7px;border-radius:3px;background:#f4f3f1;color:#75716c;font-size:10px;">abweichend</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                      <span style="flex:1;min-width:0;font-size:12px;color:#6f6b67;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">preroll.de/f/beispiel-jun26</span>
+                      <button style="border:1px solid #e6e3df;background:#fff;color:#57534f;font-size:11.5px;padding:6px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+                    </div>
+                    <span style="font-size:12.5px;color:#b5b0aa;">—</span>
+                    <span style="font-size:12.5px;color:#b5b0aa;white-space:nowrap;">abgelaufen</span>
+                    <span style="font-size:15px;letter-spacing:2px;color:#a5a09b;text-align:right;">···</span>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #e6e3df;border-radius:8px;overflow:hidden;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;background:#faf9f7;border-bottom:1px solid #eceae7;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <span style="font-size:14px;font-weight:600;">August 2026</span>
+                      <span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:3px;background:#eef6f0;color:#2f7a45;font-size:11.5px;font-weight:500;"><span style="width:6px;height:6px;border-radius:50%;background:#2f7a45;display:block;"></span>aktiv</span>
+                    </div>
+                    <span style="font-size:12px;color:#928e89;">Zuletzt geöffnet: 05.08.2026, 09:41 · 7 Aufrufe</span>
+                  </div>
+                  <div style="padding:22px;display:grid;gap:22px;">
+                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;">
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Zeitraum von</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">01.08.2026</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Zeitraum bis</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">31.08.2026</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Link gültig bis</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">30.09.2026</div></div>
+                    </div>
+                    <div>
+                      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Ansprechpartner auf der Export-Seite</div>
+                      <div style="display:flex;align-items:center;gap:14px;">
+                        <div style="flex:1;min-width:0;border:1px solid #e6e3df;border-radius:5px;padding:8px 12px;font-size:13px;display:flex;align-items:center;justify-content:space-between;">
+                          <span style="display:flex;align-items:center;gap:10px;"><img src="assets/kontakt-portrait.jpg" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;filter:grayscale(1);" />Helena Avdijaj · Standard</span>
+                          <span style="color:#a5a09b;">▾</span>
+                        </div>
+                        <span style="font-size:12px;color:#928e89;white-space:nowrap;">gilt nur für diesen Link</span>
+                      </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:22px;">
+                      <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#3a3733;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>Kommentare erlauben</span>
+                      <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#3a3733;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>Freigabe-Button anzeigen</span>
+                      <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#5f5b57;"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid #ddd9d4;display:block;"></span>Konzept-Beiträge mitzeigen</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;gap:20px;position:sticky;top:24px;">
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;">
+                  <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;margin-bottom:8px;">Dateien exportieren</div>
+                  <div style="font-size:12.5px;line-height:1.65;color:#5f5b57;margin-bottom:16px;">Alle Medien des Zeitraums als ZIP — sortiert nach KW.</div>
+                  <div style="display:grid;gap:11px;margin-bottom:18px;">
+                    <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#3a3733;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>Grafiken &amp; Videos (4 Beiträge)</span>
+                    <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#3a3733;"><span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>Captions als Textdateien</span>
+                    <span style="display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:#5f5b57;"><span style="width:16px;height:16px;border-radius:3px;border:1.5px solid #ddd9d4;display:block;"></span>Kommentarverlauf als PDF</span>
+                  </div>
+                  <button style="width:100%;border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:13px 18px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Dateien als ZIP exportieren</button>
+                  <div style="font-size:11.5px;color:#928e89;margin-top:10px;text-align:center;">ca. 486 MB · letzter Export 28.07.</div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;">
+                  <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;margin-bottom:14px;">Link teilen</div>
+                  <div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:12px;color:#6f6b67;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:12px;">preroll.de/f/beispiel-aug26</div>
+                  <div style="display:flex;gap:10px;">
+                    <button style="flex:1;border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:10px 14px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Kopieren</button>
+                    <button style="flex:1;border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:12.5px;padding:10px 14px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Per Mail</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================ 2i ANSPRECHPARTNER ============================ -->
+    <div id="2i" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">2i</span>
+        <span style="font-size:13.5px;font-weight:500;">Ansprechpartner-Verwaltung</span>
+        <span style="font-size:12px;color:#8b8783;">1440 · Desktop</span>
+      </div>
+
+      <div data-screen-label="2i Ansprechpartner" style="width:1440px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(28,22,16,.08), 0 24px 60px rgba(28,22,16,.10);overflow:hidden;display:grid;grid-template-columns:224px minmax(0,1fr);">
+        <div style="background:#faf9f7;border-right:1px solid #eceae7;padding:26px 0 22px;display:flex;flex-direction:column;min-height:900px;">
+          <div style="padding:0 22px 30px;"><span style="font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#1c1a18;">preroll</span></div>
+          <div style="display:grid;gap:2px;padding:0 12px;">
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kunden</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Kalender</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Bibliothek</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;color:#6f6b67;">Team</span>
+            <span style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;font-size:13.5px;background:#fff;box-shadow:0 1px 2px rgba(28,22,16,.06);font-weight:500;">Ansprechpartner</span>
+          </div>
+          <div style="flex:1;"></div>
+          <div style="padding:16px 18px 0;border-top:1px solid #eceae7;margin:0 12px;display:flex;align-items:center;gap:10px;">
+            <span style="width:30px;height:30px;border-radius:50%;background:#fbeceb;color:#b00900;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;">HA</span>
+            <div style="min-width:0;">
+              <div style="font-size:12.5px;font-weight:500;">Helena Avdijaj</div>
+              <div style="font-size:10.5px;color:#928e89;">THD Video</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;height:68px;padding:0 32px;border-bottom:1px solid #eceae7;">
+            <span style="font-size:13px;color:#8b8783;">Ansprechpartner</span>
+            <button style="border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:12px 20px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Neuer Ansprechpartner</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:300px minmax(0,1fr);min-height:832px;">
+            <div style="border-right:1px solid #eceae7;padding:24px 0;">
+              <div style="padding:0 24px 16px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;">4 Personen</div>
+
+              <div style="display:flex;align-items:center;gap:13px;padding:14px 24px;background:#fdf7f6;border-left:3px solid #b00900;">
+                <img src="assets/kontakt-portrait.jpg" alt="Helena Avdijaj" style="width:42px;height:42px;border-radius:50%;object-fit:cover;filter:grayscale(1);" />
+                <div style="min-width:0;">
+                  <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13.5px;font-weight:600;">Helena Avdijaj</span><span style="padding:2px 7px;border-radius:3px;background:#fbeceb;color:#b00900;font-size:9.5px;font-weight:600;">Standard</span></div>
+                  <div style="font-size:11.5px;color:#928e89;margin-top:2px;">Ansprechpartnerin · 3 Kunden</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:13px;padding:14px 24px;border-left:3px solid transparent;" style-hover="background:#faf9f7;">
+                <span style="width:42px;height:42px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;">MD</span>
+                <div style="min-width:0;">
+                  <div style="font-size:13.5px;font-weight:500;">Marco Denk</div>
+                  <div style="font-size:11.5px;color:#928e89;margin-top:2px;">Projektleitung · 2 Kunden</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:13px;padding:14px 24px;border-left:3px solid transparent;" style-hover="background:#faf9f7;">
+                <span style="width:42px;height:42px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;">SV</span>
+                <div style="min-width:0;">
+                  <div style="font-size:13.5px;font-weight:500;">Sarah Vogt</div>
+                  <div style="font-size:11.5px;color:#928e89;margin-top:2px;">Social Media · 1 Kunde</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:13px;padding:14px 24px;border-left:3px solid transparent;" style-hover="background:#faf9f7;">
+                <span style="width:42px;height:42px;border-radius:50%;background:#f0eeeb;color:#a5a09b;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;">TH</span>
+                <div style="min-width:0;">
+                  <div style="font-size:13.5px;font-weight:500;color:#57534f;">Tobias Herr</div>
+                  <div style="font-size:11.5px;color:#a5a09b;margin-top:2px;">Schnitt · kein Kunde</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:32px 32px 48px;">
+              <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px;">
+                <div>
+                  <h2 style="margin:0 0 8px;font-size:26px;font-weight:600;letter-spacing:-0.02em;">Helena Avdijaj</h2>
+                  <p style="margin:0;font-size:13px;color:#77746f;">Erscheint im Footer der Export-Seiten von 3 Kunden</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <button style="border:1px solid #e6e3df;background:#fff;color:#1c1a18;font-size:13px;padding:10px 16px;border-radius:4px;cursor:pointer;" style-hover="border-color:#b00900;color:#b00900;">Verwerfen</button>
+                  <button style="border:none;background:#b00900;color:#fff;font-size:13.5px;font-weight:600;padding:12px 22px;border-radius:5px;cursor:pointer;box-shadow:0 2px 8px rgba(176,9,0,.28);" style-hover="background:#8b0700;">Speichern</button>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:36px;align-items:start;">
+                <div style="display:grid;gap:20px;">
+                  <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                    <div style="font-size:13px;font-weight:600;margin-bottom:20px;">Foto</div>
+                    <div style="display:flex;align-items:center;gap:22px;">
+                      <img src="assets/kontakt-portrait.jpg" alt="Helena Avdijaj" style="width:150px;height:170px;border-radius:6px;object-fit:cover;object-position:60% 20%;filter:grayscale(1);" />
+                      <div style="flex:1;min-width:0;border:1.5px dashed #ddd9d4;border-radius:8px;background:#fdfcfb;padding:26px;text-align:center;" style-hover="border-color:#b00900;background:#fdf7f6;">
+                        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Neues Foto hier ablegen</div>
+                        <div style="font-size:11.5px;color:#928e89;">JPG oder PNG · min. 800 × 1000 px · Schwarzweiß wird automatisch angewendet</div>
+                        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px;">
+                          <span style="font-size:12.5px;color:#b00900;font-weight:500;">Datei wählen</span>
+                          <span style="font-size:12.5px;color:#928e89;">Foto entfernen</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                    <div style="font-size:13px;font-weight:600;margin-bottom:20px;">Kontaktdaten</div>
+                    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;">
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Name</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">Helena Avdijaj</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Rolle</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">Ansprechpartnerin</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Telefon</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">+49 7024 40982917</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">E-Mail</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">avdijaj@thdvideo.de</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Straße</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">Stuttgarter Str. 1</div></div>
+                      <div><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">PLZ &amp; Ort</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">73240 Wendlingen</div></div>
+                      <div style="grid-column:span 2;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:7px;">Web</div><div style="border:1px solid #e6e3df;border-radius:5px;padding:10px 12px;font-size:13px;">www.thdvideo.de</div></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:9px;margin-top:20px;padding-top:18px;border-top:1px solid #eceae7;">
+                      <span style="width:16px;height:16px;border-radius:3px;background:#b00900;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;">✓</span>
+                      <span style="font-size:12.5px;color:#3a3733;">Standard-Ansprechpartner für neue Export-Links</span>
+                    </div>
+                  </div>
+
+                  <div style="border:1px solid #eceae7;border-radius:8px;padding:22px 24px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+                      <div style="font-size:13px;font-weight:600;">Zugeordnete Kunden</div>
+                      <span style="font-size:12.5px;color:#b00900;font-weight:500;">Kunde zuordnen</span>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                      <span style="display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid #e6e3df;border-radius:20px;font-size:12.5px;"><img src="assets/avatar-kunde.png" alt="" style="width:20px;height:20px;border-radius:50%;object-fit:cover;" />Beispiel Handwerk GmbH <span style="color:#c9c4be;">×</span></span>
+                      <span style="display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid #e6e3df;border-radius:20px;font-size:12.5px;"><span style="width:20px;height:20px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:8.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">KJ</span>Nordlicht <span style="color:#c9c4be;">×</span></span>
+                      <span style="display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid #e6e3df;border-radius:20px;font-size:12.5px;"><span style="width:20px;height:20px;border-radius:50%;background:#f0eeeb;color:#57534f;font-size:8.5px;font-weight:600;display:flex;align-items:center;justify-content:center;">ZM</span>Praxis am Markt <span style="color:#c9c4be;">×</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #eceae7;border-radius:8px;padding:20px;position:sticky;top:24px;">
+                  <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8b8783;margin-bottom:16px;">Vorschau · Footer Export-Seite</div>
+                  <div style="border:1px solid #eceae7;border-radius:6px;background:#faf9f7;padding:20px;">
+                    <div style="font-family:'Instrument Serif',Georgia,serif;font-size:30px;line-height:1;color:#b00900;margin-bottom:18px;">Kontakt</div>
+                    <div style="position:relative;margin-bottom:22px;">
+                      <img src="assets/kontakt-portrait.jpg" alt="" style="display:block;width:100%;height:150px;object-fit:cover;object-position:60% 18%;filter:grayscale(1);" />
+                      <div style="position:absolute;left:0;bottom:-12px;background:#b00900;color:#fff;padding:10px 14px 8px;">
+                        <div style="font-family:'Instrument Serif',Georgia,serif;font-size:17px;line-height:1.1;">Helena Avdijaj</div>
+                        <div style="font-size:9.5px;color:rgba(255,255,255,.85);margin-top:2px;">Ansprechpartnerin · THD Video</div>
+                      </div>
+                    </div>
+                    <div style="display:grid;gap:12px;margin-top:26px;">
+                      <div><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:3px;">Telefon</div><div style="font-size:12px;">+49 7024 40982917</div></div>
+                      <div><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:3px;">E-Mail</div><div style="font-size:12px;">avdijaj@thdvideo.de</div></div>
+                      <div><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:3px;">Adresse</div><div style="font-size:12px;line-height:1.5;">Stuttgarter Str. 1<br />73240 Wendlingen</div></div>
+                    </div>
+                  </div>
+                  <div style="font-size:11.5px;line-height:1.6;color:#928e89;margin-top:14px;">So sieht der Block auf jeder Export-Seite dieses Ansprechpartners aus.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;kundenKennzahlen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Kundenübersicht&quot;},&quot;thumbnailsInListe&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Post-Liste&quot;},&quot;veroeffentlichteImFeed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Feed-Vorschau&quot;}}">
+class Component extends DCLogic {
+  state = { szenenplan: true };
+
+  toggleSzenen = () => this.setState((s) => ({ szenenplan: !s.szenenplan }));
+
+  renderVals() {
+    return {
+      szenenplan: this.state.szenenplan,
+      freitext: !this.state.szenenplan,
+      toggleSzenen: this.toggleSzenen,
+      kennzahlen: this.props.kundenKennzahlen ?? true,
+      thumbs: this.props.thumbnailsInListe ?? true,
+      keineThumbs: !(this.props.thumbnailsInListe ?? true),
+      veroeffentlichte: this.props.veroeffentlichteImFeed ?? true
+    };
+  }
+}
+
+</script>
+</body>
+</html>
