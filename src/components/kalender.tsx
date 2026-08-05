@@ -1,5 +1,6 @@
 import type { PostTyp } from '@prisma/client'
 import Link from 'next/link'
+import { monatsbeginn } from '@/lib/datum'
 import { kalenderwoche } from '@/lib/format'
 import { TYP_FARBE, TYP_TEXT, TypPunkt } from './ui'
 
@@ -156,14 +157,17 @@ export function Monatskalender({
   )
 }
 
-/** Alle Monate zwischen zwei Daten — der Zeitraum darf mehr als einen umfassen. */
+/**
+ * Alle Monate zwischen zwei reinen Datumswerten — der Zeitraum darf mehr als
+ * einen umfassen. `von` und `bis` kommen als UTC-Mitternacht aus der Datenbank.
+ */
 export function monateImZeitraum(von: Date, bis: Date): Date[] {
   const monate: Date[] = []
-  const lauf = new Date(von.getFullYear(), von.getMonth(), 1)
-  const ende = new Date(bis.getFullYear(), bis.getMonth(), 1)
+  const lauf = monatsbeginn(von)
+  const ende = monatsbeginn(bis)
   while (lauf <= ende) {
     monate.push(new Date(lauf))
     lauf.setMonth(lauf.getMonth() + 1)
   }
-  return monate.length > 0 ? monate : [new Date(von.getFullYear(), von.getMonth(), 1)]
+  return monate.length > 0 ? monate : [monatsbeginn(von)]
 }

@@ -1,4 +1,5 @@
 import 'server-only'
+import { formatiereTag } from './datum'
 import { prisma } from './db'
 import { ladeEinstellungen } from './einstellungen'
 import { env } from './env'
@@ -179,8 +180,8 @@ export async function ladeGastEin(exportId: string, gastId: string): Promise<voi
 }
 
 export function zeitraumText(von: Date, bis: Date): string {
-  const formatiere = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
-  const vonText = formatiere.format(von)
-  const bisText = formatiere.format(bis)
+  // Reine Datumswerte in UTC formatieren, sonst rutscht der Monat.
+  const vonText = formatiereTag(von, { month: 'long', year: 'numeric' })
+  const bisText = formatiereTag(bis, { month: 'long', year: 'numeric' })
   return vonText === bisText ? vonText : `${vonText} – ${bisText}`
 }

@@ -234,9 +234,9 @@ async function main() {
         kundeId: kunde.id,
         token: 'beispiel-aug26',
         titel: 'Content-Plan August 2026',
-        zeitraumVon: new Date(2026, 7, 1),
-        zeitraumBis: new Date(2026, 7, 31),
-        gueltigBis: new Date(2026, 8, 30),
+        zeitraumVon: new Date('2026-08-01T00:00:00.000Z'),
+        zeitraumBis: new Date('2026-08-31T00:00:00.000Z'),
+        gueltigBis: new Date('2026-09-30T00:00:00.000Z'),
         ansprechpartnerId: ansprechpartner.id,
       },
     })
