@@ -23,8 +23,8 @@ der Stand in Notion nachgetragen, bevor die Arbeit als erledigt gilt.
 | Seite | Zweck |
 | --- | --- |
 | [Preroll — Konzept & Claude-Design-Auftrag](https://app.notion.com/p/3b3c7929606a8140b85ef35a4113ca6a) | Elternseite: Konzept, Datenmodell, Phasenplan |
-| **Baufortschritt** (Unterseite) | Was wann gebaut wurde, mit Commit und Prüfergebnis |
-| **Entscheidungen** (Unterseite) | Technische Festlegungen samt Begründung |
+| [Baufortschritt](https://app.notion.com/p/3b3c7929606a81d6bb2cda42df54085a) | Was wann gebaut wurde, mit Commit und Prüfergebnis |
+| [Entscheidungen](https://app.notion.com/p/3b3c7929606a8102b821f6e93bee70e2) | Technische Festlegungen samt Begründung |
 
 **So wird dokumentiert:**
 
