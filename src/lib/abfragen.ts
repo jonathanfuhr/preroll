@@ -38,9 +38,16 @@ export async function ladePost(postId: string) {
   const post = await prisma.post.findUnique({
     where: { id: postId },
     include: {
-      kunde: { include: { logo: true, customFelder: { orderBy: { position: 'asc' } } } },
+      kunde: {
+        include: {
+          logo: true,
+          customFelder: { orderBy: { position: 'asc' } },
+          ansprechpartner: { orderBy: [{ standard: 'desc' }, { name: 'asc' }] },
+        },
+      },
       medien: POST_MEDIEN,
       szenen: { orderBy: { position: 'asc' } },
+      freigaben: { orderBy: { erstelltAm: 'asc' } },
       customWerte: { include: { definition: true } },
       verantwortlich: true,
       kommentare: {

@@ -1,5 +1,6 @@
 import 'server-only'
 import { formatiereTag } from './datum'
+import { STUFE_TEXT } from './freigabe'
 import { prisma } from './db'
 import { ladeEinstellungen } from './einstellungen'
 import { env } from './env'
@@ -123,12 +124,15 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
 export async function meldeFreigabe(freigabeId: string): Promise<void> {
   const freigabe = await prisma.freigabe.findUnique({
     where: { id: freigabeId },
-    include: { export: { include: { kunde: true } } },
+    include: { post: { include: { kunde: true } }, export: true },
   })
   if (!freigabe) return
 
-  const zeitraum = zeitraumText(freigabe.export.zeitraumVon, freigabe.export.zeitraumBis)
-  const url = `${env.appUrl}/kunden/${freigabe.export.kunde.slug}/export`
+  const stufe = STUFE_TEXT[freigabe.stufe]
+  const url = `${env.appUrl}/kunden/${freigabe.post.kunde.slug}/posts/${freigabe.postId}`
+
+  // Trägt das Team die Freigabe selbst ein, braucht es darüber keine Mail.
+  if (freigabe.nutzerId) return
 
   for (const nutzer of await teamEmpfaenger()) {
     if (nutzer.mailBenachrichtigungen) {
@@ -137,8 +141,8 @@ export async function meldeFreigabe(freigabeId: string): Promise<void> {
           vorlageFreigabe(
             nutzer.email,
             freigabe.autorName,
-            freigabe.export.kunde.name,
-            zeitraum,
+            freigabe.post.kunde.name,
+            `${stufe} · ${freigabe.post.titel}`,
             url,
           ),
         ),
@@ -150,8 +154,8 @@ export async function meldeFreigabe(freigabeId: string): Promise<void> {
         sendePush(
           { nutzerId: nutzer.id },
           {
-            titel: `Freigabe: ${freigabe.export.kunde.name}`,
-            text: `${freigabe.autorName} hat ${zeitraum} freigegeben.`,
+            titel: `${stufe} freigegeben — ${freigabe.post.kunde.name}`,
+            text: `${freigabe.autorName}: ${freigabe.post.titel}`,
             url,
           },
         ),

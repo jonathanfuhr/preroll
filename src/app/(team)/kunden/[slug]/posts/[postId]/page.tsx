@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ersteMedien, ladePost } from '@/lib/abfragen'
 import { ladeEinstellungen } from '@/lib/einstellungen'
+import { freigabeStand } from '@/lib/freigabe'
 import { klappeEingerichtet } from '@/lib/klappe'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { kalenderwoche } from '@/lib/format'
@@ -135,6 +136,21 @@ export default async function PostSeite({
                     fassungId: post.klappeVersionId,
                   }
                 : null,
+            }}
+            freigabe={{
+              ...freigabeStand(
+                post.status,
+                post.freigaben.map((f) => f.stufe),
+              ),
+              zeilen: post.freigaben.map((f) => ({
+                id: f.id,
+                stufe: f.stufe,
+                autorName: f.autorName,
+                notiz: f.notiz,
+                am: f.erstelltAm.toISOString(),
+                vomTeam: Boolean(f.nutzerId),
+              })),
+              vorschlagName: post.kunde.ansprechpartner[0]?.name ?? null,
             }}
             meldungen={{
               klappe:

@@ -5,7 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { ladeGastEin, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
+import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
+import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
 import { slugify } from '@/lib/slug'
 import { klappeVideoNachziehen } from './klappe-aktionen'
@@ -312,7 +313,7 @@ export async function exportAnlegen(kundeId: string, formular: FormData) {
       gueltigBis: text(formular, 'gueltigBis') ? new Date(text(formular, 'gueltigBis')!) : null,
       ansprechpartnerId: text(formular, 'ansprechpartnerId'),
       kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
-      freigabeButtonZeigen: formular.get('freigabeButtonZeigen') === 'on',
+      freigabenErlaubt: formular.get('freigabenErlaubt') === 'on',
       konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
     },
   })
@@ -335,7 +336,7 @@ export async function exportSpeichern(exportId: string, formular: FormData) {
       gueltigBis: text(formular, 'gueltigBis') ? new Date(text(formular, 'gueltigBis')!) : null,
       ansprechpartnerId: text(formular, 'ansprechpartnerId'),
       kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
-      freigabeButtonZeigen: formular.get('freigabeButtonZeigen') === 'on',
+      freigabenErlaubt: formular.get('freigabenErlaubt') === 'on',
       konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
     },
     include: { kunde: true },
@@ -467,4 +468,52 @@ export async function slidesSortieren(postId: string, mediumIds: string[]) {
   ])
 
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}
+
+// ---------------------------------------------------------------- Freigaben
+
+/**
+ * Trägt eine Freigabe stellvertretend ein — für den Fall, dass der Kunde auf
+ * anderem Weg zugestimmt hat, am Telefon oder per Mail. Der Name des Kunden
+ * steht als Autor, wer es eingetragen hat, hängt als Nutzer daran.
+ */
+export async function freigabeEintragen(postId: string, formular: FormData) {
+  const nutzer = await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { kunde: true },
+  })
+
+  const stufe = offeneStufe(post.status)
+  if (!stufe) return
+
+  const autorName = text(formular, 'autorName')
+  if (!autorName) {
+    redirect(`/kunden/${post.kunde.slug}/posts/${postId}?freigabe=name`)
+  }
+
+  const freigabe = await prisma.freigabe.upsert({
+    where: { postId_stufe: { postId, stufe } },
+    update: {},
+    create: {
+      postId,
+      stufe,
+      nutzerId: nutzer.id,
+      autorName,
+      notiz: text(formular, 'notiz'),
+    },
+  })
+
+  await meldeFreigabe(freigabe.id)
+  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}
+
+export async function freigabeZuruecknehmen(freigabeId: string) {
+  await nutzerOderRaus()
+  const freigabe = await prisma.freigabe.delete({
+    where: { id: freigabeId },
+    include: { post: { include: { kunde: true } } },
+  })
+  revalidatePath(`/kunden/${freigabe.post.kunde.slug}`, 'layout')
 }

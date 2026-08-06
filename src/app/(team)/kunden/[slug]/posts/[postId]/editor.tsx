@@ -4,6 +4,7 @@ import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
 import { useState } from 'react'
 import { KarussellDialog, MedienAblage } from '@/components/medien-upload'
 import { SlideSortierung } from '@/components/slide-sortierung'
+import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
 import { referenzvideoEntfernen, referenzvideoLaden } from '../../referenz-aktionen'
 import {
@@ -74,6 +75,7 @@ export function PostEditor({
   klappe,
   kundeSlug,
   meldungen,
+  freigabe,
 }: {
   post: PostDaten
   szenen: Szene[]
@@ -103,6 +105,12 @@ export function PostEditor({
   }
   kundeSlug: string
   meldungen: { klappe?: string; referenz?: string }
+  freigabe: {
+    offen: import('@prisma/client').Freigabestufe | null
+    erledigt: boolean
+    zeilen: FreigabeZeile[]
+    vorschlagName: string | null
+  }
 }) {
   const [dialogOffen, setDialogOffen] = useState(false)
   const [szenenplan, setSzenenplan] = useState(post.szenenplanAktiv)
@@ -415,6 +423,20 @@ export function PostEditor({
           )}
         </Abschnitt>
       )}
+
+      {/* ----------------------------------------------------------- Freigaben */}
+      <Abschnitt
+        titel="Freigaben"
+        hinweis="Der Kunde gibt jeden Beitrag einzeln frei — beim Konzept das Konzept, nach dem Dreh die Vorschau."
+      >
+        <FreigabeFeld
+          postId={post.id}
+          offen={freigabe.offen}
+          erledigt={freigabe.erledigt}
+          freigaben={freigabe.zeilen}
+          vorschlagName={freigabe.vorschlagName}
+        />
+      </Abschnitt>
 
       {/* -------------------------------------------------------------- Medien */}
       <Abschnitt titel="Medien">

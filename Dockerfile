@@ -34,7 +34,8 @@ RUN mkdir -p /app/data/uploads && chown -R preroll:preroll /app/data && chmod +x
 
 USER preroll
 EXPOSE 3000
-VOLUME ["/app/data"]
+# Kein VOLUME: /app/data wird per Bind-Mount vom Host eingehängt, siehe
+# MEDIEN_PFAD in docker-compose.yml.
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["node", "server.js"]

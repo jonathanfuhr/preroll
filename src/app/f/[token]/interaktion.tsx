@@ -1,6 +1,8 @@
 'use client'
 
+import type { Freigabestufe } from '@prisma/client'
 import { useState } from 'react'
+import { freigabeBeschriftung, STUFE_TEXT } from '@/lib/freigabe'
 import { Knopf, Textfeld } from '@/components/ui'
 import { freigabeErteilen, kommentarVomKunden } from './aktionen'
 
@@ -11,6 +13,13 @@ const ZEIT = new Intl.DateTimeFormat('de-DE', {
   hour: '2-digit',
   minute: '2-digit',
 })
+
+export type ErteilteFreigabe = {
+  stufe: Freigabestufe
+  autorName: string
+  am: string
+  vomTeam: boolean
+}
 
 type Kommentar = {
   id: string
@@ -103,65 +112,113 @@ export function KommentarBereich({
   )
 }
 
-/** Freigabe-Knopf im Kopf der Seite. */
-export function Freigabeleiste({
+/**
+ * Freigabe für genau diesen Beitrag. Welche Stufe ansteht, hängt am Status:
+ * beim Konzept das Konzept, nach dem Dreh die Vorschau.
+ */
+export function PostFreigabe({
   token,
-  zeigen,
-  freigegeben,
+  postId,
+  erlaubt,
+  offen,
+  erledigt,
+  erteilte,
   gastName,
 }: {
   token: string
-  zeigen: boolean
-  freigegeben: { autorName: string; am: string } | null
+  postId: string
+  erlaubt: boolean
+  offen: Freigabestufe | null
+  erledigt: boolean
+  erteilte: ErteilteFreigabe[]
   gastName: string
 }) {
-  const [offen, setOffen] = useState(false)
+  const [dialog, setDialog] = useState(false)
 
-  if (freigegeben) {
-    return (
-      <div className="rounded-[5px] bg-final-flaeche px-3.5 py-2 text-right">
-        <div className="text-[12.5px] font-medium text-final">Freigabe erteilt</div>
-        <div className="text-[11px] text-leiser">
-          von {freigegeben.autorName} · {ZEIT.format(new Date(freigegeben.am))}
-        </div>
-      </div>
-    )
-  }
-
-  if (!zeigen) return null
+  // Nichts mehr offen und nichts erteilt — dann gibt es hier nichts zu zeigen.
+  if (!offen && erteilte.length === 0) return null
 
   return (
-    <>
-      <div className="flex items-center gap-3">
-        <span className="text-[11.5px] text-leiser">Freigabe-Link · nur für Sie sichtbar</span>
-        <Knopf art="primaer" onClick={() => setOffen(true)}>
-          Freigabe erteilen
-        </Knopf>
-      </div>
-
-      {offen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6">
-          <div className="w-full max-w-[420px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
-            <h3 className="text-[16px] font-semibold">Content-Plan freigeben</h3>
-            <p className="mt-1.5 text-[12.5px] leading-relaxed text-leise">
-              Damit bestätigen Sie als <strong>{gastName}</strong>, dass die geplanten Beiträge so
-              veröffentlicht werden können. Offene Kommentare bleiben davon unberührt.
-            </p>
-
-            <form action={freigabeErteilen.bind(null, token)} className="mt-5 grid gap-3">
-              <Textfeld name="notiz" rows={3} placeholder="Kommentar zur Freigabe (optional)" />
-              <div className="flex justify-end gap-2">
-                <Knopf type="button" art="leise" onClick={() => setOffen(false)}>
-                  Abbrechen
-                </Knopf>
-                <Knopf art="primaer" type="submit">
-                  Freigabe erteilen
-                </Knopf>
+    <div className="mb-4">
+      {erteilte.length > 0 && (
+        <ul className="grid gap-1.5">
+          {erteilte.map((f) => (
+            <li
+              key={f.stufe}
+              className="rounded-[5px] bg-final-flaeche px-3 py-2"
+            >
+              <div className="text-[12px] font-medium text-final">
+                {STUFE_TEXT[f.stufe]} freigegeben
               </div>
-            </form>
-          </div>
-        </div>
+              <div className="mt-0.5 text-[10.5px] text-leiser">
+                von {f.autorName} · {ZEIT.format(new Date(f.am))}
+                {f.vomTeam && ' · von der Agentur eingetragen'}
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
-    </>
+
+      {erlaubt && offen && !erledigt && (
+        <>
+          <div className={erteilte.length > 0 ? 'mt-2.5' : ''}>
+            <Knopf art="primaer" klein className="w-full" onClick={() => setDialog(true)}>
+              {freigabeBeschriftung(offen)}
+            </Knopf>
+          </div>
+
+          {dialog && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6">
+              <div className="w-full max-w-[420px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
+                <h3 className="text-[16px] font-semibold">{freigabeBeschriftung(offen)}</h3>
+                <p className="mt-1.5 text-[12.5px] leading-relaxed text-leise">
+                  Damit bestätigen Sie als <strong>{gastName}</strong>
+                  {offen === 'KONZEPT'
+                    ? ', dass dieser Beitrag so produziert werden kann.'
+                    : ', dass dieser Beitrag so veröffentlicht werden kann.'}{' '}
+                  Offene Kommentare bleiben davon unberührt.
+                </p>
+
+                <form action={freigabeErteilen.bind(null, token, postId)} className="mt-5 grid gap-3">
+                  <Textfeld name="notiz" rows={3} placeholder="Kommentar zur Freigabe (optional)" />
+                  <div className="flex justify-end gap-2">
+                    <Knopf type="button" art="leise" onClick={() => setDialog(false)}>
+                      Abbrechen
+                    </Knopf>
+                    <Knopf art="primaer" type="submit">
+                      {freigabeBeschriftung(offen)}
+                    </Knopf>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+/** Fortschritt im Kopf der Seite — ersetzt den früheren Sammel-Knopf. */
+export function Freigabefortschritt({ erledigt, gesamt }: { erledigt: number; gesamt: number }) {
+  if (gesamt === 0) return null
+
+  const fertig = erledigt === gesamt
+  return (
+    <div className="flex items-center gap-3">
+      <span className="hidden text-[12px] text-still md:inline">
+        Freigabe-Link · nur für Sie sichtbar
+      </span>
+      <span
+        className="rounded-[5px] px-3.5 py-2 text-[12.5px] font-medium"
+        style={
+          fertig
+            ? { background: 'var(--color-final-flaeche)', color: 'var(--color-final)' }
+            : { background: 'var(--color-vorschau-flaeche)', color: 'var(--color-vorschau)' }
+        }
+      >
+        {fertig ? 'Alle Beiträge freigegeben' : `${erledigt} von ${gesamt} freigegeben`}
+      </span>
+    </div>
   )
 }

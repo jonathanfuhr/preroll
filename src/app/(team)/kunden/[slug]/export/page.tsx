@@ -2,7 +2,8 @@ import { prisma } from '@/lib/db'
 import { ladeKunde } from '@/lib/abfragen'
 import { alsEingabe, formatiereTag } from '@/lib/datum'
 import { env } from '@/lib/env'
-import { istAbgelaufen } from '@/lib/export-sicht'
+import { istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
+import { freigabeFortschritt } from '@/lib/freigabe'
 import { zeitraumText } from '@/lib/benachrichtigungen'
 import { Abschnitt, Karte, Leerzustand } from '@/components/ui'
 import { ExportAnlegen, ExportKarte } from './verwaltung'
@@ -14,15 +15,32 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
   const { slug } = await params
   const kunde = await ladeKunde(slug)
 
-  const exporte = await prisma.export.findMany({
-    where: { kundeId: kunde.id },
-    orderBy: { zeitraumVon: 'desc' },
-    include: {
-      ansprechpartner: true,
-      gaeste: { include: { gast: true } },
-      _count: { select: { kommentare: true, freigaben: true } },
-    },
-  })
+  const [exporte, posts] = await Promise.all([
+    prisma.export.findMany({
+      where: { kundeId: kunde.id },
+      orderBy: { zeitraumVon: 'desc' },
+      include: {
+        ansprechpartner: true,
+        gaeste: { include: { gast: true } },
+        _count: { select: { kommentare: true } },
+      },
+    }),
+    prisma.post.findMany({
+      where: { kundeId: kunde.id },
+      orderBy: { postenAm: 'asc' },
+      include: { freigaben: { select: { stufe: true } } },
+    }),
+  ])
+
+  // Der Freigabestand ergibt sich aus den Posts im Zeitraum des jeweiligen Links.
+  const standVon = (exp: (typeof exporte)[number]) =>
+    freigabeFortschritt(
+      postsImZeitraum(posts, {
+        zeitraumVon: exp.zeitraumVon,
+        zeitraumBis: exp.zeitraumBis,
+        konzepteMitzeigen: exp.konzepteMitzeigen,
+      }),
+    )
 
   // Dieselbe Regel wie auf der Kundenseite: der Link gilt bis Tagesende.
   const aktive = exporte.filter((e) => !istAbgelaufen(e.gueltigBis))
@@ -75,13 +93,13 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
                       gueltigBis: exp.gueltigBis ? alsEingabe(exp.gueltigBis) : '',
                       ansprechpartnerId: exp.ansprechpartnerId,
                       kommentareErlaubt: exp.kommentareErlaubt,
-                      freigabeButtonZeigen: exp.freigabeButtonZeigen,
+                      freigabenErlaubt: exp.freigabenErlaubt,
                       konzepteMitzeigen: exp.konzepteMitzeigen,
                       aufrufe: exp.aufrufe,
                       zuletztGeoeffnet: exp.zuletztGeoeffnet
                         ? ZEITSTEMPEL.format(exp.zuletztGeoeffnet)
                         : null,
-                      freigegebenAm: exp.freigegebenAm ? ZEITSTEMPEL.format(exp.freigegebenAm) : null,
+                      stand: standVon(exp),
                       kommentare: exp._count.kommentare,
                     }}
                     basisUrl={env.appUrl}

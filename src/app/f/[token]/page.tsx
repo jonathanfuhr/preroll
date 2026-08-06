@@ -6,12 +6,13 @@ import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
 import { feedVorschau, istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche } from '@/lib/format'
+import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
 import { Monatskalender, monateImZeitraum, type Kalendereintrag } from '@/components/kalender'
 import { PostSektion } from '@/components/post-sektion'
-import { Freigabeleiste, KommentarBereich } from './interaktion'
+import { Freigabefortschritt, KommentarBereich, PostFreigabe } from './interaktion'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,6 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     include: {
       kunde: { include: { logo: true } },
       ansprechpartner: { include: { foto: true } },
-      freigaben: { orderBy: { erstelltAm: 'desc' } },
       kommentare: { orderBy: { erstelltAm: 'asc' } },
     },
   })
@@ -57,7 +57,11 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   const alle = await prisma.post.findMany({
     where: { kundeId: exp.kundeId },
     orderBy: { postenAm: 'asc' },
-    include: { medien: POST_MEDIEN, szenen: { orderBy: { position: 'asc' } } },
+    include: {
+      medien: POST_MEDIEN,
+      szenen: { orderBy: { position: 'asc' } },
+      freigaben: { orderBy: { erstelltAm: 'asc' } },
+    },
   })
 
   const regeln = {
@@ -97,16 +101,9 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     ? `KW ${kalenderwoche(sektionen[0].postenAm)}–${kalenderwoche(sektionen.at(-1)!.postenAm)}`
     : '—'
 
-  const freigabe = exp.freigaben[0] ?? null
+  const fortschritt = freigabeFortschritt(sektionen)
   const freigabeleiste = (
-    <Freigabeleiste
-      token={token}
-      zeigen={exp.freigabeButtonZeigen}
-      freigegeben={
-        freigabe ? { autorName: freigabe.autorName, am: freigabe.erstelltAm.toISOString() } : null
-      }
-      gastName={gast.name}
-    />
+    <Freigabefortschritt erledigt={fortschritt.erledigt} gesamt={fortschritt.gesamt} />
   )
 
   return (
@@ -201,7 +198,32 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
               referenzVideoTitel={post.referenzVideoTitel}
               klappeVideoUrl={post.klappeVersionId ? `/api/klappe/${post.klappeVersionId}` : null}
               kommentare={
-                <KommentarBereich
+                <>
+                  <PostFreigabe
+                    token={token}
+                    postId={post.id}
+                    erlaubt={exp.freigabenErlaubt}
+                    offen={
+                      freigabeStand(
+                        post.status,
+                        post.freigaben.map((f) => f.stufe),
+                      ).offen
+                    }
+                    erledigt={
+                      freigabeStand(
+                        post.status,
+                        post.freigaben.map((f) => f.stufe),
+                      ).erledigt
+                    }
+                    erteilte={post.freigaben.map((f) => ({
+                      stufe: f.stufe,
+                      autorName: f.autorName,
+                      am: f.erstelltAm.toISOString(),
+                      vomTeam: Boolean(f.nutzerId),
+                    }))}
+                    gastName={gast.name}
+                  />
+                  <KommentarBereich
                   token={token}
                   postId={post.id}
                   erlaubt={exp.kommentareErlaubt}
@@ -215,7 +237,8 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                       am: k.erstelltAm.toISOString(),
                       vomTeam: Boolean(k.nutzerId),
                     }))}
-                />
+                  />
+                </>
               }
             />
           )

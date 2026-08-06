@@ -22,11 +22,11 @@ type ExportDaten = {
   gueltigBis: string
   ansprechpartnerId: string | null
   kommentareErlaubt: boolean
-  freigabeButtonZeigen: boolean
+  freigabenErlaubt: boolean
   konzepteMitzeigen: boolean
   aufrufe: number
   zuletztGeoeffnet: string | null
-  freigegebenAm: string | null
+  stand: { erledigt: number; gesamt: number; vollstaendig: boolean }
   kommentare: number
 }
 
@@ -59,9 +59,10 @@ function Optionen({ exp }: { exp?: ExportDaten }) {
         defaultChecked={exp?.kommentareErlaubt ?? true}
       />
       <Schalter
-        name="freigabeButtonZeigen"
-        beschriftung="Freigabe-Button anzeigen"
-        defaultChecked={exp?.freigabeButtonZeigen ?? true}
+        name="freigabenErlaubt"
+        beschriftung="Freigaben erlauben"
+        hinweis="Der Kunde gibt jeden Beitrag einzeln frei — beim Konzept das Konzept, nach dem Dreh die Vorschau."
+        defaultChecked={exp?.freigabenErlaubt ?? true}
       />
       <Schalter
         name="konzepteMitzeigen"
@@ -160,13 +161,15 @@ export function ExportKarte({
         <div>
           <div className="flex items-center gap-2.5">
             <h3 className="text-[14.5px] font-semibold">{exp.titel ?? exp.zeitraum}</h3>
-            {exp.freigegebenAm ? (
+            {exp.stand.vollstaendig ? (
               <span className="rounded-[3px] bg-final-flaeche px-2 py-0.5 text-[11px] font-medium text-final">
-                freigegeben {exp.freigegebenAm}
+                alle freigegeben
               </span>
             ) : (
               <span className="rounded-[3px] bg-vorschau-flaeche px-2 py-0.5 text-[11px] font-medium text-vorschau">
-                im Review
+                {exp.stand.gesamt > 0
+                  ? `${exp.stand.erledigt} von ${exp.stand.gesamt} freigegeben`
+                  : 'im Review'}
               </span>
             )}
           </div>

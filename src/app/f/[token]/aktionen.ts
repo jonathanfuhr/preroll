@@ -12,6 +12,7 @@ import {
 import { meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
+import { offeneStufe } from '@/lib/freigabe'
 import { env } from '@/lib/env'
 import { sendeMail } from '@/lib/mail'
 import { vorlageAnmeldecode } from '@/lib/mail/vorlagen'
@@ -147,26 +148,36 @@ export async function kommentarVomKunden(token: string, formular: FormData) {
   revalidatePath(`/f/${token}`)
 }
 
-export async function freigabeErteilen(token: string, formular: FormData) {
+/**
+ * Der Kunde gibt einen einzelnen Post frei — je nach Status das Konzept oder
+ * die Vorschau. Die anstehende Stufe kommt aus dem Status, nicht aus dem
+ * Formular: sonst könnte ein veralteter Tab die falsche Stufe setzen.
+ */
+export async function freigabeErteilen(token: string, postId: string, formular: FormData) {
   const exp = await prisma.export.findUnique({ where: { token } })
-  if (!exp || !exp.freigabeButtonZeigen) return
+  if (!exp || !exp.freigabenErlaubt) return
 
   const gast = await aktuellerGast()
   if (!gast) redirect(`/f/${token}/anmelden`)
 
-  const freigabe = await prisma.freigabe.create({
-    data: {
+  const post = await prisma.post.findUnique({ where: { id: postId } })
+  if (!post || post.kundeId !== exp.kundeId) return
+
+  const stufe = offeneStufe(post.status)
+  if (!stufe) return
+
+  const freigabe = await prisma.freigabe.upsert({
+    where: { postId_stufe: { postId, stufe } },
+    update: {},
+    create: {
+      postId,
+      stufe,
       exportId: exp.id,
       gastId: gast.id,
       autorName: gast.name,
       notiz: String(formular.get('notiz') ?? '').trim() || null,
     },
   })
-
-  // Die erste Freigabe schaltet den Link von „im Review" auf „freigegeben".
-  if (!exp.freigegebenAm) {
-    await prisma.export.update({ where: { id: exp.id }, data: { freigegebenAm: new Date() } })
-  }
 
   await meldeFreigabe(freigabe.id)
   revalidatePath(`/f/${token}`)

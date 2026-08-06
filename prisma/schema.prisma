@@ -38,6 +38,7 @@ model Nutzer {
   hochgeladen    Medium[]
   kommentare     Kommentar[]
   einladungen    ExportGast[]    @relation("Einladungen")
+  freigaben      Freigabe[]
 
   erstelltAm     DateTime  @default(now())
   aktualisiertAm DateTime  @updatedAt
@@ -305,6 +306,7 @@ model Post {
   medien       PostMedium[]
   customWerte  CustomFeldWert[]
   kommentare   Kommentar[]
+  freigaben    Freigabe[]
 
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt
@@ -399,14 +401,14 @@ model Export {
   ansprechpartnerId String?
   ansprechpartner   Ansprechpartner? @relation(fields: [ansprechpartnerId], references: [id], onDelete: SetNull)
 
-  kommentareErlaubt    Boolean @default(true)
-  freigabeButtonZeigen Boolean @default(true)
-  konzepteMitzeigen    Boolean @default(false)
+  kommentareErlaubt Boolean @default(true)
+  // Darf der Kunde auf dieser Seite freigeben? Freigaben hängen am einzelnen
+  // Post, nicht am Link.
+  freigabenErlaubt  Boolean @default(true)
+  konzepteMitzeigen Boolean @default(false)
 
   aufrufe          Int       @default(0)
   zuletztGeoeffnet DateTime?
-  // Gesetzt, sobald die erste Freigabe eingeht — trennt „im Review" von „freigegeben".
-  freigegebenAm    DateTime?
 
   kommentare   Kommentar[]
   freigaben    Freigabe[]
@@ -420,16 +422,39 @@ model Export {
   @@map("export")
 }
 
+/**
+ * Der Kunde gibt zweimal frei: einmal das Konzept, nach dem Dreh die Vorschau.
+ * Welche Stufe ansteht, ergibt sich aus dem Status des Posts.
+ */
+enum Freigabestufe {
+  KONZEPT
+  VORSCHAU
+}
+
 model Freigabe {
-  id         String   @id @default(cuid())
-  exportId   String
-  export     Export   @relation(fields: [exportId], references: [id], onDelete: Cascade)
-  gastId     String?
-  gast       Gast?    @relation(fields: [gastId], references: [id], onDelete: SetNull)
+  id     String        @id @default(cuid())
+  postId String
+  post   Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  stufe  Freigabestufe
+
+  // Über welchen Link die Freigabe kam; leer, wenn das Team sie einträgt.
+  exportId String?
+  export   Export? @relation(fields: [exportId], references: [id], onDelete: SetNull)
+
+  gastId String?
+  gast   Gast?   @relation(fields: [gastId], references: [id], onDelete: SetNull)
+
+  // Gesetzt, wenn jemand aus dem Team die Freigabe stellvertretend einträgt —
+  // etwa weil der Kunde am Telefon zugestimmt hat.
+  nutzerId String?
+  nutzer   Nutzer? @relation(fields: [nutzerId], references: [id], onDelete: SetNull)
+
   autorName  String
   notiz      String?
   erstelltAm DateTime @default(now())
 
+  // Je Stufe genau eine Freigabe pro Post.
+  @@unique([postId, stufe])
   @@index([exportId])
   @@map("freigabe")
 }
