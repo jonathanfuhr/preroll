@@ -96,7 +96,15 @@ export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlba
       <div className="w-full max-w-[460px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
         <h3 className="mb-5 text-[16px] font-semibold">Neuer Export-Link</h3>
 
-        <form action={exportAnlegen.bind(null, kundeId)} className="grid gap-4">
+        {/* Schließt nach dem Anlegen — ein Dialog, der stehen bleibt, sieht
+            aus, als wäre nichts passiert. */}
+        <form
+          action={async (formular: FormData) => {
+            await exportAnlegen(kundeId, formular)
+            setOffen(false)
+          }}
+          className="grid gap-4"
+        >
           <Feld beschriftung="Titel" hinweis="Erscheint als Überschrift auf der Kundenseite.">
             <Eingabe name="titel" placeholder="Content-Plan August 2026" />
           </Feld>

@@ -172,6 +172,11 @@ model Kunde {
 
   // Vorbelegung für neue Posts, wenn beim Anlegen kein Termin gesetzt wird.
   standardUhrzeit String @default("10:00")
+  /**
+   * Bei eigenen Kanälen gibt es niemanden, der freigeben müsste. Dann fällt
+   * der Freigabeschritt weg — Posts wandern direkt von Konzept auf Final.
+   */
+  freigabenNoetig Boolean @default(true)
 
   // Verbindet den Kunden mit seinem Projekt in Klappe. Ohne diese Zuordnung
   // zeigt die Videoauswahl nichts an — sonst stünden dort alle Videos aller

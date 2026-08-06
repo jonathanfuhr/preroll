@@ -1,29 +1,81 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 
 /**
- * Der Player im Geräterahmen.
+ * Der Reel-Player im Geräterahmen.
  *
  * Die Standard-Bedienleiste des Browsers taugt hier nicht: Sie legt sich über
- * das untere Drittel des Reels — also genau dorthin, wo bei Instagram Name und
- * Caption stehen — und lässt sich nicht wegnehmen. Deshalb eigene Bedienung,
- * so knapp wie auf Instagram: Klick aufs Bild schaltet, der Ton hängt an einem
- * eigenen Knopf **neben** dem Rahmen, wo er nichts verdeckt.
+ * das untere Drittel — also genau dorthin, wo bei Instagram Name und Caption
+ * stehen — und lässt sich nicht wegnehmen. Deshalb eigene Bedienung, so knapp
+ * wie auf Instagram.
  *
- * Stumm startet es trotzdem — Browser spielen Video mit Ton nicht von selbst
- * ab, und ein Video, das gar nicht erst anläuft, wäre schlechter.
+ * Solange nichts läuft, steht das Thumbnail davor. Nach dem Pausieren kommt
+ * es nach zwei Sekunden zurück: sofort wäre hektisch, gar nicht ließe den
+ * Beitrag im Standbild irgendeiner Sekunde stehen.
+ *
+ * Der Ton-Knopf sitzt **außerhalb** des Geräts. Im ersten Anlauf steckte er
+ * innen und war unsichtbar — der Schirm hat `overflow: hidden`. Deshalb
+ * umschließt `ReelRahmen` den Geräterahmen, statt in ihm zu stecken, und die
+ * Fläche im Inneren holt sich ihren Zustand über einen kleinen Kontext.
  */
-export function ReelPlayer({ quelle }: { quelle: string }) {
+
+type Steuerung = {
+  video: React.RefObject<HTMLVideoElement | null>
+  laeuft: boolean
+  zeigeThumbnail: boolean
+  schalte: () => void
+  thumbnail: string | null
+  quelle: string | null
+}
+
+const Kontext = createContext<Steuerung | null>(null)
+
+export function ReelRahmen({
+  quelle,
+  thumbnail,
+  children,
+}: {
+  quelle: string | null
+  thumbnail: string | null
+  /** Der Geräterahmen; die Videofläche kommt über `ReelFlaeche` hinein. */
+  children: ReactNode
+}) {
   const video = useRef<HTMLVideoElement>(null)
   const [laeuft, setLaeuft] = useState(false)
   const [stumm, setStumm] = useState(true)
+  const [zeigeThumbnail, setZeigeThumbnail] = useState(true)
+
+  useEffect(() => {
+    const v = video.current
+    if (v) v.muted = stumm
+  }, [stumm])
 
   useEffect(() => {
     const v = video.current
     if (!v) return
-    v.muted = stumm
-  }, [stumm])
+
+    const an = () => setLaeuft(true)
+    const aus = () => setLaeuft(false)
+    v.addEventListener('play', an)
+    v.addEventListener('pause', aus)
+    v.addEventListener('ended', aus)
+    return () => {
+      v.removeEventListener('play', an)
+      v.removeEventListener('pause', aus)
+      v.removeEventListener('ended', aus)
+    }
+  }, [quelle])
+
+  // Nach dem Pausieren kehrt das Thumbnail verzögert zurück.
+  useEffect(() => {
+    if (laeuft) {
+      setZeigeThumbnail(false)
+      return
+    }
+    const uhr = setTimeout(() => setZeigeThumbnail(true), 2000)
+    return () => clearTimeout(uhr)
+  }, [laeuft])
 
   function schalte() {
     const v = video.current
@@ -33,26 +85,56 @@ export function ReelPlayer({ quelle }: { quelle: string }) {
   }
 
   return (
-    <div className="relative h-full w-full">
+    <Kontext.Provider value={{ video, laeuft, zeigeThumbnail, schalte, thumbnail, quelle }}>
+      <div className="relative">
+        {quelle && (
+          <button
+            type="button"
+            onClick={() => setStumm((s) => !s)}
+            aria-label={stumm ? 'Ton einschalten' : 'Stummschalten'}
+            title={stumm ? 'Ton einschalten' : 'Stummschalten'}
+            className="absolute -left-11 top-2 z-30 flex size-9 items-center justify-center rounded-full border border-rahmen bg-flaeche text-tinte shadow-sm transition-colors hover:border-rahmen-4"
+          >
+            {stumm ? <StummZeichen /> : <TonZeichen />}
+          </button>
+        )}
+
+        {children}
+      </div>
+    </Kontext.Provider>
+  )
+}
+
+/** Die Videofläche im Schirm. Braucht einen `ReelRahmen` um sich herum. */
+export function ReelFlaeche({ platzhalter }: { platzhalter?: ReactNode }) {
+  const s = useContext(Kontext)
+  if (!s) throw new Error('ReelFlaeche gehört in einen ReelRahmen.')
+  if (!s.quelle) return <>{platzhalter}</>
+
+  return (
+    <>
       <video
-        ref={video}
-        src={quelle}
+        ref={s.video}
+        src={s.quelle}
         className="absolute inset-0 h-full w-full object-cover"
         muted
         loop
         playsInline
-        onPlay={() => setLaeuft(true)}
-        onPause={() => setLaeuft(false)}
+        preload="metadata"
       />
 
-      {/* Die ganze Fläche schaltet — wie auf Instagram. */}
+      {s.zeigeThumbnail && s.thumbnail && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={s.thumbnail} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      )}
+
       <button
         type="button"
-        onClick={schalte}
-        aria-label={laeuft ? 'Pause' : 'Abspielen'}
+        onClick={s.schalte}
+        aria-label={s.laeuft ? 'Pause' : 'Abspielen'}
         className="absolute inset-0 z-10 flex items-center justify-center"
       >
-        {!laeuft && (
+        {!s.laeuft && (
           <span className="flex size-14 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
             <span
               aria-hidden
@@ -61,21 +143,24 @@ export function ReelPlayer({ quelle }: { quelle: string }) {
           </span>
         )}
       </button>
+    </>
+  )
+}
 
-      {/*
-        Der Ton-Knopf sitzt außerhalb des Rahmens — im Rahmen verdeckte er
-        entweder die Caption oder die Bedienspalte rechts.
-      */}
-      <button
-        type="button"
-        onClick={() => setStumm((s) => !s)}
-        aria-label={stumm ? 'Ton einschalten' : 'Stummschalten'}
-        title={stumm ? 'Ton einschalten' : 'Stummschalten'}
-        className="absolute -left-[52px] top-0 z-20 flex size-9 items-center justify-center rounded-full border border-rahmen bg-flaeche text-tinte shadow-sm transition-colors hover:border-rahmen-4"
-      >
-        {stumm ? <StummZeichen /> : <TonZeichen />}
-      </button>
-    </div>
+/** Kleiner Player für Dialoge — dieselbe Bedienung, ohne Geräterahmen. */
+export function EinfacherPlayer({
+  quelle,
+  thumbnail,
+}: {
+  quelle: string
+  thumbnail: string | null
+}) {
+  return (
+    <ReelRahmen quelle={quelle} thumbnail={thumbnail}>
+      <div className="relative aspect-[9/16] w-full overflow-hidden rounded-[5px] bg-black">
+        <ReelFlaeche />
+      </div>
+    </ReelRahmen>
   )
 }
 

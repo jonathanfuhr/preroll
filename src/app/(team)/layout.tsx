@@ -116,6 +116,7 @@ export default async function TeamLayout({
               <Benutzermenue
                 name={nutzer.name}
                 initialen={nutzer.initialen}
+                foto={thumbUrl(nutzer.fotoId)}
                 rolle={nutzer.rolle}
                 workspace={einstellungen.workspaceName}
                 abmelden={abmelden}

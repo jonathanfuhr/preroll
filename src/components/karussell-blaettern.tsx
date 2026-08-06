@@ -13,13 +13,10 @@ import { useState, type ReactNode } from 'react'
  */
 export function KarussellFlaeche({
   slides,
-  platzhalter,
   aufUpload,
   ersetzenKnopf,
 }: {
   slides: string[]
-  /** Was steht, solange nichts hochgeladen ist. */
-  platzhalter: (nummer: number) => ReactNode
   aufUpload?: () => void
   ersetzenKnopf?: ReactNode
 }) {
@@ -37,7 +34,21 @@ export function KarussellFlaeche({
             <img src={bild} alt={`Slide ${aktiv + 1}`} className="h-full w-full object-cover" />
           </>
         ) : (
-          platzhalter(aktiv + 1)
+          /*
+            Der Platzhalter steht hier und kommt nicht als Funktion von außen:
+            Funktionen lassen sich nicht vom Server- ins Client-Bauteil
+            reichen — genau daran ist die Kundenseite einmal gescheitert.
+          */
+          <span className="schraffur flex h-full w-full flex-col items-center justify-center">
+            <span className="rounded-[3px] bg-white/85 px-2.5 py-1 font-mono text-[11px] text-leiser">
+              Slide {aktiv + 1} · 4:5
+            </span>
+            {aufUpload && (
+              <span className="mt-2 rounded-[5px] bg-akzent px-3 py-1.5 text-[11.5px] font-medium text-white">
+                Datei hochladen
+              </span>
+            )}
+          </span>
         )}
 
         <span className="absolute right-3 top-2.5 z-10 rounded-[10px] bg-black/55 px-2.5 py-[3px] font-mono text-[9.5px] text-white">

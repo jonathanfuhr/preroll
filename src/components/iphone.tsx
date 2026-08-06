@@ -1,7 +1,7 @@
 import type { PostTyp } from '@prisma/client'
 import Link from 'next/link'
 import { KarussellFlaeche } from './karussell-blaettern'
-import { ReelPlayer } from './reel-player'
+import { ReelFlaeche, ReelRahmen } from './reel-player'
 import type { ReactNode } from 'react'
 
 /**
@@ -246,7 +246,6 @@ export function IPhoneKarussell({
         slides={slides}
         aufUpload={aufUpload}
         ersetzenKnopf={aufUpload ? <ErsetzenKnopf aufKlick={aufUpload} /> : null}
-        platzhalter={(nummer) => <Platzhalter text={`Slide ${nummer} · 4:5`} />}
       />
 
       <Aktionsleiste />
@@ -264,6 +263,7 @@ export function IPhoneReel({
   istVideo,
   caption,
   aufUpload,
+  thumbnail,
 }: {
   kunde: string
   logo?: string | null
@@ -271,9 +271,14 @@ export function IPhoneReel({
   istVideo?: boolean
   caption: string
   aufUpload?: () => void
+  /** Steht vor dem Video, solange nichts läuft. */
+  thumbnail?: string | null
 }) {
   return (
-    <Geraet dunkel>
+    // Der Ton-Knopf muss außerhalb des Schirms sitzen — der ist
+    // `overflow: hidden`, innen wäre er unsichtbar.
+    <ReelRahmen quelle={istVideo ? (medium ?? null) : null} thumbnail={thumbnail ?? null}>
+      <Geraet dunkel>
       <div
         className="relative h-[569px] w-[320px] shrink-0 overflow-hidden"
         style={{
@@ -282,7 +287,7 @@ export function IPhoneReel({
       >
         {medium ? (
           istVideo ? (
-            <ReelPlayer quelle={medium} />
+            <ReelFlaeche />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={medium} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -368,6 +373,7 @@ export function IPhoneReel({
         </span>
       </div>
     </Geraet>
+    </ReelRahmen>
   )
 }
 
@@ -520,6 +526,7 @@ export function IPhoneVorschau({
   caption,
   istVideo,
   aufUpload,
+  thumbnail,
 }: {
   typ: PostTyp
   kunde: string
@@ -529,6 +536,8 @@ export function IPhoneVorschau({
   istVideo?: boolean
   /** Gesetzt im Editor — dann ist die Medienfläche selbst die Ablage. */
   aufUpload?: () => void
+  /** Beim Reel: steht vor dem Video, solange nichts läuft. */
+  thumbnail?: string | null
 }) {
   if (typ === 'REEL') {
     return (
@@ -539,6 +548,7 @@ export function IPhoneVorschau({
         istVideo={istVideo}
         caption={caption}
         aufUpload={aufUpload}
+        thumbnail={thumbnail}
       />
     )
   }

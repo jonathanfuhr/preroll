@@ -131,12 +131,15 @@ export function Glocke({
 export function Benutzermenue({
   name,
   initialen,
+  foto,
   rolle,
   workspace,
   abmelden,
 }: {
   name: string
   initialen: string
+  /** Aus dem Profil oder aus Microsoft — sonst bleiben es die Initialen. */
+  foto?: string | null
   rolle: Rolle
   workspace: string
   abmelden: () => Promise<void>
@@ -160,9 +163,14 @@ export function Benutzermenue({
           <span className="block text-[12.5px] font-medium leading-tight text-tinte">{name}</span>
           <span className="block text-[10.5px] leading-tight text-still">{workspace}</span>
         </span>
-        <span className="flex size-[30px] items-center justify-center rounded-full bg-akzent-zart text-[11px] font-semibold text-akzent">
-          {initialen}
-        </span>
+        {foto ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={foto} alt="" className="size-[30px] rounded-full object-cover" />
+        ) : (
+          <span className="flex size-[30px] items-center justify-center rounded-full bg-akzent-zart text-[11px] font-semibold text-akzent">
+            {initialen}
+          </span>
+        )}
       </button>
 
       {offen && (

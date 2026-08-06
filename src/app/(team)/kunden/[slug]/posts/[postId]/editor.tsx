@@ -95,6 +95,7 @@ export function PostEditor({
   standardUhrzeit,
   kommentare,
   andereReels,
+  freigabenNoetig,
   referenz,
   klappe,
   kundeSlug,
@@ -114,6 +115,8 @@ export function PostEditor({
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
   standardUhrzeit: string
   kommentare: Kommentareintrag[]
+  /** Aus. bei eigenen Kanälen — dann entfällt der Freigabeschritt ganz. */
+  freigabenNoetig: boolean
   /** Andere Reels desselben Kunden — Ziele fürs Übertragen des Ablaufs. */
   andereReels: Zielreel[]
   referenz: {
@@ -383,6 +386,7 @@ export function PostEditor({
       </Abschnitt>
 
       {/* ----------------------------------------------------------- Freigaben */}
+      {freigabenNoetig && (
       <Abschnitt
         titel="Freigaben"
         hinweis="Der Kunde gibt jeden Beitrag einzeln frei — beim Konzept das Konzept, nach dem Dreh die Vorschau."
@@ -395,6 +399,7 @@ export function PostEditor({
           vorschlagName={freigabe.vorschlagName}
         />
       </Abschnitt>
+      )}
       </div>
 
       {/* ------------------------------------------------------- Vorschau */}
@@ -410,10 +415,17 @@ export function PostEditor({
           medien={vorschauMedien}
           caption={caption}
           istVideo={istVideo}
+          thumbnail={thumbnailUrl}
           aufUpload={() => setDialogOffen('MEDIUM')}
         />
 
         <div className="mt-3 flex max-w-[344px] flex-wrap items-center gap-2">
+          <a
+            href={`/api/posts/${post.id}/zip`}
+            className="inline-flex items-center rounded-[5px] border border-rahmen-3 bg-flaeche px-3 py-1.5 text-[12px] font-medium text-tinte transition-colors hover:border-rahmen-4"
+          >
+            Als ZIP
+          </a>
           {post.typ === 'REEL' ? (
             <>
               <Knopf klein onClick={() => setDialogOffen('MEDIUM')}>

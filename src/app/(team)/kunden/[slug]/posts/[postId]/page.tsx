@@ -97,6 +97,7 @@ export default async function PostSeite({
         istVideo={istVideo}
         vorschau={{ kunde: post.kunde.name, logo: thumbUrl(post.kunde.logoId) }}
         standardUhrzeit={post.kunde.standardUhrzeit}
+        freigabenNoetig={post.kunde.freigabenNoetig}
         andereReels={andereReels.map((r) => ({
           id: r.id,
           titel: r.titel,

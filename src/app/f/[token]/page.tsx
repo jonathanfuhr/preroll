@@ -140,10 +140,13 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
       foto: medienUrl(n!.fotoId),
     }))
 
+  // Bei eigenen Kanälen gibt es niemanden, der freigeben müsste — dann steht
+  // auf der Seite auch nichts davon.
+  const mitFreigaben = exp.kunde.freigabenNoetig && exp.freigabenErlaubt
   const fortschritt = freigabeFortschritt(sektionen)
-  const freigabeleiste = (
+  const freigabeleiste = mitFreigaben ? (
     <Freigabefortschritt erledigt={fortschritt.erledigt} gesamt={fortschritt.gesamt} />
-  )
+  ) : null
 
   return (
     <div className="min-h-screen">
@@ -228,6 +231,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
             .sort((a, b) => a.position - b.position)
             .map((m) => medienUrl(m.medium.id)!)
           const medium = post.medien.find((m) => m.rolle === 'MEDIUM')
+          const thumb = post.medien.find((m) => m.rolle === 'THUMBNAIL')
 
           return (
             <PostSektion
@@ -239,6 +243,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                 post.typ === 'KARUSSELL' ? slides : medium ? [medienUrl(medium.medium.id)!] : []
               }
               istVideo={medium?.medium.mimeTyp.startsWith('video/') ?? false}
+              thumbnail={thumb ? medienUrl(thumb.medium.id) : null}
               szenen={post.szenen}
               referenzVideoUrl={
                 post.referenzVideoMediumId
@@ -252,7 +257,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                   <PostFreigabe
                     token={token}
                     postId={post.id}
-                    erlaubt={exp.freigabenErlaubt}
+                    erlaubt={mitFreigaben}
                     offen={
                       freigabeStand(
                         post.status,

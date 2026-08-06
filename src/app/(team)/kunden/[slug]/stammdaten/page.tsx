@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db'
 import { klappeEingerichtet, klappeProjekte } from '@/lib/klappe'
 import { darfAnsprechpartnerSein, ROLLE_TEXT } from '@/lib/rollen'
 import { thumbUrl } from '@/lib/urls'
-import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Textfeld } from '@/components/ui'
+import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
 import { betreuungSpeichern, customFeldAnlegen, customFeldLoeschen, kundeSpeichern } from '../aktionen'
 import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
 import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
@@ -66,6 +66,13 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
             <Feld beschriftung="Interne Notiz" hinweis="Sieht der Kunde nicht.">
               <Textfeld name="notiz" defaultValue={kunde.notiz ?? ''} rows={3} />
             </Feld>
+
+            <Schalter
+              name="freigabenNoetig"
+              beschriftung="Freigaben einholen"
+              hinweis="Bei eigenen Kanälen gibt es niemanden, der freigeben müsste. Aus heißt: kein Freigabeschritt im Editor und keiner auf der Export-Seite."
+              defaultChecked={kunde.freigabenNoetig}
+            />
 
             <div className="border-t border-rahmen pt-4">
               <h3 className="mb-1 text-[13px] font-semibold">Profil-Kennzahlen</h3>

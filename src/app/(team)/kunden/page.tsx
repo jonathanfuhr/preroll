@@ -29,7 +29,7 @@ export default async function KundenSeite() {
   // Zusage hat. Das lässt sich nicht als Zählung in der Abfrage ausdrücken —
   // welche Stufe ansteht, ergibt sich aus dem Status.
   const wartende = await prisma.post.findMany({
-    where: { status: { not: 'FINAL' }, kunde: { archiviert: false } },
+    where: { status: { not: 'FINAL' }, kunde: { archiviert: false, freigabenNoetig: true } },
     select: { kundeId: true, status: true, freigaben: { select: { stufe: true } } },
   })
   const freigabeJeKunde = new Map<string, number>()

@@ -144,6 +144,7 @@ export function PostSektion({
   kunde,
   logo,
   medien,
+  thumbnail,
   istVideo,
   szenen,
   referenzVideoUrl,
@@ -168,6 +169,8 @@ export function PostSektion({
   kunde: string
   logo: string | null
   medien: string[]
+  /** Reel-Thumbnail — steht vor dem Video, solange nichts läuft. */
+  thumbnail?: string | null
   istVideo: boolean
   szenen: SzenenZeile[]
   referenzVideoUrl: string | null
@@ -235,6 +238,7 @@ export function PostSektion({
             medien={medien}
             caption={post.caption}
             istVideo={istVideo}
+            thumbnail={thumbnail}
           />
         </div>
 
@@ -250,6 +254,15 @@ export function PostSektion({
               {hashtags}
             </p>
           )}
+
+          <div className="mt-5">
+            <a
+              href={`/api/posts/${post.id}/zip`}
+              className="inline-flex items-center rounded-[5px] border border-rahmen bg-flaeche px-3.5 py-2 text-[12.5px] font-medium text-tinte transition-colors hover:border-rahmen-4"
+            >
+              Dateien als ZIP
+            </a>
+          </div>
 
           <Eckdaten eintraege={eckdaten} />
 
