@@ -43,3 +43,35 @@ export function alsCookiedatei(eingabe: string, jetzt = Date.now()): string | nu
     ['# Netscape HTTP Cookie File', ...paare.map(([n, w]) => zeile(n, w, ablauf))].join('\n') + '\n'
   )
 }
+
+/**
+ * Aus der hinterlegten Datei die Zeile für einen `Cookie:`-Kopf machen.
+ *
+ * yt-dlp bekommt eine Datei, ein HTTP-Aufruf braucht die Kurzform. Beide
+ * lesen dieselbe Hinterlegung — wer die Sitzung einmal einträgt, hat sie für
+ * Downloads **und** Kennzahlen.
+ *
+ * `sessionid` allein genügt Instagram; `ds_user_id` und `csrftoken` kommen
+ * mit, wenn sie dabei sind, weil manche Antworten sonst knapper ausfallen.
+ */
+const GEBRAUCHT = ['sessionid', 'ds_user_id', 'csrftoken', 'mid', 'ig_did']
+
+export function cookieKopfzeile(inhalt: string | null | undefined): string | null {
+  if (!inhalt?.trim()) return null
+
+  const werte = new Map<string, string>()
+
+  for (const zeile of inhalt.split('\n')) {
+    if (!zeile.trim() || zeile.startsWith('#')) continue
+
+    // Netscape-Format: Domäne, Flag, Pfad, Sicher, Ablauf, Name, Wert
+    const felder = zeile.split('\t')
+    if (felder.length >= 7) {
+      const [name, wert] = [felder[5].trim(), felder[6].trim()]
+      if (GEBRAUCHT.includes(name) && wert) werte.set(name, wert)
+    }
+  }
+
+  if (!werte.has('sessionid')) return null
+  return [...werte].map(([n, w]) => `${n}=${w}`).join('; ')
+}

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
+import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
@@ -432,6 +433,26 @@ export async function einladungZuruecknehmen(exportId: string, gastId: string) {
   await nutzerOderRaus()
   await prisma.exportGast.deleteMany({ where: { exportId, gastId } })
   revalidatePath('/kunden', 'layout')
+}
+
+// -------------------------------------------------------------- Kennzahlen
+
+/**
+ * Kennzahlen dieses Kunden sofort holen, ohne auf den nächsten Lauf zu
+ * warten. Das Ergebnis steht danach über der Adresse — ein Knopf, der
+ * kommentarlos nichts tut, wäre schlimmer als keiner.
+ */
+export async function kennzahlenHolen(kundeId: string, slug: string) {
+  await nutzerOderRaus()
+
+  const ergebnis = await aktualisiereKennzahlen(kundeId)
+  revalidatePath(`/kunden/${slug}`, 'layout')
+
+  redirect(
+    ergebnis.ok
+      ? `/kunden/${slug}/stammdaten?kennzahlen=ok`
+      : `/kunden/${slug}/stammdaten?kennzahlen=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
+  )
 }
 
 // -------------------------------------------------------------- Kommentare

@@ -226,6 +226,19 @@ npm run check   # Typecheck + Tests
   einem hinterlegten Reel-Link (`wacheUeberSitzung`, angestoßen vom
   Team-Layout — Preroll hat keinen Zeitplaner) und meldet den Ablauf **einmal**
   an die Administration. YouTube, TikTok und Vimeo brauchen nichts davon.
+- **Profil-Kennzahlen kommen über dieselbe Instagram-Sitzung.** Follower,
+  Gefolgt, Beiträge, Bio, Website und — nur falls noch keins da ist — das
+  Profilbild, über `web_profile_info`. Der Weg ist derselbe Vertrauensbereich
+  wie der Video-Download: nicht dokumentiert, gegen Instagrams Bedingungen,
+  jederzeit änderbar. Und es ist **dieselbe Sitzung** — wird sie durch zu
+  häufige Abfragen auffällig, stehen auch die Referenzvideos still. Deshalb
+  ein **eigener Schalter** (`kennzahlenAktiv`, standardmäßig aus), **ein
+  Profil je Lauf**, Läufe im Abstand von 20 Minuten, jedes Profil höchstens
+  einmal am Tag. Angestoßen vom Team-Layout wie `wacheUeberSitzung`; Preroll
+  hat keinen Zeitplaner. Nachgemessen: Auf eine tote Sitzung antwortet der
+  Endpunkt mit **400**, nicht 401 — wer nur auf 401 prüft, hält sie für einen
+  Serverfehler. Die Graph API bleibt der Plan, sobald das App Review durch
+  ist (`KennzahlenQuelle.GRAPH_API` steht schon).
 - **Der Link-Download läuft im Hintergrund.** `yt-dlp` und `ffmpeg` stecken
   im Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand
   liegt am Post (`videoDownloadStand`, `-Fortschritt`, `-Meldung`) — nur so

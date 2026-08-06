@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer, beendeTeamSession } from '@/lib/auth'
 import { darfVerwalten } from '@/lib/rollen'
 import { wacheUeberSitzung } from '@/lib/instagram'
+import { wacheUeberKennzahlen } from '@/lib/kennzahlen-auftrag'
 import { favoritUmschalten } from './favoriten-aktionen'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
@@ -42,6 +43,9 @@ export default async function TeamLayout({
 
   // Höchstens einmal am Tag, im Hintergrund — blockiert die Seite nicht.
   void wacheUeberSitzung().catch(() => {})
+  // Ein Profil je Lauf, Läufe im Abstand von 20 Minuten. Preroll hat keinen
+  // Zeitplaner; die Arbeit im Backend ist der Takt.
+  void wacheUeberKennzahlen()
 
   const [einstellungen, kunden, favoriten, meldungen, ungelesen, offeneKommentare] =
     await Promise.all([

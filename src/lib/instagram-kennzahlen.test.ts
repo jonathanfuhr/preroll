@@ -1,0 +1,98 @@
+import { describe, expect, it } from 'vitest'
+import { cookieKopfzeile } from './instagram-cookies'
+import { normalisiereHandle, werteAusAntwort } from './instagram-profil'
+
+describe('normalisiereHandle', () => {
+  it('nimmt den blanken Namen', () => {
+    expect(normalisiereHandle('beispiel_handwerk')).toBe('beispiel_handwerk')
+  })
+
+  it('wirft @ und Profil-Adresse weg — beides wird oft hineinkopiert', () => {
+    expect(normalisiereHandle('@beispiel')).toBe('beispiel')
+    expect(normalisiereHandle('https://www.instagram.com/beispiel/')).toBe('beispiel')
+    expect(normalisiereHandle('instagram.com/beispiel')).toBe('beispiel')
+  })
+
+  it('schneidet Anhängsel hinter dem Namen ab', () => {
+    expect(normalisiereHandle('https://instagram.com/beispiel/reels/')).toBe('beispiel')
+    expect(normalisiereHandle('https://instagram.com/beispiel?hl=de')).toBe('beispiel')
+  })
+})
+
+describe('werteAusAntwort', () => {
+  const antwort = {
+    data: {
+      user: {
+        edge_followed_by: { count: 1240 },
+        edge_follow: { count: 312 },
+        edge_owner_to_timeline_media: { count: 87 },
+        biography: 'Handwerk aus Leidenschaft',
+        external_url: 'https://beispiel-handwerk.de',
+        profile_pic_url: 'https://cdn/klein.jpg',
+        profile_pic_url_hd: 'https://cdn/gross.jpg',
+        is_private: false,
+      },
+    },
+  }
+
+  it('liest die drei Zahlen aus ihren Zählobjekten', () => {
+    const w = werteAusAntwort(antwort)!
+    expect([w.follower, w.gefolgt, w.beitraege]).toEqual([1240, 312, 87])
+  })
+
+  it('nimmt das große Profilbild, wenn es eines gibt', () => {
+    expect(werteAusAntwort(antwort)!.profilbildUrl).toBe('https://cdn/gross.jpg')
+  })
+
+  it('fällt auf das kleine zurück', () => {
+    const ohne = { data: { user: { ...antwort.data.user, profile_pic_url_hd: null } } }
+    expect(werteAusAntwort(ohne)!.profilbildUrl).toBe('https://cdn/klein.jpg')
+  })
+
+  it('macht aus leeren Texten null statt leerer Zeichenkette', () => {
+    const leer = { data: { user: { ...antwort.data.user, biography: '   ', external_url: '' } } }
+    const w = werteAusAntwort(leer)!
+    expect([w.bio, w.website]).toEqual([null, null])
+  })
+
+  it('meldet ein privates Profil', () => {
+    const privat = { data: { user: { ...antwort.data.user, is_private: true } } }
+    expect(werteAusAntwort(privat)!.privat).toBe(true)
+  })
+
+  it('gibt null zurück, wenn die Form nicht stimmt — daran scheitert es zuerst', () => {
+    expect(werteAusAntwort({})).toBeNull()
+    expect(werteAusAntwort({ data: {} })).toBeNull()
+    expect(werteAusAntwort('Anmeldeseite statt JSON')).toBeNull()
+  })
+
+  it('lässt fehlende Zähler null, statt sie zu 0 zu erfinden', () => {
+    const w = werteAusAntwort({ data: { user: { biography: 'nur Text' } } })!
+    expect([w.follower, w.gefolgt, w.beitraege]).toEqual([null, null, null])
+  })
+})
+
+describe('cookieKopfzeile', () => {
+  const datei = [
+    '# Netscape HTTP Cookie File',
+    '.instagram.com\tTRUE\t/\tTRUE\t1799999999\tsessionid\tABC123',
+    '.instagram.com\tTRUE\t/\tTRUE\t1799999999\tds_user_id\t42',
+    '.instagram.com\tTRUE\t/\tTRUE\t1799999999\tirrelevant\tweg',
+  ].join('\n')
+
+  it('baut aus der Datei die Kurzform für den HTTP-Kopf', () => {
+    expect(cookieKopfzeile(datei)).toBe('sessionid=ABC123; ds_user_id=42')
+  })
+
+  it('lässt Kommentarzeilen und Unbrauchbares weg', () => {
+    expect(cookieKopfzeile(datei)).not.toContain('irrelevant')
+    expect(cookieKopfzeile(datei)).not.toContain('#')
+  })
+
+  it('gibt ohne sessionid nichts zurück — damit ließe sich nichts abrufen', () => {
+    const ohne = '.instagram.com\tTRUE\t/\tTRUE\t1799999999\tds_user_id\t42'
+    expect(cookieKopfzeile(ohne)).toBeNull()
+    expect(cookieKopfzeile('')).toBeNull()
+    expect(cookieKopfzeile(null)).toBeNull()
+  })
+})

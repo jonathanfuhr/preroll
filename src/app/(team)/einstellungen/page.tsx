@@ -1,6 +1,6 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
-import { instagramSitzungSpeichern, workspaceSpeichern } from './aktionen'
+import { instagramSitzungSpeichern, kennzahlenSpeichern, workspaceSpeichern } from './aktionen'
 
 export const metadata = { title: 'Workspace — Preroll' }
 
@@ -149,7 +149,133 @@ export default async function WorkspaceSeite({
         </Karte>
       </Abschnitt>
 
+      <Abschnitt
+        titel="Profil-Kennzahlen"
+        hinweis="Follower, Gefolgt und Beiträge automatisch von Instagram holen."
+      >
+        <Karte className="p-5">
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border border-rahmen bg-flaeche-leise px-3.5 py-2.5 text-[12.5px]">
+            {!e.kennzahlenAktiv ? (
+              <span className="text-leise">Aus — die Zahlen werden von Hand gepflegt.</span>
+            ) : !e.instagramCookies ? (
+              <>
+                <span className="font-medium text-akzent">Wartet auf die Sitzung</span>
+                <span className="text-leiser">Oben eine Instagram-Sitzung hinterlegen.</span>
+              </>
+            ) : (
+              <>
+                <span className="font-medium text-final">An</span>
+                <span className="text-leiser">
+                  {e.kennzahlenLaufAm
+                    ? `zuletzt geholt ${DATUM.format(e.kennzahlenLaufAm)}`
+                    : 'noch kein Lauf'}
+                </span>
+              </>
+            )}
+          </div>
+
+          <form action={kennzahlenSpeichern} className="grid gap-4">
+            <Schalter
+              name="kennzahlenAktiv"
+              beschriftung="Kennzahlen automatisch holen"
+              defaultChecked={e.kennzahlenAktiv}
+            />
+
+            <div className="grid gap-2.5 text-[12px] leading-relaxed text-leise">
+              <p>
+                Geholt wird über <strong>dieselbe Instagram-Sitzung</strong>, die oben für die
+                Videos hinterlegt ist — eine eigene Anmeldung braucht es nicht. Preroll nimmt sich
+                dabei <strong>ein Profil alle 20 Minuten</strong> vor und jedes höchstens einmal am
+                Tag. Angestoßen wird beim Arbeiten im Backend; Preroll hat keinen Zeitplaner.
+              </p>
+              <p>
+                Der Weg ist derselbe wie beim Video-Download: nicht von Instagram dokumentiert und
+                gegen dessen Bedingungen. Er kann sich jederzeit ändern, und häufige Abfragen
+                können die Sitzung auffällig machen — dann stehen auch die Referenzvideos still,
+                es ist dieselbe. Deshalb ist das hier ein eigener Schalter und nicht einfach an.
+              </p>
+              <p>
+                Übernommen werden Follower, Gefolgt, Beiträge sowie Bio und Website, wenn Instagram
+                dort etwas stehen hat. Das Profilbild wird nur gesetzt, wenn beim Kunden noch
+                keines hinterlegt ist. Nebenbei entsteht je Tag ein Wert — daraus wird später die
+                Follower-Kurve.
+              </p>
+            </div>
+
+            <KennzahlenAnleitung />
+
+            <div className="flex justify-end">
+              <Knopf klein art="primaer" type="submit">
+                Speichern
+              </Knopf>
+            </div>
+          </form>
+        </Karte>
+      </Abschnitt>
+
     </>
+  )
+}
+
+/** Was zu tun ist, damit die Zahlen kommen — und was zu tun ist, wenn nicht. */
+function KennzahlenAnleitung() {
+  return (
+    <details className="rounded-[5px] border border-rahmen bg-flaeche-leise px-3.5 py-2.5">
+      <summary className="cursor-pointer text-[12.5px] font-medium text-tinte">
+        So wird es eingerichtet
+      </summary>
+
+      <div className="mt-3 grid gap-4 text-[12px] leading-relaxed text-leise">
+        <ol className="grid list-decimal gap-2 pl-4">
+          <li>
+            <strong>Instagram-Sitzung hinterlegen</strong> — im Abschnitt darüber. Wie man an die
+            Session-ID kommt, steht dort unter „Wo finde ich die Session-ID?". Ist sie schon für
+            die Videos eingetragen, ist hier nichts weiter zu tun: Es ist dieselbe.
+          </li>
+          <li>
+            <strong>Diesen Schalter einschalten</strong> und speichern.
+          </li>
+          <li>
+            <strong>Bei jedem Kunden den Handle eintragen</strong> — Stammdaten → Instagram-Handle,
+            ohne @. Ohne Handle wird der Kunde übersprungen.
+          </li>
+          <li>
+            <strong>Einmal von Hand anstoßen</strong> — in den Stammdaten steht „Jetzt von
+            Instagram holen". So sieht man sofort, ob es klappt, statt bis zum nächsten Lauf zu
+            warten. Der Knopf geht auch bei ausgeschaltetem Schalter.
+          </li>
+        </ol>
+
+        <div>
+          <div className="mb-1 text-[12.5px] font-medium text-tinte">Danach läuft es von selbst</div>
+          <p>
+            Preroll holt beim Arbeiten im Backend jeweils <strong>ein</strong> Profil, höchstens
+            alle 20 Minuten, und jedes Profil höchstens einmal am Tag. Bei zehn Kunden ist damit
+            nach gut drei Stunden jeder einmal dran. Läuft niemand im Backend, passiert nichts —
+            Preroll hat keinen Zeitplaner.
+          </p>
+        </div>
+
+        <div>
+          <div className="mb-1 text-[12.5px] font-medium text-tinte">Wenn keine Zahlen kommen</div>
+          <p>
+            Fast immer ist die Sitzung abgelaufen; dann steht oben „Abgelaufen" und im Backend das
+            rote Band. Neue Session-ID eintragen, fertig. Kommt stattdessen „Das Profil gibt es
+            nicht (mehr)", stimmt der Handle nicht. Bei „Instagram bremst gerade ab" einfach
+            später noch einmal — das legt sich.
+          </p>
+        </div>
+
+        <div>
+          <div className="mb-1 text-[12.5px] font-medium text-tinte">Was von Hand bleibt</div>
+          <p>
+            Getippte Zahlen werden beim nächsten Lauf überschrieben. Wer einen Wert dauerhaft
+            selbst pflegen will, lässt den Schalter aus. Bio und Website werden nur übernommen,
+            wenn Instagram dort etwas stehen hat — eine gepflegte Angabe wird nicht geleert.
+          </p>
+        </div>
+      </div>
+    </details>
   )
 }
 

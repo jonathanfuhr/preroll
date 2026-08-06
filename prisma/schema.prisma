@@ -229,6 +229,9 @@ model Kunde {
 
 enum KennzahlenQuelle {
   MANUELL
+  /** Über die angemeldete Sitzung geholt — siehe `instagram-kennzahlen.ts`. */
+  INSTAGRAM_WEB
+  /** Der dokumentierte Weg, sobald das Meta App Review durch ist. */
   GRAPH_API
 }
 
@@ -661,6 +664,12 @@ model Einstellungen {
   instagramGemeldetAm DateTime?
   /** Leer heißt: Die letzte Prüfung lief durch. */
   instagramFehler    String?
+
+  // Kennzahlen über die Instagram-Sitzung holen. Bewusst getrennt vom
+  // Reel-Download eingeschaltet: Es ist dieselbe Sitzung, und wer sie nur
+  // für Videos hinterlegt hat, soll sie nicht ungefragt zusätzlich belasten.
+  kennzahlenAktiv Boolean   @default(false)
+  kennzahlenLaufAm DateTime?
 
   aworkAktiv     Boolean @default(false)
   aworkApiKey    String?

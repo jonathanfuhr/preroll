@@ -105,6 +105,22 @@ export async function instagramSitzungSpeichern(formular: FormData) {
   revalidatePath('/einstellungen')
 }
 
+/**
+ * Kennzahlen über die Instagram-Sitzung ein- oder ausschalten. Getrennt vom
+ * Reel-Download, obwohl es dieselbe Sitzung ist: Wer sie nur für Videos
+ * hinterlegt hat, soll sie nicht ungefragt zusätzlich belastet sehen.
+ */
+export async function kennzahlenSpeichern(formular: FormData) {
+  await adminOderRaus()
+
+  await speichereEinstellungen({
+    kennzahlenAktiv: formular.get('kennzahlenAktiv') === 'on',
+  })
+
+  revalidatePath('/einstellungen')
+  revalidatePath('/kunden', 'layout')
+}
+
 export async function mailSpeichern(formular: FormData) {
   await adminOderRaus()
 

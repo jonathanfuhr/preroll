@@ -4,8 +4,15 @@ import { prisma } from '@/lib/db'
 import { klappeEingerichtet, klappeProjekte } from '@/lib/klappe'
 import { darfAnsprechpartnerSein, ROLLE_TEXT } from '@/lib/rollen'
 import { thumbUrl } from '@/lib/urls'
-import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
-import { betreuungSpeichern, customFeldAnlegen, customFeldLoeschen, kundeSpeichern } from '../aktionen'
+import { ladeEinstellungen } from '@/lib/einstellungen'
+import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
+import {
+  betreuungSpeichern,
+  customFeldAnlegen,
+  customFeldLoeschen,
+  kennzahlenHolen,
+  kundeSpeichern,
+} from '../aktionen'
 import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
 import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
 import { AworkProjektWahl } from './awork-projekt'
@@ -14,9 +21,17 @@ import { CustomFeldFormular } from './custom-felder'
 import { KlappeProjektWahl } from './klappe-projekt'
 import { LogoAblage } from './logo'
 
-export default async function StammdatenSeite({ params }: { params: Promise<{ slug: string }> }) {
+export default async function StammdatenSeite({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ kennzahlen?: string; meldung?: string }>
+}) {
   const { slug } = await params
+  const { kennzahlen: kennzahlenStand, meldung } = await searchParams
   const kunde = await ladeKunde(slug)
+  const einstellungen = await ladeEinstellungen()
 
   const [team, angebunden] = await Promise.all([
     prisma.nutzer.findMany({ where: { aktiv: true }, orderBy: { name: 'asc' } }),
@@ -44,6 +59,11 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
           <div className="mb-5 border-b border-rahmen pb-5">
             <LogoAblage kundeId={kunde.id} logo={thumbUrl(kunde.logoId)} />
           </div>
+
+          {/* Eigenes Formular für den Abruf — es darf die Stammdaten weder
+              mitschicken noch überschreiben. Der Knopf steht weiter unten
+              und findet es über `form`. */}
+          <form id="kennzahlen-holen" action={kennzahlenHolen.bind(null, kunde.id, slug)} />
 
           <form action={kundeSpeichern.bind(null, kunde.id)} className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
@@ -76,13 +96,54 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
 
             <div className="border-t border-rahmen pt-4">
               <h3 className="mb-1 text-[13px] font-semibold">Profil-Kennzahlen</h3>
-              <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
-                Erscheinen über der Feed-Vorschau — intern wie auf der Export-Seite. Aktuell von
-                Hand gepflegt; der Abruf über die Instagram Graph API kommt, sobald die Meta-App
-                durch das App Review ist.
+              <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
+                Erscheinen über der Feed-Vorschau — intern wie auf der Export-Seite.
                 {kunde.kennzahlenAm &&
-                  ` Zuletzt aktualisiert am ${formatiereTag(kunde.kennzahlenAm, { dateStyle: 'long' })}.`}
+                  ` Zuletzt aktualisiert am ${formatiereTag(kunde.kennzahlenAm, { dateStyle: 'long' })}${
+                    kunde.kennzahlenTyp === 'MANUELL' ? ' von Hand' : ' über Instagram'
+                  }.`}
               </p>
+
+              {kennzahlenStand === 'ok' && (
+                <div className="mb-3">
+                  <Hinweis>Kennzahlen von Instagram übernommen.</Hinweis>
+                </div>
+              )}
+              {kennzahlenStand === 'fehler' && (
+                <div className="mb-3">
+                  <Fehler>{meldung}</Fehler>
+                </div>
+              )}
+
+              {/*
+                Der Knopf steht außerhalb des Stammdaten-Formulars: Er holt
+                Werte und speichert nicht, was gerade in den Feldern steht.
+                Beides in einem Formular hieße, dass ein Klick ungespeicherte
+                Eingaben mitnimmt oder überschreibt.
+              */}
+              <div className="mb-4 flex flex-wrap items-center gap-3">
+                <Knopf
+                  klein
+                  type="submit"
+                  form="kennzahlen-holen"
+                  disabled={!kunde.handle || !einstellungen.instagramCookies}
+                >
+                  Jetzt von Instagram holen
+                </Knopf>
+                {!kunde.handle ? (
+                  <span className="text-[11.5px] text-leiser">
+                    Dafür oben einen Instagram-Handle eintragen.
+                  </span>
+                ) : !einstellungen.instagramCookies ? (
+                  <span className="text-[11.5px] text-leiser">
+                    Dafür unter Einstellungen eine Instagram-Sitzung hinterlegen.
+                  </span>
+                ) : !einstellungen.kennzahlenAktiv ? (
+                  <span className="text-[11.5px] text-leiser">
+                    Der tägliche Abruf ist aus — dieser Knopf holt trotzdem.
+                  </span>
+                ) : null}
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <Feld beschriftung="Beiträge">
                   <Eingabe name="beitraege" inputMode="numeric" defaultValue={kunde.beitraege ?? ''} />
