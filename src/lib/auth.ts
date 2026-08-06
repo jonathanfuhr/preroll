@@ -11,7 +11,8 @@ const scryptAsync = promisify(scrypt)
 export const TEAM_COOKIE = 'preroll_team'
 export const GAST_COOKIE = 'preroll_gast'
 
-const SESSION_TAGE = 30
+// Kunden sollen nicht bei jedem Freigabe-Link neu bestätigen müssen.
+const SESSION_TAGE = 40
 const CODE_GUELTIG_MINUTEN = 15
 const CODE_MAX_VERSUCHE = 5
 

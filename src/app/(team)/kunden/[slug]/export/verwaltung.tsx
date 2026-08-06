@@ -24,7 +24,6 @@ type ExportDaten = {
   kommentareErlaubt: boolean
   freigabeButtonZeigen: boolean
   konzepteMitzeigen: boolean
-  loginPflicht: boolean
   aufrufe: number
   zuletztGeoeffnet: string | null
   freigegebenAm: string | null
@@ -69,12 +68,6 @@ function Optionen({ exp }: { exp?: ExportDaten }) {
         beschriftung="Konzept-Beiträge mitzeigen"
         hinweis="Sonst sieht der Kunde nur, was auf Vorschau oder Final steht."
         defaultChecked={exp?.konzepteMitzeigen ?? false}
-      />
-      <Schalter
-        name="loginPflicht"
-        beschriftung="Anmeldung per Mail-Code verlangen"
-        hinweis="Der Kunde bestätigt seine Adresse mit einem sechsstelligen Code, bevor er den Plan sieht."
-        defaultChecked={exp?.loginPflicht ?? false}
       />
     </div>
   )

@@ -148,6 +148,12 @@ model Kunde {
   kennzahlenAm   DateTime?
   kennzahlenTyp  KennzahlenQuelle @default(MANUELL)
 
+  // Verbindet den Kunden mit seinem Projekt in Klappe. Ohne diese Zuordnung
+  // zeigt die Videoauswahl nichts an — sonst stünden dort alle Videos aller
+  // Kunden, und das wird auf Dauer unübersichtlich.
+  klappeProjektId   String?
+  klappeProjektName String?
+
   ansprechpartner Ansprechpartner[]
   posts           Post[]
   medien          Medium[]
@@ -231,6 +237,7 @@ model Medium {
   postMedien       PostMedium[]
   kundeLogo        Kunde[]           @relation("KundeLogo")
   ansprechpartnerFoto Ansprechpartner[] @relation("AnsprechpartnerFoto")
+  referenzVideoVon Post[]            @relation("ReferenzVideo")
 
   erstelltAm DateTime @default(now())
 
@@ -281,11 +288,18 @@ model Post {
   referenzVideoUrl   String?
   referenzVideoTitel String?
   // Lokal abgelegte Kopie des Referenzvideos — zuverlässiger als ein iframe.
-  referenzVideoPfad  String?
+  referenzVideoPfad     String?
+  referenzVideoMediumId String?
+  referenzVideoMedium   Medium? @relation("ReferenzVideo", fields: [referenzVideoMediumId], references: [id], onDelete: SetNull)
 
-  // Finales Reel aus Klappe.
-  klappeVideoId  String?
-  klappeVideoUrl String?
+  // Finales Reel aus Klappe. Das Video entsteht beim Anlegen des Posts
+  // automatisch mit, damit beim Upload kein Name mehr getippt werden muss.
+  klappeVideoId       String?
+  klappeVideoName     String?
+  klappeVideoUrl      String?
+  klappeVersionId     String?
+  klappeVersionNummer Int?
+  klappeStandAm       DateTime?
 
   szenen       Szene[]
   medien       PostMedium[]
@@ -388,8 +402,6 @@ model Export {
   kommentareErlaubt    Boolean @default(true)
   freigabeButtonZeigen Boolean @default(true)
   konzepteMitzeigen    Boolean @default(false)
-  // Gast muss sich per Mail-Code anmelden, bevor er den Inhalt sieht.
-  loginPflicht         Boolean @default(false)
 
   aufrufe          Int       @default(0)
   zuletztGeoeffnet DateTime?
@@ -530,9 +542,12 @@ model Einstellungen {
   vapidPublicKey  String?
   vapidPrivateKey String?
 
-  // Klappe-Anbindung für finale Reels.
-  klappeBasisUrl String?
-  klappeApiKey   String?
+  // Klappe-Anbindung für finale Reels. Der Token entsteht über die
+  // Gerätekopplung und wird als Bearer-Token mitgeschickt.
+  klappeBasisUrl    String?
+  klappeApiKey      String?
+  klappeGekoppeltAm DateTime?
+  klappeKonto       String?
 
   aktualisiertAm DateTime @updatedAt
 

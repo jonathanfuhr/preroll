@@ -324,6 +324,122 @@ export function IPhoneReel({
   )
 }
 
+// ------------------------------------------------------------- Feed-Raster
+
+function RasterIcon({ aktiv }: { aktiv?: boolean }) {
+  return (
+    <span className="grid grid-cols-3 gap-[2px]">
+      {Array.from({ length: 9 }, (_, i) => (
+        <span
+          key={i}
+          className="block size-[3.5px]"
+          style={{ background: aktiv ? '#1c1a18' : '#c9c4be' }}
+        />
+      ))}
+    </span>
+  )
+}
+
+/**
+ * Profilraster im Geräterahmen — Mockup 3d. Zeigt, wie das Instagram-Profil
+ * nach der geplanten Periode aussieht: drei Kacheln je Reihe im Verhältnis
+ * 4:5, neueste oben links.
+ */
+export function IPhoneFeed({
+  kunde,
+  handle,
+  logo,
+  beitraege,
+  follower,
+  gefolgt,
+  kacheln,
+}: {
+  kunde: string
+  handle?: string | null
+  logo?: string | null
+  beitraege?: number | null
+  follower?: number | null
+  gefolgt?: number | null
+  kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string }>
+}) {
+  const zahl = (wert?: number | null) =>
+    wert === null || wert === undefined ? '—' : new Intl.NumberFormat('de-DE').format(wert)
+
+  return (
+    <Geraet>
+      <Statusleiste />
+
+      <div className="flex shrink-0 items-center justify-between gap-2.5 px-4 pb-3">
+        <span className="truncate text-[13px] font-semibold text-tinte">{handle ?? kunde}</span>
+        <span className="tracking-[2px] text-[14px] text-rahmen-4">···</span>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-5 px-4 pb-3">
+        <Avatar bild={logo} groesse={62} />
+        <div className="flex flex-1 justify-around">
+          {[
+            { wert: beitraege, text: 'Beiträge' },
+            { wert: follower, text: 'Follower' },
+            { wert: gefolgt, text: 'gefolgt' },
+          ].map((k) => (
+            <div key={k.text} className="grid justify-items-center gap-1">
+              <span className="text-[13px] font-semibold text-tinte">{zahl(k.wert)}</span>
+              <span className="text-[9.5px] text-still">{k.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="shrink-0 px-4 pb-3">
+        <span className="text-[11.5px] font-semibold text-tinte">{kunde}</span>
+      </div>
+
+      <div className="flex shrink-0 border-t border-grund">
+        <div className="flex flex-1 items-center justify-center border-b-[1.5px] border-tinte py-2.5">
+          <RasterIcon aktiv />
+        </div>
+        <div className="flex flex-1 items-center justify-center border-b-[1.5px] border-transparent py-2.5">
+          <span className="block size-[13px] rotate-45 rounded-[3px] border-[1.6px] border-rahmen-4" />
+        </div>
+      </div>
+
+      <div className="grid min-h-0 flex-1 grid-cols-3 content-start gap-[2px] overflow-hidden pt-[2px]">
+        {kacheln.length === 0 ? (
+          <span className="schraffur col-span-3 flex aspect-[12/5] items-center justify-center font-mono text-[10px] text-leiser">
+            Noch keine Beiträge
+          </span>
+        ) : (
+          kacheln.map((kachel) => (
+            <div key={kachel.id} className="relative aspect-[4/5] overflow-hidden bg-flaeche-tief">
+              {kachel.bild ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={kachel.bild} alt={kachel.titel} className="h-full w-full object-cover" />
+              ) : (
+                <span className="schraffur flex h-full w-full items-center justify-center px-1 text-center font-mono text-[8px] leading-tight text-leiser">
+                  {kachel.titel}
+                </span>
+              )}
+              {kachel.typ === 'REEL' && (
+                <span
+                  aria-hidden
+                  className="absolute right-1.5 top-1.5 block size-0 border-y-[5.5px] border-l-[9px] border-y-transparent border-l-white drop-shadow"
+                />
+              )}
+              {kachel.typ === 'KARUSSELL' && (
+                <span
+                  aria-hidden
+                  className="absolute right-1.5 top-1.5 block size-2 rounded-[2px] border-[1.5px] border-white drop-shadow"
+                  style={{ boxShadow: '3px -3px 0 -1px #fff' }}
+                />
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </Geraet>
+  )
+}
+
 /** Wählt anhand des Typs den passenden Rahmen. */
 export function IPhoneVorschau({
   typ,

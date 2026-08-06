@@ -2,25 +2,18 @@ import { notFound, redirect } from 'next/navigation'
 import { POST_MEDIEN, rasterMedium } from '@/lib/abfragen'
 import { aktuellerGast } from '@/lib/auth'
 import { zeitraumText } from '@/lib/benachrichtigungen'
-import { prisma } from '@/lib/db'
 import { formatiereTag } from '@/lib/datum'
+import { prisma } from '@/lib/db'
 import { feedVorschau, istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche } from '@/lib/format'
 import { medienUrl, thumbUrl } from '@/lib/urls'
-import { FeedRaster, ProfilKopf, type FeedKachel } from '@/components/feed'
-import { IPhoneVorschau } from '@/components/iphone'
+import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
+import { IPhoneFeed } from '@/components/iphone'
 import { Monatskalender, monateImZeitraum, type Kalendereintrag } from '@/components/kalender'
+import { PostSektion } from '@/components/post-sektion'
 import { Freigabeleiste, KommentarBereich } from './interaktion'
 
 export const dynamic = 'force-dynamic'
-
-const DATUM_LANG = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'long',
-  day: '2-digit',
-  month: 'long',
-  year: 'numeric',
-})
-const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -55,8 +48,10 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     )
   }
 
+  // Ein Freigabe-Link öffnet sich nie ohne Anmeldung. Die Sitzung gilt
+  // 40 Tage — danach genügt der Link wieder allein.
   const gast = await aktuellerGast()
-  if (exp.loginPflicht && !gast) redirect(`/f/${token}/anmelden`)
+  if (!gast || !gast.name.trim()) redirect(`/f/${token}/anmelden`)
 
   // Live-Sicht: bei jedem Aufruf frisch aus der Datenbank, kein Schnappschuss.
   const alle = await prisma.post.findMany({
@@ -81,14 +76,13 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     })
     .catch(() => {})
 
-  if (gast) {
-    void prisma.exportGast
-      .updateMany({
-        where: { exportId: exp.id, gastId: gast.id },
-        data: { zuletztGeoeffnetAm: new Date() },
-      })
-      .catch(() => {})
-  }
+  void prisma.exportGast
+    .upsert({
+      where: { exportId_gastId: { exportId: exp.id, gastId: gast.id } },
+      update: { zuletztGeoeffnetAm: new Date() },
+      create: { exportId: exp.id, gastId: gast.id, zuletztGeoeffnetAm: new Date() },
+    })
+    .catch(() => {})
 
   const kalendereintraege: Kalendereintrag[] = sektionen.map((p) => ({
     id: p.id,
@@ -98,238 +92,137 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     href: `#post-${p.id}`,
   }))
 
-  const feedKacheln: FeedKachel[] = kacheln.map((p) => ({
-    id: p.id,
-    typ: p.typ,
-    status: p.status,
-    titel: p.titel,
-    bild: thumbUrl(rasterMedium(p)),
-  }))
-
   const zeitraum = zeitraumText(exp.zeitraumVon, exp.zeitraumBis)
-  const kontakt = exp.ansprechpartner
+  const kwSpanne = sektionen.length
+    ? `KW ${kalenderwoche(sektionen[0].postenAm)}–${kalenderwoche(sektionen.at(-1)!.postenAm)}`
+    : '—'
+
   const freigabe = exp.freigaben[0] ?? null
+  const freigabeleiste = (
+    <Freigabeleiste
+      token={token}
+      zeigen={exp.freigabeButtonZeigen}
+      freigegeben={
+        freigabe ? { autorName: freigabe.autorName, am: freigabe.erstelltAm.toISOString() } : null
+      }
+      gastName={gast.name}
+    />
+  )
 
   return (
     <div className="min-h-screen">
-      {/* ------------------------------------------------------------- Kopf */}
-      <header className="border-b border-rahmen bg-flaeche">
-        <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-4 px-6 py-4 md:px-10">
-          <div className="flex items-center gap-3.5">
-            {exp.kunde.logoId ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={thumbUrl(exp.kunde.logoId)!}
-                alt=""
-                className="size-10 rounded-full object-cover"
-              />
-            ) : (
-              <span className="schraffur size-10 rounded-full border border-dashed border-rahmen-3" />
-            )}
-            <div>
-              <div className="text-[15px] font-semibold leading-tight">{exp.kunde.name}</div>
-              <div className="text-[11.5px] text-leiser">{exp.titel ?? `Content-Plan ${zeitraum}`}</div>
-            </div>
-          </div>
+      <ExportTopbar
+        kunde={exp.kunde.name}
+        logo={thumbUrl(exp.kunde.logoId)}
+        titel={exp.titel ?? `Content-Plan ${zeitraum}`}
+        aktion={freigabeleiste}
+      />
 
-          <Freigabeleiste
-            token={token}
-            zeigen={exp.freigabeButtonZeigen}
-            freigegeben={
-              freigabe ? { autorName: freigabe.autorName, am: freigabe.erstelltAm.toISOString() } : null
-            }
-            gastName={gast?.name ?? null}
+      <ExportHero
+        titel="Content-Plan"
+        zeitraum={zeitraum}
+        einleitung={
+          `Hier sehen Sie alle geplanten Beiträge für ${zeitraum} — so, wie sie später auf ` +
+          'Instagram erscheinen. Über den Kalender springen Sie direkt zum Beitrag. Ihre ' +
+          'Anmerkungen schreiben Sie direkt neben dem Beitrag — wir sehen sie sofort.'
+        }
+        eckdaten={[
+          { t: 'Beiträge', w: `${sektionen.length} · ${kwSpanne}` },
+          { t: 'Kanal', w: 'Instagram' },
+          ...(exp.ansprechpartner?.rolle
+            ? [{ t: 'Agentur', w: exp.ansprechpartner.rolle.split('·').pop()!.trim() }]
+            : []),
+          ...(exp.gueltigBis ? [{ t: 'Rückmeldung bis', w: formatiereTag(exp.gueltigBis) }] : []),
+        ]}
+        aktionMobil={freigabeleiste}
+      />
+
+      {/* ---------------------------------------- Kalender + Feed-Vorschau */}
+      <div className="mx-auto grid max-w-[1440px] items-start gap-8 px-5 pb-12 md:px-[72px] md:pb-16 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-8">
+          {monateImZeitraum(exp.zeitraumVon, exp.zeitraumBis).map((monat) => (
+            <KalenderKarte
+              key={monat.toISOString()}
+              monat={new Intl.DateTimeFormat('de-DE', { month: 'long' }).format(monat)}
+              jahr={String(monat.getFullYear())}
+            >
+              <Monatskalender monat={monat} eintraege={kalendereintraege} ohneRahmen />
+            </KalenderKarte>
+          ))}
+        </div>
+
+        <aside className="justify-self-center lg:justify-self-end">
+          <IPhoneFeed
+            kunde={exp.kunde.name}
+            handle={exp.kunde.handle}
+            logo={thumbUrl(exp.kunde.logoId)}
+            beitraege={exp.kunde.beitraege}
+            follower={exp.kunde.follower}
+            gefolgt={exp.kunde.gefolgt}
+            kacheln={kacheln.map((p) => ({
+              id: p.id,
+              typ: p.typ,
+              titel: p.titel,
+              bild: thumbUrl(rasterMedium(p)),
+            }))}
           />
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-[1180px] px-6 py-10 md:px-10">
-        {/* ------------------------------------------------------ Eckdaten */}
-        <div className="mb-10">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-leiser">
-            Content-Plan zur Freigabe
+          <p className="mt-4 max-w-[344px] text-[11.5px] leading-[1.65] text-leiser">
+            So sieht das Profil nach dem Zeitraum aus — die geplanten Beiträge oben, darunter die
+            bereits veröffentlichten.
           </p>
-          <h1 className="mt-3 text-[30px] font-semibold tracking-[-0.02em] md:text-[34px]">
-            {exp.titel ?? zeitraum}
-          </h1>
+        </aside>
+      </div>
 
-          <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-4">
-            {[
-              {
-                t: 'Beiträge',
-                w: `${sektionen.length} · KW ${
-                  sektionen.length
-                    ? `${kalenderwoche(sektionen[0].postenAm)}–${kalenderwoche(sektionen.at(-1)!.postenAm)}`
-                    : '—'
-                }`,
-              },
-              { t: 'Kanal', w: 'Instagram' },
-              { t: 'Zeitraum', w: zeitraum },
-              ...(exp.gueltigBis
-                ? [
-                    {
-                      t: 'Rückmeldung bis',
-                      w: formatiereTag(exp.gueltigBis),
-                    },
-                  ]
-                : []),
-            ].map((eintrag) => (
-              <div key={eintrag.t}>
-                <dt className="text-[10.5px] uppercase tracking-[0.1em] text-still">{eintrag.t}</dt>
-                <dd className="mt-1 text-[13.5px] text-tinte-3">{eintrag.w}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+      {/* ---------------------------------------------------- Post-Sektionen */}
+      <div className="mx-auto max-w-[1440px] px-5 md:px-[72px]">
+        {sektionen.map((post) => {
+          const slides = post.medien
+            .filter((m) => m.rolle === 'SLIDE')
+            .sort((a, b) => a.position - b.position)
+            .map((m) => medienUrl(m.medium.id)!)
+          const medium = post.medien.find((m) => m.rolle === 'MEDIUM')
 
-        {/* ------------------------------------ Kalender + Feed nebeneinander */}
-        <div className="mb-14 flex flex-col gap-8 lg:flex-row lg:items-start">
-          <div className="min-w-0 flex-1">
-            <div className="grid gap-8">
-              {monateImZeitraum(exp.zeitraumVon, exp.zeitraumBis).map((monat) => (
-                <Monatskalender
-                  key={monat.toISOString()}
-                  monat={monat}
-                  eintraege={kalendereintraege}
+          return (
+            <PostSektion
+              key={post.id}
+              post={post}
+              kunde={exp.kunde.name}
+              logo={thumbUrl(exp.kunde.logoId)}
+              medien={
+                post.typ === 'KARUSSELL' ? slides : medium ? [medienUrl(medium.medium.id)!] : []
+              }
+              istVideo={medium?.medium.mimeTyp.startsWith('video/') ?? false}
+              szenen={post.szenen}
+              referenzVideoUrl={
+                post.referenzVideoMediumId
+                  ? medienUrl(post.referenzVideoMediumId)
+                  : post.referenzVideoUrl
+              }
+              referenzVideoTitel={post.referenzVideoTitel}
+              klappeVideoUrl={post.klappeVersionId ? `/api/klappe/${post.klappeVersionId}` : null}
+              anmerkungen={
+                <KommentarBereich
+                  token={token}
+                  postId={post.id}
+                  erlaubt={exp.kommentareErlaubt}
+                  gastName={gast.name}
+                  kommentare={exp.kommentare
+                    .filter((k) => k.postId === post.id)
+                    .map((k) => ({
+                      id: k.id,
+                      autorName: k.autorName,
+                      text: k.text,
+                      am: k.erstelltAm.toISOString(),
+                      vomTeam: Boolean(k.nutzerId),
+                    }))}
                 />
-              ))}
-            </div>
-          </div>
-
-          <aside className="w-full shrink-0 lg:w-[340px]">
-            <h3 className="mb-3 text-[15px] font-semibold">So wird Ihr Profil aussehen</h3>
-            <div className="rounded-md border border-rahmen bg-flaeche p-4">
-              <ProfilKopf
-                name={exp.kunde.name}
-                handle={exp.kunde.handle}
-                logo={thumbUrl(exp.kunde.logoId)}
-                beitraege={exp.kunde.beitraege}
-                follower={exp.kunde.follower}
-                gefolgt={exp.kunde.gefolgt}
-                bio={exp.kunde.bio}
-              />
-              <div className="border-t border-rahmen pt-3">
-                <FeedRaster kacheln={feedKacheln} />
-              </div>
-            </div>
-            <p className="mt-2.5 text-[11.5px] leading-relaxed text-stiller">
-              Die Vorschau enthält bereits veröffentlichte Beiträge und die geplanten dieses
-              Zeitraums.
-            </p>
-          </aside>
-        </div>
-
-        {/* ----------------------------------------------------- Post-Sektionen */}
-        <div className="grid gap-16">
-          {sektionen.map((post) => {
-            const slides = post.medien
-              .filter((m) => m.rolle === 'SLIDE')
-              .sort((a, b) => a.position - b.position)
-              .map((m) => medienUrl(m.medium.id)!)
-            const medium = post.medien.find((m) => m.rolle === 'MEDIUM')
-
-            const medien =
-              post.typ === 'KARUSSELL' ? slides : medium ? [medienUrl(medium.medium.id)!] : []
-
-            return (
-              <section key={post.id} id={`post-${post.id}`} className="scroll-mt-24">
-                <div className="mb-5 border-b border-rahmen pb-3">
-                  <div className="flex flex-wrap items-baseline gap-3">
-                    <span className="font-mono text-[11.5px] text-still">
-                      KW {kalenderwoche(post.postenAm)}
-                    </span>
-                    <h2 className="text-[19px] font-semibold tracking-[-0.01em]">{post.titel}</h2>
-                  </div>
-                  <p className="mt-1 text-[12.5px] capitalize text-leiser">
-                    {DATUM_LANG.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)} Uhr
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-                  <div className="shrink-0">
-                    <IPhoneVorschau
-                      typ={post.typ}
-                      kunde={exp.kunde.name}
-                      logo={thumbUrl(exp.kunde.logoId)}
-                      medien={medien}
-                      caption={post.caption}
-                      istVideo={medium?.medium.mimeTyp.startsWith('video/')}
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    {post.kurzbeschreibung && (
-                      <p className="mb-5 text-[14px] leading-relaxed text-tinte-3">
-                        {post.kurzbeschreibung}
-                      </p>
-                    )}
-
-                    {/* Reel: Szenenplan oder freies Inhalte-Feld */}
-                    {post.typ === 'REEL' &&
-                      (post.szenenplanAktiv && post.szenen.length > 0 ? (
-                        <div className="mb-6 overflow-hidden rounded-md border border-rahmen bg-flaeche">
-                          <div className="grid grid-cols-[92px_1fr_1fr_1fr] gap-3 border-b border-rahmen bg-flaeche-leise px-4 py-2 text-[10px] font-medium uppercase tracking-[0.08em] text-still">
-                            <span>Abschnitt</span>
-                            <span>Bild / Szene</span>
-                            <span>Sprechertext</span>
-                            <span>Texteinblendung</span>
-                          </div>
-                          {post.szenen.map((szene) => (
-                            <div
-                              key={szene.id}
-                              className="grid grid-cols-[92px_1fr_1fr_1fr] gap-3 border-b border-rahmen px-4 py-3 text-[12px] leading-relaxed last:border-b-0"
-                            >
-                              <span className="font-medium text-tinte-3">{szene.abschnitt}</span>
-                              <span className="text-leise">{szene.bildSzene ?? '—'}</span>
-                              <span className="text-leise">{szene.sprechertext ?? '—'}</span>
-                              <span className="text-leise">{szene.texteinblendung ?? '—'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : post.inhalte ? (
-                        <div className="mb-6 rounded-md border border-rahmen bg-flaeche p-4">
-                          <h4 className="mb-1.5 text-[10.5px] uppercase tracking-[0.1em] text-still">
-                            Inhalte
-                          </h4>
-                          <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-leise">
-                            {post.inhalte}
-                          </p>
-                        </div>
-                      ) : null)}
-
-                    <div className="mb-6 rounded-md border border-rahmen bg-flaeche p-4">
-                      <h4 className="mb-1.5 text-[10.5px] uppercase tracking-[0.1em] text-still">
-                        Caption
-                      </h4>
-                      <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-leise">
-                        {post.caption || '—'}
-                      </p>
-                    </div>
-
-                    <KommentarBereich
-                      token={token}
-                      postId={post.id}
-                      erlaubt={exp.kommentareErlaubt}
-                      gastName={gast?.name ?? null}
-                      kommentare={exp.kommentare
-                        .filter((k) => k.postId === post.id)
-                        .map((k) => ({
-                          id: k.id,
-                          autorName: k.autorName,
-                          text: k.text,
-                          am: k.erstelltAm.toISOString(),
-                          vomTeam: Boolean(k.nutzerId),
-                        }))}
-                    />
-                  </div>
-                </div>
-              </section>
-            )
-          })}
-        </div>
+              }
+            />
+          )
+        })}
 
         {sektionen.length === 0 && (
-          <div className="rounded-md border border-dashed border-rahmen-3 bg-flaeche-leise px-6 py-14 text-center">
+          <div className="mb-16 rounded-md border border-dashed border-rahmen-3 bg-flaeche-leise px-6 py-14 text-center">
             <p className="text-[13.5px] font-medium text-tinte-3">
               Für diesen Zeitraum ist noch nichts zur Freigabe bereit.
             </p>
@@ -338,52 +231,18 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
             </p>
           </div>
         )}
-      </main>
+      </div>
 
-      {/* ------------------------------------------------------------- Fuß */}
-      {kontakt && (
-        <footer className="mt-16 border-t border-rahmen bg-flaeche">
-          <div className="mx-auto max-w-[1180px] px-6 py-10 md:px-10">
-            <h3 className="mb-5 text-[10.5px] uppercase tracking-[0.1em] text-still">
-              Ihre Ansprechpartnerin
-            </h3>
-            <div className="flex flex-wrap items-start gap-6">
-              {kontakt.fotoId ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={thumbUrl(kontakt.fotoId)!}
-                  alt=""
-                  className="size-20 rounded-full object-cover"
-                />
-              ) : (
-                <span className="schraffur size-20 rounded-full border border-dashed border-rahmen-3" />
-              )}
-
-              <div className="min-w-[180px]">
-                <div className="text-[15px] font-semibold">{kontakt.name}</div>
-                {kontakt.rolle && <div className="text-[12.5px] text-leiser">{kontakt.rolle}</div>}
-              </div>
-
-              <dl className="flex flex-wrap gap-x-10 gap-y-4">
-                {[
-                  { t: 'Telefon', w: kontakt.telefon },
-                  { t: 'E-Mail', w: kontakt.email },
-                  { t: 'Adresse', w: kontakt.adresse },
-                  { t: 'Web', w: kontakt.website },
-                ]
-                  .filter((e) => e.w)
-                  .map((eintrag) => (
-                    <div key={eintrag.t}>
-                      <dt className="text-[10.5px] uppercase tracking-[0.1em] text-still">
-                        {eintrag.t}
-                      </dt>
-                      <dd className="mt-1 text-[13px] text-tinte-3">{eintrag.w}</dd>
-                    </div>
-                  ))}
-              </dl>
-            </div>
-          </div>
-        </footer>
+      {exp.ansprechpartner && (
+        <KontaktFuss
+          name={exp.ansprechpartner.name}
+          rolle={exp.ansprechpartner.rolle}
+          telefon={exp.ansprechpartner.telefon}
+          email={exp.ansprechpartner.email}
+          adresse={exp.ansprechpartner.adresse}
+          website={exp.ansprechpartner.website}
+          foto={medienUrl(exp.ansprechpartner.fotoId)}
+        />
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eingabe, Knopf, Textfeld } from '@/components/ui'
+import { Knopf, Textfeld } from '@/components/ui'
 import { freigabeErteilen, kommentarVomKunden } from './aktionen'
 
 const ZEIT = new Intl.DateTimeFormat('de-DE', {
@@ -21,8 +21,8 @@ type Kommentar = {
 }
 
 /**
- * Kommentar-Marker am Rand eines Abschnitts. Ein Klick öffnet die Eingabe —
- * ohne Anmeldung genügt der Name.
+ * Anmerkungen zu einem Beitrag. Wer hier schreibt, ist angemeldet — der Name
+ * steht am Gast und muss nicht noch einmal erfragt werden.
  */
 export function KommentarBereich({
   token,
@@ -34,7 +34,7 @@ export function KommentarBereich({
   token: string
   postId: string
   erlaubt: boolean
-  gastName: string | null
+  gastName: string
   kommentare: Kommentar[]
 }) {
   const [offen, setOffen] = useState(false)
@@ -91,9 +91,6 @@ export function KommentarBereich({
           <input type="hidden" name="postId" value={postId} />
           <input type="hidden" name="abschnitt" value="allgemein" />
 
-          {!gastName && (
-            <Eingabe name="autorName" required placeholder="Ihr Name" className="max-w-[240px]" />
-          )}
           <Textfeld name="text" required rows={3} placeholder="Was soll geändert werden?" />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">
@@ -116,7 +113,7 @@ export function Freigabeleiste({
   token: string
   zeigen: boolean
   freigegeben: { autorName: string; am: string } | null
-  gastName: string | null
+  gastName: string
 }) {
   const [offen, setOffen] = useState(false)
 
@@ -147,12 +144,11 @@ export function Freigabeleiste({
           <div className="w-full max-w-[420px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
             <h3 className="text-[16px] font-semibold">Content-Plan freigeben</h3>
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-leise">
-              Damit bestätigen Sie, dass die geplanten Beiträge so veröffentlicht werden können.
-              Offene Anmerkungen bleiben davon unberührt.
+              Damit bestätigen Sie als <strong>{gastName}</strong>, dass die geplanten Beiträge so
+              veröffentlicht werden können. Offene Anmerkungen bleiben davon unberührt.
             </p>
 
             <form action={freigabeErteilen.bind(null, token)} className="mt-5 grid gap-3">
-              {!gastName && <Eingabe name="autorName" required placeholder="Ihr Name" />}
               <Textfeld name="notiz" rows={3} placeholder="Anmerkung zur Freigabe (optional)" />
               <div className="flex justify-end gap-2">
                 <Knopf type="button" art="leise" onClick={() => setOffen(false)}>

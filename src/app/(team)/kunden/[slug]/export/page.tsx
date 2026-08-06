@@ -77,7 +77,6 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
                       kommentareErlaubt: exp.kommentareErlaubt,
                       freigabeButtonZeigen: exp.freigabeButtonZeigen,
                       konzepteMitzeigen: exp.konzepteMitzeigen,
-                      loginPflicht: exp.loginPflicht,
                       aufrufe: exp.aufrufe,
                       zuletztGeoeffnet: exp.zuletztGeoeffnet
                         ? ZEITSTEMPEL.format(exp.zuletztGeoeffnet)

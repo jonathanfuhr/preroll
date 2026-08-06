@@ -6,7 +6,9 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
+import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
 import { slugify } from '@/lib/slug'
+import { klappeVideoNachziehen } from './klappe-aktionen'
 
 async function nutzerOderRaus() {
   const nutzer = await aktuellerNutzer()
@@ -98,6 +100,32 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
     },
   })
 
+  // Zweite Richtung der Klappe-Anbindung: Wird ein Reel konzipiert, entsteht
+  // in Klappe gleich das Video dazu. Beim Upload aus dem Schnitt muss dann
+  // kein Name mehr getippt werden — das Video wartet dort schon.
+  if (typ === 'REEL' && kunde.klappeProjektId) {
+    const ergebnis = await klappeVideoAnlegen(
+      kunde.klappeProjektId,
+      klappeVideoName(post.postenAm, post.titel),
+      klappeVideoBeschreibung(post.postenAm, kunde.name),
+    )
+    if (ergebnis.ok) {
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          klappeVideoId: ergebnis.daten.id,
+          klappeVideoName: ergebnis.daten.name,
+          klappeVideoUrl: ergebnis.daten.webUrl ?? `/videos/${ergebnis.daten.id}`,
+          klappeStandAm: new Date(),
+        },
+      })
+    } else {
+      // Kein Grund, das Anlegen des Posts scheitern zu lassen — im Editor
+      // steht ein Knopf zum Nachholen.
+      console.warn('[klappe] Video konnte nicht angelegt werden:', ergebnis.fehler)
+    }
+  }
+
   revalidatePath(`/kunden/${kunde.slug}`, 'layout')
   redirect(`/kunden/${kunde.slug}/posts/${post.id}`)
 }
@@ -141,6 +169,9 @@ export async function postSpeichern(postId: string, formular: FormData) {
       create: { postId, definitionId: definition.id, wert: inhalt },
     })
   }
+
+  // Titel oder Termin geändert? Dann heißt das Video in Klappe nach.
+  await klappeVideoNachziehen(postId)
 
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }
@@ -283,7 +314,6 @@ export async function exportAnlegen(kundeId: string, formular: FormData) {
       kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
       freigabeButtonZeigen: formular.get('freigabeButtonZeigen') === 'on',
       konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
-      loginPflicht: formular.get('loginPflicht') === 'on',
     },
   })
 
@@ -307,7 +337,6 @@ export async function exportSpeichern(exportId: string, formular: FormData) {
       kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
       freigabeButtonZeigen: formular.get('freigabeButtonZeigen') === 'on',
       konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
-      loginPflicht: formular.get('loginPflicht') === 'on',
     },
     include: { kunde: true },
   })
@@ -393,4 +422,49 @@ export async function kommentarLoeschen(kommentarId: string) {
   await prisma.kommentar.delete({ where: { id: kommentarId } })
   revalidatePath('/kunden', 'layout')
   revalidatePath('/kommentare')
+}
+
+// -------------------------------------------------------- Karussell-Slides
+
+/**
+ * Neue Reihenfolge der Karussell-Slides. Kommt vom Ziehen im Editor und wird
+ * sofort gespeichert.
+ *
+ * Die Positionen laufen in zwei Schritten: erst weit weg, dann an ihren Platz.
+ * Sonst kollidiert eine Zwischenstellung mit dem eindeutigen Index über
+ * (postId, rolle, position).
+ */
+export async function slidesSortieren(postId: string, mediumIds: string[]) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { kunde: true },
+  })
+
+  const vorhandene = await prisma.postMedium.findMany({
+    where: { postId, rolle: 'SLIDE' },
+  })
+  const bekannt = new Map(vorhandene.map((m) => [m.mediumId, m.id]))
+
+  // Nur Slides berücksichtigen, die es auch wirklich gibt.
+  const reihenfolge = mediumIds.filter((id) => bekannt.has(id))
+  if (reihenfolge.length !== vorhandene.length) return
+
+  await prisma.$transaction([
+    ...vorhandene.map((eintrag, index) =>
+      prisma.postMedium.update({
+        where: { id: eintrag.id },
+        data: { position: -1000 - index },
+      }),
+    ),
+    ...reihenfolge.map((mediumId, index) =>
+      prisma.postMedium.update({
+        where: { id: bekannt.get(mediumId)! },
+        data: { position: index },
+      }),
+    ),
+  ])
+
+  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }

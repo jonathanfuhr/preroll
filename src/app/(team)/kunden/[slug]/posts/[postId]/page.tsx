@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { ersteMedien, ladePost } from '@/lib/abfragen'
+import { ladeEinstellungen } from '@/lib/einstellungen'
+import { klappeEingerichtet } from '@/lib/klappe'
+import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { kalenderwoche } from '@/lib/format'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { IPhoneVorschau } from '@/components/iphone'
@@ -16,11 +19,25 @@ const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-d
 
 export default async function PostSeite({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; postId: string }>
+  searchParams: Promise<{ klappe?: string; referenz?: string; meldung?: string }>
 }) {
   const { slug, postId } = await params
+  const { klappe: klappeZustand, referenz: referenzZustand, meldung } = await searchParams
   const post = await ladePost(postId)
+
+  const [einstellungen, angebunden] = await Promise.all([
+    ladeEinstellungen(),
+    klappeEingerichtet(),
+  ])
+
+  // Videoauswahl nur laden, wenn sie auch gebraucht wird.
+  const klappeListe =
+    post.typ === 'REEL' && angebunden && post.kunde.klappeProjektId
+      ? await ladeKlappeVideos(post.kundeId)
+      : { videos: [], fehler: null }
 
   const slides = ersteMedien(post, 'SLIDE')
   const medium = ersteMedien(post, 'MEDIUM')
@@ -92,6 +109,47 @@ export default async function PostSeite({
             mediumUrl={medienUrl(medium[0])}
             thumbnailUrl={thumbUrl(thumbnail[0])}
             istVideo={istVideo}
+            kundeSlug={slug}
+            referenz={{
+              mediumUrl: medienUrl(post.referenzVideoMediumId),
+              geladen: Boolean(post.referenzVideoMediumId),
+            }}
+            klappe={{
+              eingerichtet: angebunden,
+              projektName: post.kunde.klappeProjektName,
+              ladefehler: klappeListe.fehler,
+              videos: klappeListe.videos.map((v) => ({
+                id: v.id,
+                name: v.name,
+                versionCount: v.versionCount,
+                hatFreigegebeneFassung: Boolean(v.latestVersion && !v.latestVersion.internal),
+              })),
+              verknuepft: post.klappeVideoId
+                ? {
+                    videoId: post.klappeVideoId,
+                    videoName: post.klappeVideoName,
+                    videoUrl: post.klappeVideoUrl,
+                    versionNummer: post.klappeVersionNummer,
+                    standAm: post.klappeStandAm?.toISOString() ?? null,
+                    basisUrl: einstellungen.klappeBasisUrl,
+                    fassungId: post.klappeVersionId,
+                  }
+                : null,
+            }}
+            meldungen={{
+              klappe:
+                klappeZustand === 'kein-projekt'
+                  ? 'Diesem Kunden ist noch kein Klappe-Projekt zugeordnet.'
+                  : klappeZustand === 'fehler' || klappeZustand === 'hinweis'
+                    ? meldung
+                    : undefined,
+              referenz:
+                referenzZustand === 'fehler'
+                  ? meldung
+                  : referenzZustand === 'kein-link'
+                    ? 'Bitte zuerst einen Link hinterlegen und speichern.'
+                    : undefined,
+            }}
           />
         </div>
 

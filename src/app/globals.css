@@ -127,6 +127,19 @@
     background: #fff;
   }
 
+  /*
+   * Der Rahmen hat feste Maße — auf schmalen Geräten wird er als Ganzes
+   * verkleinert, statt das Innenleben umzubrechen. Sonst stimmen die
+   * Instagram-Proportionen nicht mehr.
+   */
+  @media (max-width: 389px) {
+    .geraet {
+      transform: scale(0.92);
+      transform-origin: top center;
+      margin-bottom: -52px;
+    }
+  }
+
   /* Platzhalter-Schraffur, solange kein Medium hinterlegt ist. */
   .schraffur {
     background: repeating-linear-gradient(

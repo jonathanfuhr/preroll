@@ -85,6 +85,22 @@ export type UploadErgebnis = {
   medium: Medium
   breite: number
   hoehe: number
+  /** true, wenn das Bild tatsächlich durchsichtige Stellen hat. */
+  hatTransparenz: boolean
+}
+
+/**
+ * Ein Alphakanal allein sagt nichts — viele PNGs tragen einen, der komplett
+ * deckend ist. Erst `stats().isOpaque` verrät, ob wirklich Pixel durchscheinen.
+ */
+async function pruefeTransparenz(inhalt: Buffer, hatAlpha: boolean): Promise<boolean> {
+  if (!hatAlpha) return false
+  try {
+    const { isOpaque } = await sharp(inhalt).stats()
+    return !isOpaque
+  } catch {
+    return false
+  }
 }
 
 export async function speichereMedium(opts: {
@@ -97,11 +113,13 @@ export async function speichereMedium(opts: {
 }): Promise<UploadErgebnis> {
   let breite = 0
   let hoehe = 0
+  let hatTransparenz = false
 
   if (!istVideo(opts.mimeTyp)) {
     const daten = await sharp(opts.inhalt).metadata()
     breite = daten.width ?? 0
     hoehe = daten.height ?? 0
+    hatTransparenz = await pruefeTransparenz(opts.inhalt, daten.hasAlpha ?? false)
   }
 
   const relativ = neuerPfad(opts.mimeTyp)
@@ -127,7 +145,7 @@ export async function speichereMedium(opts: {
     },
   })
 
-  return { medium, breite, hoehe }
+  return { medium, breite, hoehe, hatTransparenz }
 }
 
 /**

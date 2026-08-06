@@ -21,6 +21,7 @@ import {
   workspaceSpeichern,
 } from './aktionen'
 import { PushAnmeldung } from '@/components/push-anmeldung'
+import { KlappeEinrichtung } from './klappe'
 import { MailFelder } from './mail-felder'
 
 export const metadata = { title: 'Einstellungen — Preroll' }
@@ -28,11 +29,19 @@ export const metadata = { title: 'Einstellungen — Preroll' }
 export default async function EinstellungenSeite({
   searchParams,
 }: {
-  searchParams: Promise<{ test?: string; an?: string; meldung?: string }>
+  searchParams: Promise<{
+    test?: string
+    an?: string
+    meldung?: string
+    klappe?: string
+    code?: string
+    geraet?: string
+    url?: string
+  }>
 }) {
   const nutzer = await aktuellerNutzer()
   const e = await ladeEinstellungen()
-  const { test, an, meldung } = await searchParams
+  const { test, an, meldung, klappe, code, geraet, url } = await searchParams
   const istAdmin = nutzer?.rolle === 'ADMIN'
 
   return (
@@ -221,35 +230,18 @@ export default async function EinstellungenSeite({
           {/* ------------------------------------------------------- Klappe */}
           <Abschnitt
             titel="Klappe"
-            hinweis="Finale Reels lassen sich direkt aus Klappe einbinden, statt sie erneut hochzuladen."
+            hinweis="Finale Reels werden aus Klappe geholt, statt sie erneut hochzuladen. Umgekehrt legt Preroll dort beim Konzipieren eines Reels schon das Video an — dann muss beim Upload aus dem Schnitt kein Name mehr getippt werden."
           >
-            <Karte className="p-5">
-              <form action={klappeSpeichern} className="grid gap-4">
-                <Feld beschriftung="Basis-URL">
-                  <Eingabe
-                    name="klappeBasisUrl"
-                    type="url"
-                    defaultValue={e.klappeBasisUrl ?? ''}
-                    placeholder="https://klappe.fuhrzwei.de"
-                  />
-                </Feld>
-                <Feld
-                  beschriftung="API-Schlüssel"
-                  hinweis={
-                    e.klappeApiKey
-                      ? 'Hinterlegt — nur ausfüllen, um ihn zu ersetzen.'
-                      : 'In Klappe unter Einstellungen erzeugen.'
-                  }
-                >
-                  <Eingabe name="klappeApiKey" type="password" placeholder="unverändert" />
-                </Feld>
-                <div className="flex justify-end">
-                  <Knopf klein type="submit">
-                    Speichern
-                  </Knopf>
-                </div>
-              </form>
-            </Karte>
+            <KlappeEinrichtung
+              basisUrl={e.klappeBasisUrl}
+              gekoppeltAm={e.klappeGekoppeltAm}
+              konto={e.klappeKonto}
+              zustand={klappe}
+              userCode={code}
+              geraetCode={geraet}
+              bestaetigungsUrl={url}
+              meldung={meldung}
+            />
           </Abschnitt>
         </>
       )}

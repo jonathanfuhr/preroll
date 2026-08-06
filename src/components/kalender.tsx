@@ -15,6 +15,10 @@ export type Kalendereintrag = {
 
 const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
+// Was in eine Zelle fester Höhe passt; der Rest steht als „+n weitere" darunter.
+const MAX_EINTRAEGE = 3
+const MAX_KOMPAKT = 4
+
 /** Montag der Woche, in der das Datum liegt. */
 function wochenbeginn(datum: Date): Date {
   const d = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate())
@@ -38,10 +42,13 @@ export function Monatskalender({
   monat,
   eintraege,
   kompakt,
+  ohneRahmen,
 }: {
   monat: Date
   eintraege: Kalendereintrag[]
   kompakt?: boolean
+  /** Wenn der Kalender schon in einer Karte mit eigener Kopfzeile sitzt. */
+  ohneRahmen?: boolean
 }) {
   const ersterTag = new Date(monat.getFullYear(), monat.getMonth(), 1)
   const letzterTag = new Date(monat.getFullYear(), monat.getMonth() + 1, 0)
@@ -60,19 +67,27 @@ export function Monatskalender({
 
   return (
     <div>
-      <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-[15px] font-semibold capitalize text-tinte">{monatsName}</h3>
-        <div className="flex items-center gap-3.5">
-          {(['REEL', 'KARUSSELL', 'BEITRAG'] as PostTyp[]).map((typ) => (
-            <span key={typ} className="flex items-center gap-1.5 text-[10.5px] text-leiser">
-              <TypPunkt typ={typ} groesse={6} />
-              {TYP_TEXT[typ]}
-            </span>
-          ))}
+      {!ohneRahmen && (
+        <div className="mb-3 flex items-baseline justify-between">
+          <h3 className="text-[15px] font-semibold capitalize text-tinte">{monatsName}</h3>
+          <div className="flex items-center gap-3.5">
+            {(['REEL', 'KARUSSELL', 'BEITRAG'] as PostTyp[]).map((typ) => (
+              <span key={typ} className="flex items-center gap-1.5 text-[10.5px] text-leiser">
+                <TypPunkt typ={typ} groesse={6} />
+                {TYP_TEXT[typ]}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="overflow-hidden rounded-md border border-rahmen bg-flaeche">
+      <div
+        className={
+          ohneRahmen
+            ? 'overflow-hidden bg-flaeche'
+            : 'overflow-hidden rounded-md border border-rahmen bg-flaeche'
+        }
+      >
         <div className="grid grid-cols-[38px_repeat(7,1fr)] border-b border-rahmen bg-flaeche-leise">
           <span className="px-2 py-2 text-[9.5px] font-medium uppercase tracking-[0.1em] text-still">
             KW
@@ -99,33 +114,40 @@ export function Monatskalender({
             {woche.map((tag) => {
               const imMonat = tag.getMonth() === monat.getMonth()
               const desTages = eintraege.filter((e) => gleicherTag(e.postenAm, tag))
+              const sichtbar = desTages.slice(0, kompakt ? MAX_KOMPAKT : MAX_EINTRAEGE)
+              const weitere = desTages.length - sichtbar.length
 
               return (
                 <div
                   key={tag.toISOString()}
-                  className={`min-h-[${kompakt ? '54' : '78'}px] border-r border-rahmen px-1.5 py-1.5 last:border-r-0 ${
+                  // Feste Höhe: ein Kalender, dessen Zeilen je nach Textlänge
+                  // springen, ist als Übersicht wertlos.
+                  className={`flex min-w-0 flex-col overflow-hidden border-r border-rahmen px-1.5 py-1.5 last:border-r-0 ${
                     imMonat ? '' : 'bg-flaeche-leise/60'
                   }`}
-                  style={{ minHeight: kompakt ? 54 : 78 }}
+                  style={{ height: kompakt ? 54 : 82 }}
                 >
                   <span
-                    className={`block text-[10.5px] ${imMonat ? 'text-leise' : 'text-stiller'}`}
+                    className={`block shrink-0 text-[10.5px] leading-none ${
+                      imMonat ? 'text-leise' : 'text-stiller'
+                    }`}
                   >
                     {tag.getDate()}
                   </span>
 
-                  <div className="mt-1 grid gap-1">
-                    {desTages.map((eintrag) => {
+                  <div className="mt-1 flex min-h-0 flex-1 flex-col gap-[3px] overflow-hidden">
+                    {sichtbar.map((eintrag) => {
+                      const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}`
                       const inhalt = (
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex min-w-0 items-center gap-1.5">
                           <span
                             aria-hidden
                             className="block size-[6px] shrink-0 rounded-full"
                             style={{ background: TYP_FARBE[eintrag.typ] }}
                           />
                           {!kompakt && (
-                            <span className="truncate text-[9.5px] leading-tight text-tinte-3">
-                              {TYP_TEXT[eintrag.typ]} · {eintrag.titel}
+                            <span className="min-w-0 flex-1 truncate text-[9.5px] leading-none text-tinte-3">
+                              {beschriftung}
                             </span>
                           )}
                         </span>
@@ -135,17 +157,33 @@ export function Monatskalender({
                         <Link
                           key={eintrag.id}
                           href={eintrag.href}
-                          className="block rounded-[3px] px-0.5 py-0.5 transition-colors hover:bg-flaeche-tief"
-                          title={`${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}`}
+                          className="block shrink-0 rounded-[3px] px-0.5 py-[3px] transition-colors hover:bg-flaeche-tief"
+                          title={beschriftung}
                         >
                           {inhalt}
                         </Link>
                       ) : (
-                        <span key={eintrag.id} className="block px-0.5 py-0.5" title={eintrag.titel}>
+                        <span
+                          key={eintrag.id}
+                          className="block shrink-0 px-0.5 py-[3px]"
+                          title={beschriftung}
+                        >
                           {inhalt}
                         </span>
                       )
                     })}
+
+                    {weitere > 0 && (
+                      <span
+                        className="shrink-0 px-0.5 text-[9px] leading-none text-stiller"
+                        title={desTages
+                          .slice(sichtbar.length)
+                          .map((e) => `${TYP_TEXT[e.typ]} · ${e.titel}`)
+                          .join('\n')}
+                      >
+                        +{weitere} weitere
+                      </span>
+                    )}
                   </div>
                 </div>
               )

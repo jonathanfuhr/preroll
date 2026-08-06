@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { aktuellerGast } from '@/lib/auth'
-import { GastAnmeldung } from '@/components/gast-anmeldung'
+import { GastAnmeldung, type Anmeldeschritt } from '@/components/gast-anmeldung'
 
 export const metadata = { title: 'Meine Freigaben — Preroll' }
+export const dynamic = 'force-dynamic'
 
 export default async function PortalAnmeldenSeite({
   searchParams,
@@ -10,16 +11,30 @@ export default async function PortalAnmeldenSeite({
   searchParams: Promise<{ schritt?: string; email?: string; fehler?: string }>
 }) {
   const { schritt, email, fehler } = await searchParams
-  if (await aktuellerGast()) redirect('/portal')
+  const gast = await aktuellerGast()
+
+  if (gast && gast.name.trim()) redirect('/portal')
+
+  const aktiv: Anmeldeschritt =
+    schritt === 'name' || (gast && !gast.name.trim())
+      ? 'name'
+      : schritt === 'code' && email
+        ? 'code'
+        : 'email'
 
   return (
     <GastAnmeldung
       token={null}
-      schritt={schritt}
+      schritt={aktiv}
       email={email}
+      nameVorschlag={gast?.name}
       fehler={fehler}
-      titel="Meine Freigaben"
-      text="Melden Sie sich mit der Adresse an, an die Ihre Freigabe-Links geschickt wurden. Sie sehen dann alle Pläne auf einen Blick."
+      titel={aktiv === 'name' ? 'Fast geschafft' : 'Meine Freigaben'}
+      text={
+        aktiv === 'name'
+          ? 'Wie dürfen wir Sie nennen? Danach sehen Sie alle Pläne, zu denen Sie eingeladen wurden.'
+          : 'Melden Sie sich mit der Adresse an, an die Ihre Freigabe-Links geschickt wurden.'
+      }
     />
   )
 }

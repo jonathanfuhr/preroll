@@ -2,7 +2,7 @@ import type { MediumRolle } from '@prisma/client'
 import type { NextRequest } from 'next/server'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { pruefeFormat } from '@/lib/format'
+import { pruefeFormat, transparenzHinweis } from '@/lib/format'
 import { berechneAuftrennung } from '@/lib/karussell'
 import { ERLAUBTE_TYPEN, speichereMedium, trenneGesamtbildAuf } from '@/lib/medien'
 
@@ -56,7 +56,7 @@ export async function POST(anfrage: NextRequest) {
     const datei = dateien[0]
     const inhalt = Buffer.from(await datei.arrayBuffer())
 
-    const { medium: quelle } = await speichereMedium({
+    const { medium: quelle, hatTransparenz } = await speichereMedium({
       inhalt,
       dateiname: datei.name,
       mimeTyp: datei.type,
@@ -92,12 +92,15 @@ export async function POST(anfrage: NextRequest) {
       })),
     })
 
+    const transparenz = transparenzHinweis(hatTransparenz, datei.name)
+
     return Response.json({
       ok: true,
       anzahl: ergebnis.anzahl,
       slideBreite: ergebnis.slideBreite,
       slideHoehe: ergebnis.slideHoehe,
       exakt: ergebnis.exakt,
+      hinweise: transparenz ? [transparenz] : [],
     })
   }
 
@@ -121,7 +124,7 @@ export async function POST(anfrage: NextRequest) {
 
   for (const datei of dateien) {
     const inhalt = Buffer.from(await datei.arrayBuffer())
-    const { medium, breite, hoehe } = await speichereMedium({
+    const { medium, breite, hoehe, hatTransparenz } = await speichereMedium({
       inhalt,
       dateiname: datei.name,
       mimeTyp: datei.type,
@@ -131,6 +134,9 @@ export async function POST(anfrage: NextRequest) {
 
     const hinweis = pruefeFormat(post.typ, rolle, breite, hoehe)
     if (hinweis) hinweise.push(`${datei.name}: ${hinweis.text}`)
+
+    const transparenz = transparenzHinweis(hatTransparenz, datei.name)
+    if (transparenz) hinweise.push(transparenz)
 
     await prisma.postMedium.create({
       data: { postId, mediumId: medium.id, rolle, position: position++ },

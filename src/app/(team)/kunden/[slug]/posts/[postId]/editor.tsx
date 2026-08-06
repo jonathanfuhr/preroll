@@ -3,6 +3,9 @@
 import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
 import { useState } from 'react'
 import { KarussellDialog, MedienAblage } from '@/components/medien-upload'
+import { SlideSortierung } from '@/components/slide-sortierung'
+import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
+import { referenzvideoEntfernen, referenzvideoLaden } from '../../referenz-aktionen'
 import {
   Abschnitt,
   Auswahl,
@@ -12,10 +15,12 @@ import {
   Knopf,
   Schalter,
   Textfeld,
+  Warnung,
 } from '@/components/ui'
 import {
   postSpeichern,
   postStatusSetzen,
+  slidesSortieren,
   szeneAnlegen,
   szeneLoeschen,
   szeneSpeichern,
@@ -65,6 +70,10 @@ export function PostEditor({
   mediumUrl,
   thumbnailUrl,
   istVideo,
+  referenz,
+  klappe,
+  kundeSlug,
+  meldungen,
 }: {
   post: PostDaten
   szenen: Szene[]
@@ -73,6 +82,27 @@ export function PostEditor({
   mediumUrl: string | null
   thumbnailUrl: string | null
   istVideo: boolean
+  referenz: {
+    mediumUrl: string | null
+    geladen: boolean
+  }
+  klappe: {
+    eingerichtet: boolean
+    projektName: string | null
+    videos: KlappeVideoWahl[]
+    ladefehler: string | null
+    verknuepft: {
+      videoId: string
+      videoName: string | null
+      videoUrl: string | null
+      versionNummer: number | null
+      standAm: string | null
+      basisUrl: string | null
+      fassungId: string | null
+    } | null
+  }
+  kundeSlug: string
+  meldungen: { klappe?: string; referenz?: string }
 }) {
   const [dialogOffen, setDialogOffen] = useState(false)
   const [szenenplan, setSzenenplan] = useState(post.szenenplanAktiv)
@@ -204,7 +234,7 @@ export function PostEditor({
         {/* --------------------------------------------------- Referenzvideo */}
         <Abschnitt
           titel="Referenzvideo"
-          hinweis="Link auf ein Vorbild — wird im Editor und in der Kundenvorschau eingebettet."
+          hinweis="Link auf ein Vorbild. Nach dem Speichern lässt es sich lokal ablegen — eingebettet wird dann die eigene Kopie, weil Instagram und YouTube Einbettungen unvorhersehbar sperren."
         >
           <div className="grid gap-4 rounded-md border border-rahmen bg-flaeche p-5">
             <Feld beschriftung="Link">
@@ -231,6 +261,74 @@ export function PostEditor({
           </Knopf>
         </div>
       </form>
+
+      {/* ------------------------------------------- Referenzvideo: Download */}
+      {post.referenzVideoUrl && (
+        <Abschnitt titel="Referenzvideo · lokale Kopie">
+          {meldungen.referenz && (
+            <div className="mb-3">
+              <Warnung>{meldungen.referenz}</Warnung>
+            </div>
+          )}
+
+          <div className="rounded-md border border-rahmen bg-flaeche p-5">
+            {referenz.geladen ? (
+              <div className="grid gap-3">
+                {referenz.mediumUrl && (
+                  <video src={referenz.mediumUrl} controls className="max-h-64 rounded-[3px] bg-black" />
+                )}
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11.5px] text-leiser">
+                    Liegt lokal vor und wird in der Kundenvorschau eingebettet.
+                  </p>
+                  <div className="flex gap-2">
+                    <form action={referenzvideoLaden.bind(null, post.id)}>
+                      <Knopf klein type="submit">
+                        Neu laden
+                      </Knopf>
+                    </form>
+                    <form action={referenzvideoEntfernen.bind(null, post.id)}>
+                      <button type="submit" className="text-[11.5px] text-stiller hover:text-akzent">
+                        Entfernen
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="max-w-[420px] text-[12.5px] leading-relaxed text-leise">
+                  Noch nicht geladen. Ohne lokale Kopie erscheint in der Kundenvorschau nur der Link.
+                </p>
+                <form action={referenzvideoLaden.bind(null, post.id)}>
+                  <Knopf klein art="primaer" type="submit">
+                    Video herunterladen
+                  </Knopf>
+                </form>
+              </div>
+            )}
+          </div>
+        </Abschnitt>
+      )}
+
+      {/* ------------------------------------------------- Klappe: finales Reel */}
+      {post.typ === 'REEL' && (
+        <Abschnitt
+          titel="Finales Reel aus Klappe"
+          hinweis="Beim Anlegen eines Reels entsteht in Klappe automatisch das passende Video — beim Upload aus dem Schnitt muss dann kein Name mehr getippt werden."
+        >
+          <KlappeFeld
+            postId={post.id}
+            kundeSlug={kundeSlug}
+            eingerichtet={klappe.eingerichtet}
+            projektName={klappe.projektName}
+            videos={klappe.videos}
+            ladefehler={klappe.ladefehler}
+            verknuepft={klappe.verknuepft}
+            meldung={meldungen.klappe}
+          />
+        </Abschnitt>
+      )}
 
       {/* ------------------------------------------- Szenenplan (eigene Forms) */}
       {post.typ === 'REEL' && szenenplan && (
@@ -323,21 +421,10 @@ export function PostEditor({
         {post.typ === 'KARUSSELL' ? (
           <div className="grid gap-4">
             {slides.length > 0 && (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
-                {slides.map((slide, index) => (
-                  <div key={slide.id} className="relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={slide.url}
-                      alt={`Slide ${index + 1}`}
-                      className="aspect-[4/5] w-full rounded-[3px] border border-rahmen object-cover"
-                    />
-                    <span className="absolute left-1 top-1 rounded-[3px] bg-black/55 px-1.5 py-px font-mono text-[9.5px] text-white">
-                      {index + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <SlideSortierung
+                slides={slides}
+                reihenfolgeSpeichern={slidesSortieren.bind(null, post.id)}
+              />
             )}
             <div>
               <Knopf onClick={() => setDialogOffen(true)}>

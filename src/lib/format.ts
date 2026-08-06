@@ -36,6 +36,20 @@ export type Formathinweis = {
 }
 
 /**
+ * Transparente Pixel in einer Post-Grafik sind praktisch immer ein Versehen —
+ * Instagram legt sie auf Schwarz oder Weiß, je nach Ansicht. Meist stammt das
+ * aus einem PNG-Export ohne Hintergrund.
+ */
+export function transparenzHinweis(hatTransparenz: boolean, dateiname: string): string | null {
+  if (!hatTransparenz) return null
+  return (
+    `${dateiname} enthält transparente Stellen. Instagram füllt die je nach Ansicht ` +
+    'schwarz oder weiß — meist stammt das aus einem PNG-Export ohne Hintergrund. ' +
+    'Bitte mit Hintergrund neu exportieren.'
+  )
+}
+
+/**
  * Prüft das Seitenverhältnis eines Uploads. Kein harter Block — nur ein
  * deutlicher Hinweis, damit fehlerhafte Canva-Exporte sofort auffallen.
  */
