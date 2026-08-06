@@ -107,7 +107,18 @@ npm run check   # Typecheck + Tests
   9:16-Thumbnail der **mittige 4:5-Ausschnitt** gezeigt, wie bei Instagram.
 - **Karussell-Auftrennung.** Geht die Breite nicht glatt im 4:5-Raster auf, gibt
   es **keine manuellen Schnittkanten**, sondern eine Fehlermeldung. Bewusst
-  simpel: korrekt exportierte Canva-Dateien passen immer.
+  simpel: korrekt exportierte Canva-Dateien passen immer. Die Bedienelemente
+  „Schnittkanten ausrichten" und „Überlappung" aus Mockup 2g sind bewusst
+  **nicht** gebaut — der einzige Punkt, an dem die Optik dem Konzept weicht.
+- **Transparente Pixel** in Post-Grafiken sind praktisch immer ein Versehen und
+  werden gewarnt. Geprüft wird mit `stats().isOpaque`, nicht mit `hasAlpha` —
+  viele PNGs tragen einen deckenden Alphakanal.
+- **Freigabe-Links öffnen sich nie ohne Anmeldung.** Dreistufig wie in Klappe:
+  E-Mail → Code → Name. Die Gast-Sitzung gilt 40 Tage. Ein Gast mit leerem
+  Namen bedeutet „Anmeldung noch nicht abgeschlossen".
+- **Klappe-Videos sind immer projektbezogen.** Die Auswahl zeigt nur Videos aus
+  dem Klappe-Projekt des Kunden; ohne Zuordnung in den Stammdaten bleibt sie
+  leer. Beim Anlegen eines Reels entsteht dort automatisch das Video.
 - **Export ist eine Live-Sicht, kein Schnappschuss.** Änderungen an Posts
   erscheinen sofort im Freigabe-Link.
 - **Feed-Vorschau extern vs. intern.** Der Kunde sieht ältere/veröffentlichte
@@ -121,6 +132,11 @@ npm run check   # Typecheck + Tests
   identisch. Post-Typen: Reel rot, Karussell blau, Beitrag grün.
 
 ## Design
+
+**Funktionalität kommt aus Notion, Optik aus Claude Design.** Wo Mockup und
+Konzepttext auseinandergehen, entscheidet das Konzept, *was* etwas tut — und das
+Mockup, *wie* es aussieht. Vor einem neuen Bildschirm erst das passende Mockup
+öffnen, Maße und Abstände dort ablesen, dann bauen. Nicht umgekehrt.
 
 Die Mockups liegen unter `design/` und sind die verbindliche Vorlage:
 
