@@ -33,7 +33,7 @@ export function kommentarPdf(kunde: string, kommentare: KommentarZeile[]): Promi
       .moveDown(0.3)
       .fontSize(9)
       .fillColor('#8b8783')
-      .text(`${kommentare.length} Anmerkungen · Stand ${ZEIT.format(new Date())}`)
+      .text(`${kommentare.length} Kommentare · Stand ${ZEIT.format(new Date())}`)
     dokument.moveDown(1.2)
 
     let letzterPost = ''
@@ -60,7 +60,7 @@ export function kommentarPdf(kunde: string, kommentare: KommentarZeile[]): Promi
     }
 
     if (kommentare.length === 0) {
-      dokument.fontSize(10).fillColor('#8b8783').text('Keine Anmerkungen vorhanden.')
+      dokument.fontSize(10).fillColor('#8b8783').text('Keine Kommentare vorhanden.')
     }
 
     dokument.end()

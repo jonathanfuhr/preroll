@@ -118,7 +118,7 @@ export function GastAnmeldung({
           <form action={namenSpeichern.bind(null, token)} className="grid gap-4">
             <Feld
               beschriftung="Ihr Name"
-              hinweis="Steht an Ihren Anmerkungen und an der Freigabe, damit die Agentur weiß, von wem sie kommt."
+              hinweis="Steht an Ihren Kommentaren und an der Freigabe, damit die Agentur weiß, von wem sie kommt."
             >
               <Eingabe
                 name="name"

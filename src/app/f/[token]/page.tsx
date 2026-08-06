@@ -124,7 +124,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         einleitung={
           `Hier sehen Sie alle geplanten Beiträge für ${zeitraum} — so, wie sie später auf ` +
           'Instagram erscheinen. Über den Kalender springen Sie direkt zum Beitrag. Ihre ' +
-          'Anmerkungen schreiben Sie direkt neben dem Beitrag — wir sehen sie sofort.'
+          'Ihre Kommentare schreiben Sie direkt neben dem Beitrag — wir sehen sie sofort.'
         }
         eckdaten={[
           { t: 'Beiträge', w: `${sektionen.length} · ${kwSpanne}` },
@@ -200,7 +200,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
               }
               referenzVideoTitel={post.referenzVideoTitel}
               klappeVideoUrl={post.klappeVersionId ? `/api/klappe/${post.klappeVersionId}` : null}
-              anmerkungen={
+              kommentare={
                 <KommentarBereich
                   token={token}
                   postId={post.id}

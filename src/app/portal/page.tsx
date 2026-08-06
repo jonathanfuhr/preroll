@@ -117,7 +117,7 @@ export default async function PortalSeite() {
                                 <div className="mt-0.5 text-[12px] text-leiser">
                                   {exp.kunde.name} · {zeitraumText(exp.zeitraumVon, exp.zeitraumBis)}
                                   {exp._count.kommentare > 0 &&
-                                    ` · ${exp._count.kommentare} Anmerkungen`}
+                                    ` · ${exp._count.kommentare} Kommentare`}
                                 </div>
                               </div>
                             </div>

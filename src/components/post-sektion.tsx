@@ -7,7 +7,7 @@ import { IPhoneVorschau } from './iphone'
  * Eine Post-Sektion auf der Export-Seite — nachgebaut aus Mockup 1a
  * (Desktop) und 1b (Mobil).
  *
- * Desktop: Gerät links, Text in der Mitte, Anmerkungen rechts.
+ * Desktop: Gerät links, Text in der Mitte, Kommentare rechts.
  * Mobil: alles untereinander, Szenen gestapelt statt zweispaltig.
  */
 
@@ -149,7 +149,7 @@ export function PostSektion({
   referenzVideoUrl,
   referenzVideoTitel,
   klappeVideoUrl,
-  anmerkungen,
+  kommentare,
 }: {
   post: {
     id: string
@@ -173,7 +173,7 @@ export function PostSektion({
   referenzVideoUrl: string | null
   referenzVideoTitel: string | null
   klappeVideoUrl: string | null
-  anmerkungen: ReactNode
+  kommentare: ReactNode
 }) {
   const { text, hashtags } = teileCaption(post.caption)
   const status = STATUS_STIL[post.status]
@@ -322,7 +322,7 @@ export function PostSektion({
           )}
         </div>
 
-        <div className="min-w-0">{anmerkungen}</div>
+        <div className="min-w-0">{kommentare}</div>
       </div>
     </section>
   )

@@ -34,7 +34,7 @@ export default async function KundenKommentareSeite({
       {kommentare.length === 0 ? (
         <Leerzustand
           titel="Noch keine Rückmeldungen"
-          text={`Anmerkungen aus den Freigabe-Links von ${kunde.name} sammeln sich hier.`}
+          text={`Kommentare aus den Freigabe-Links von ${kunde.name} sammeln sich hier.`}
         />
       ) : (
         <div className="grid gap-3">

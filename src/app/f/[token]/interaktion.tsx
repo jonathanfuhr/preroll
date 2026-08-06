@@ -21,7 +21,7 @@ type Kommentar = {
 }
 
 /**
- * Anmerkungen zu einem Beitrag. Wer hier schreibt, ist angemeldet — der Name
+ * Kommentare zu einem Beitrag. Wer hier schreibt, ist angemeldet — der Name
  * steht am Gast und muss nicht noch einmal erfragt werden.
  */
 export function KommentarBereich({
@@ -45,7 +45,7 @@ export function KommentarBereich({
     <div className="border-l-2 border-rahmen pl-4">
       <div className="mb-2 flex items-center gap-3">
         <h4 className="text-[10.5px] uppercase tracking-[0.1em] text-still">
-          Anmerkungen{kommentare.length > 0 && ` · ${kommentare.length}`}
+          Kommentare{kommentare.length > 0 && ` · ${kommentare.length}`}
         </h4>
         {erlaubt && (
           <button
@@ -53,7 +53,7 @@ export function KommentarBereich({
             onClick={() => setOffen((v) => !v)}
             className="text-[11.5px] text-akzent hover:text-akzent-dunkel"
           >
-            {offen ? 'abbrechen' : 'Anmerkung hinzufügen'}
+            {offen ? 'abbrechen' : 'Kommentar hinzufügen'}
           </button>
         )}
       </div>
@@ -94,7 +94,7 @@ export function KommentarBereich({
           <Textfeld name="text" required rows={3} placeholder="Was soll geändert werden?" />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">
-              Anmerkung senden
+              Kommentar senden
             </Knopf>
           </div>
         </form>
@@ -145,11 +145,11 @@ export function Freigabeleiste({
             <h3 className="text-[16px] font-semibold">Content-Plan freigeben</h3>
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-leise">
               Damit bestätigen Sie als <strong>{gastName}</strong>, dass die geplanten Beiträge so
-              veröffentlicht werden können. Offene Anmerkungen bleiben davon unberührt.
+              veröffentlicht werden können. Offene Kommentare bleiben davon unberührt.
             </p>
 
             <form action={freigabeErteilen.bind(null, token)} className="mt-5 grid gap-3">
-              <Textfeld name="notiz" rows={3} placeholder="Anmerkung zur Freigabe (optional)" />
+              <Textfeld name="notiz" rows={3} placeholder="Kommentar zur Freigabe (optional)" />
               <div className="flex justify-end gap-2">
                 <Knopf type="button" art="leise" onClick={() => setOffen(false)}>
                   Abbrechen

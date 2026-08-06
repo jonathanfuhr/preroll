@@ -17,6 +17,7 @@ const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
 // Was in eine Zelle fester Höhe passt; der Rest steht als „+n weitere" darunter.
 const MAX_EINTRAEGE = 3
+// Mobil sind es Punkte statt Zeilen — davon passen mehr nebeneinander.
 const MAX_KOMPAKT = 4
 
 /** Montag der Woche, in der das Datum liegt. */
@@ -121,21 +122,49 @@ export function Monatskalender({
                 <div
                   key={tag.toISOString()}
                   // Feste Höhe: ein Kalender, dessen Zeilen je nach Textlänge
-                  // springen, ist als Übersicht wertlos.
-                  className={`flex min-w-0 flex-col overflow-hidden border-r border-rahmen px-1.5 py-1.5 last:border-r-0 ${
+                  // springen, ist als Übersicht wertlos. Mobil niedriger, weil
+                  // dort nur Punkte stehen.
+                  className={`flex min-w-0 flex-col overflow-hidden border-r border-rahmen px-1 py-1.5 last:border-r-0 sm:px-1.5 ${
                     imMonat ? '' : 'bg-flaeche-leise/60'
-                  }`}
-                  style={{ height: kompakt ? 54 : 82 }}
+                  } ${kompakt ? 'h-[54px]' : 'h-[52px] sm:h-[82px]'}`}
                 >
                   <span
-                    className={`block shrink-0 text-[10.5px] leading-none ${
+                    className={`block shrink-0 text-center text-[10.5px] leading-none sm:text-left ${
                       imMonat ? 'text-leise' : 'text-stiller'
                     }`}
                   >
                     {tag.getDate()}
                   </span>
 
-                  <div className="mt-1 flex min-h-0 flex-1 flex-col gap-[3px] overflow-hidden">
+                  {/*
+                   * Zwei Darstellungen statt einer, die beides versucht:
+                   * mobil nur Punkte — mittig, etwas größer und ohne Limit,
+                   * weil Punkte umbrechen können. Ab sm die Textzeilen mit
+                   * „+n weitere", wo der Platz begrenzt ist.
+                   */}
+                  <div className="mt-1 flex min-h-0 flex-1 flex-wrap items-center justify-center gap-1 overflow-hidden sm:hidden">
+                    {desTages.map((eintrag) => {
+                      const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}`
+                      const punkt = (
+                        <span
+                          aria-hidden
+                          className="block size-[9px] rounded-full"
+                          style={{ background: TYP_FARBE[eintrag.typ] }}
+                        />
+                      )
+                      return eintrag.href ? (
+                        <Link key={eintrag.id} href={eintrag.href} title={beschriftung} className="block">
+                          {punkt}
+                        </Link>
+                      ) : (
+                        <span key={eintrag.id} title={beschriftung} className="block">
+                          {punkt}
+                        </span>
+                      )
+                    })}
+                  </div>
+
+                  <div className="mt-1 hidden min-h-0 flex-1 flex-col gap-[3px] overflow-hidden sm:flex">
                     {sichtbar.map((eintrag) => {
                       const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}`
                       const inhalt = (

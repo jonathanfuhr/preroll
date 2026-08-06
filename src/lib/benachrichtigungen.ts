@@ -39,7 +39,7 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
   if (!kommentar) return
 
   const kunde = kommentar.post?.kunde
-  const titel = kommentar.post?.titel ?? 'Allgemeine Anmerkung'
+  const titel = kommentar.post?.titel ?? 'Allgemeiner Kommentar'
   const url = kommentar.post
     ? `${env.appUrl}/kunden/${kunde?.slug}/posts/${kommentar.postId}`
     : `${env.appUrl}/kunden/${kunde?.slug ?? ''}`
