@@ -155,6 +155,19 @@ npm run check   # Typecheck + Tests
   ohne Zusatz eindeutig.
 - **Status-Farben.** Konzept grau, Vorschau orange, Final grün — überall
   identisch. Post-Typen: Reel rot, Karussell blau, Beitrag grün.
+- **Uploads laufen in 4-MB-Blöcken.** Vor Preroll hängt ein
+  Cloudflare-Tunnel, der keine Anfrage über 100 MB durchlässt — ein Reel am
+  Stück lief in einen Abbruch, der sich wie ein Hänger anfühlte. Der Browser
+  schickt Blöcke an `/api/upload/teil`, der Abschluss über `/api/upload` setzt
+  sie zusammen (`upload-sitzung.ts`). Nebenbei gibt es dadurch einen echten
+  Fortschrittsbalken. Bewusst **ohne** Wiederaufnahme nach Verbindungsabriss
+  wie in Klappe: Preroll lädt Reels, keine 40-GB-Rushes.
+- **Reel-Video und Referenzvideo sind derselbe Platz.** Sie stehen nur zu
+  verschiedenen Zeitpunkten dort und ersetzen einander: erst das Vorbild aus
+  dem Netz, später das fertige Reel. Der Dialog bietet dafür drei
+  gleichberechtigte Quellen — hochladen, aus Klappe holen, von einem Link
+  laden. Im Geräterahmen stehen zwei Knöpfe: **Reel hochladen** und
+  **Thumbnail hochladen**.
 - **Medien-Upload läuft über den Geräterahmen.** Kein eigener Ablagebereich im
   Formular: Die leere Fläche im iPhone-Mockup ist der Knopf, ein Klick öffnet
   `MedienDialog` — und der zeigt je Post-Typ etwas anderes (Beitrag: eine

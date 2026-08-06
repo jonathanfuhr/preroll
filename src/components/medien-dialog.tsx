@@ -4,6 +4,8 @@ import type { PostTyp } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react'
 import { berechneAuftrennung, erkenneSlideAnzahl } from '@/lib/karussell'
+import { ladeHoch, type Fortschritt } from '@/lib/hochladen'
+import { UploadBalken } from './upload-balken'
 import { Fehler, Hinweis, Knopf, Warnung } from './ui'
 
 /**
@@ -14,10 +16,7 @@ import { Fehler, Hinweis, Knopf, Warnung } from './ui'
 
 type Rolle = 'MEDIUM' | 'SLIDE' | 'THUMBNAIL'
 
-async function sendeUpload(formular: FormData): Promise<{ ok: boolean; daten: Record<string, unknown> }> {
-  const antwort = await fetch('/api/upload', { method: 'POST', body: formular })
-  return { ok: antwort.ok, daten: (await antwort.json()) as Record<string, unknown> }
-}
+
 
 /** Fläche zum Ziehen oder Klicken. */
 function Ablage({
@@ -93,6 +92,7 @@ function KarussellInhalt({
   const router = useRouter()
   const [weg, setWeg] = useState<'einzeln' | 'gesamt'>('einzeln')
   const [laeuft, setLaeuft] = useState(false)
+  const [stand, setStand] = useState<Fortschritt | null>(null)
   const [fehler, setFehler] = useState<string | null>(null)
   const [hinweise, setHinweise] = useState<string[]>([])
 
@@ -127,19 +127,23 @@ function KarussellInhalt({
     setLaeuft(true)
     setFehler(null)
 
-    const formular = new FormData()
-    formular.set('postId', postId)
-    formular.set('rolle', 'SLIDE')
-    formular.set('modus', 'einzeln')
-    for (const d of Array.from(dateien)) formular.append('dateien', d)
+    try {
+      const { ok, daten } = await ladeHoch({
+        dateien: Array.from(dateien),
+        felder: { postId, rolle: 'SLIDE', modus: 'einzeln' },
+        aufFortschritt: setStand,
+      })
+      if (!ok) return setFehler(String(daten.fehler ?? 'Upload fehlgeschlagen.'))
 
-    const { ok, daten } = await sendeUpload(formular)
-    setLaeuft(false)
-    if (!ok) return setFehler(String(daten.fehler ?? 'Upload fehlgeschlagen.'))
-
-    setHinweise((daten.hinweise as string[]) ?? [])
-    router.refresh()
-    if (((daten.hinweise as string[]) ?? []).length === 0) fertig()
+      setHinweise((daten.hinweise as string[]) ?? [])
+      router.refresh()
+      if (((daten.hinweise as string[]) ?? []).length === 0) fertig()
+    } catch (fehler) {
+      setFehler(fehler instanceof Error ? fehler.message : 'Upload fehlgeschlagen.')
+    } finally {
+      setLaeuft(false)
+      setStand(null)
+    }
   }
 
   async function auftrennen() {
@@ -147,18 +151,26 @@ function KarussellInhalt({
     setLaeuft(true)
     setFehler(null)
 
-    const formular = new FormData()
-    formular.set('postId', postId)
-    formular.set('modus', 'gesamtbild')
-    formular.append('dateien', datei)
-    if (anzahl !== '') formular.set('anzahl', String(anzahl))
+    try {
+      const { ok, daten } = await ladeHoch({
+        dateien: [datei],
+        felder: {
+          postId,
+          modus: 'gesamtbild',
+          ...(anzahl === '' ? {} : { anzahl: String(anzahl) }),
+        },
+        aufFortschritt: setStand,
+      })
+      if (!ok) return setFehler(String(daten.fehler ?? 'Das Bild konnte nicht aufgetrennt werden.'))
 
-    const { ok, daten } = await sendeUpload(formular)
-    setLaeuft(false)
-    if (!ok) return setFehler(String(daten.fehler ?? 'Das Bild konnte nicht aufgetrennt werden.'))
-
-    router.refresh()
-    fertig()
+      router.refresh()
+      fertig()
+    } catch (fehler) {
+      setFehler(fehler instanceof Error ? fehler.message : 'Upload fehlgeschlagen.')
+    } finally {
+      setLaeuft(false)
+      setStand(null)
+    }
   }
 
   return (
@@ -276,6 +288,7 @@ function KarussellInhalt({
         </div>
       )}
 
+      <UploadBalken stand={stand} />
       {fehler && <Fehler>{fehler}</Fehler>}
       {hinweise.map((h) => (
         <Warnung key={h}>{h}</Warnung>
@@ -305,6 +318,7 @@ function EinfachInhalt({
 }) {
   const router = useRouter()
   const [laeuft, setLaeuft] = useState(false)
+  const [stand, setStand] = useState<Fortschritt | null>(null)
   const [fehler, setFehler] = useState<string | null>(null)
   const [hinweise, setHinweise] = useState<string[]>([])
 
@@ -314,20 +328,24 @@ function EinfachInhalt({
     setFehler(null)
     setHinweise([])
 
-    const formular = new FormData()
-    formular.set('postId', postId)
-    formular.set('rolle', rolle)
-    formular.set('modus', 'einzeln')
-    formular.append('dateien', dateien[0])
+    try {
+      const { ok, daten } = await ladeHoch({
+        dateien: [dateien[0]],
+        felder: { postId, rolle, modus: 'einzeln' },
+        aufFortschritt: setStand,
+      })
+      if (!ok) return setFehler(String(daten.fehler ?? 'Upload fehlgeschlagen.'))
 
-    const { ok, daten } = await sendeUpload(formular)
-    setLaeuft(false)
-    if (!ok) return setFehler(String(daten.fehler ?? 'Upload fehlgeschlagen.'))
-
-    const warnungen = (daten.hinweise as string[]) ?? []
-    setHinweise(warnungen)
-    router.refresh()
-    if (warnungen.length === 0) fertig()
+      const warnungen = (daten.hinweise as string[]) ?? []
+      setHinweise(warnungen)
+      router.refresh()
+      if (warnungen.length === 0) fertig()
+    } catch (fehler) {
+      setFehler(fehler instanceof Error ? fehler.message : 'Upload fehlgeschlagen.')
+    } finally {
+      setLaeuft(false)
+      setStand(null)
+    }
   }
 
   return (
@@ -343,6 +361,7 @@ function EinfachInhalt({
         laeuft={laeuft}
         aufDateien={(d) => void hochladen(d)}
       />
+      <UploadBalken stand={stand} />
       {fehler && <Fehler>{fehler}</Fehler>}
       {hinweise.map((h) => (
         <Warnung key={h}>{h}</Warnung>
@@ -353,19 +372,29 @@ function EinfachInhalt({
 
 // ------------------------------------------------------------------ Rahmen
 
+/** Was der Dialog gerade regeln soll. */
+export type Medienabsicht = 'MEDIUM' | 'THUMBNAIL'
+
 export function MedienDialog({
   offen,
   schliessen,
   postId,
   typ,
-  reelZusatz,
+  absicht = 'MEDIUM',
+  videoQuellen,
 }: {
   offen: boolean
   schliessen: () => void
   postId: string
   typ: PostTyp
-  /** Referenzvideo und Klappe — nur beim Reel. */
-  reelZusatz?: ReactNode
+  /** Beim Reel: „das Video" oder „das Thumbnail". Sonst ohne Bedeutung. */
+  absicht?: Medienabsicht
+  /**
+   * Die anderen beiden Wege zum Reel-Video — aus Klappe holen oder von einem
+   * Link laden. Sie stehen gleichberechtigt neben der Ablage: Es ist
+   * dieselbe Stelle im Post, nur eine andere Quelle.
+   */
+  videoQuellen?: ReactNode
 }) {
   // Solange der Dialog steht, soll die Seite dahinter still halten.
   useEffect(() => {
@@ -399,14 +428,22 @@ export function MedienDialog({
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h3 className="text-[16px] font-semibold">
-              {typ === 'REEL' ? 'Video und Thumbnail' : typ === 'KARUSSELL' ? 'Karussell-Bilder' : 'Grafik'}
+              {typ !== 'REEL'
+                ? typ === 'KARUSSELL'
+                  ? 'Karussell-Bilder'
+                  : 'Grafik'
+                : absicht === 'THUMBNAIL'
+                  ? 'Thumbnail'
+                  : 'Video'}
             </h3>
             <p className="mt-1 text-[12.5px] text-leise">
-              {typ === 'REEL'
-                ? 'Das Reel selbst, das Thumbnail fürs Profilraster — oder das fertige Video aus Klappe.'
-                : typ === 'KARUSSELL'
+              {typ !== 'REEL'
+                ? typ === 'KARUSSELL'
                   ? 'Einzelne Slides oder ein Gesamtbild, das aufgetrennt wird.'
-                  : 'Ein Bild im Verhältnis 4:5.'}
+                  : 'Ein Bild im Verhältnis 4:5.'
+                : absicht === 'THUMBNAIL'
+                  ? 'Das Standbild fürs Profilraster. Ohne eins zieht Preroll eines aus dem Video.'
+                  : 'Drei Wege zum selben Platz: hochladen, aus Klappe holen oder von einem Link laden. Was schon da ist, wird ersetzt.'}
             </p>
           </div>
           <button
@@ -431,38 +468,40 @@ export function MedienDialog({
 
         {typ === 'KARUSSELL' && <KarussellInhalt postId={postId} fertig={schliessen} />}
 
-        {typ === 'REEL' && (
+        {typ === 'REEL' && absicht === 'THUMBNAIL' && (
+          <EinfachInhalt
+            postId={postId}
+            rolle="THUMBNAIL"
+            titel="Thumbnail hierher ziehen"
+            hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 4:5-Ausschnitt gezeigt."
+            fertig={schliessen}
+          />
+        )}
+
+        {typ === 'REEL' && absicht === 'MEDIUM' && (
           <div className="grid gap-6">
             <div>
-              <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">Reel</h4>
+              <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">
+                Video hochladen
+              </h4>
               <EinfachInhalt
                 postId={postId}
                 rolle="MEDIUM"
                 titel="Video hierher ziehen"
-                hinweis="Erwartet: 9:16. MP4 oder MOV."
+                hinweis="Erwartet: 9:16. MP4 oder MOV. Ohne Thumbnail zieht Preroll ein Standbild daraus."
                 video
-                fertig={() => {}}
+                fertig={schliessen}
               />
             </div>
 
-            <div>
-              <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">Thumbnail</h4>
-              <EinfachInhalt
-                postId={postId}
-                rolle="THUMBNAIL"
-                titel="Thumbnail hierher ziehen"
-                hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 4:5-Ausschnitt gezeigt."
-                fertig={() => {}}
-              />
-            </div>
-
-            {reelZusatz}
+            {videoQuellen}
 
             <div className="flex justify-end border-t border-rahmen pt-4">
               <Knopf onClick={schliessen}>Fertig</Knopf>
             </div>
           </div>
         )}
+
       </div>
     </div>
   )

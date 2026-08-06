@@ -98,7 +98,18 @@ export function FreigabeFeld({
               ist als „von der Agentur eingetragen" gekennzeichnet.
             </p>
 
-            <form action={freigabeEintragen.bind(null, postId)} className="mt-5 grid gap-4">
+            {/*
+              Nach dem Eintragen schließt der Dialog von selbst. Ein Fenster,
+              das offen bleibt, obwohl die Arbeit getan ist, sieht aus, als
+              wäre nichts passiert.
+            */}
+            <form
+              action={async (formular: FormData) => {
+                await freigabeEintragen(postId, formular)
+                setDialog(false)
+              }}
+              className="mt-5 grid gap-4"
+            >
               <Feld
                 beschriftung="Wer hat freigegeben?"
                 hinweis="Name der Person beim Kunden — sie steht später an der Freigabe."

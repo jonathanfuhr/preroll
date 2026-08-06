@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ersteMedien, ladePost } from '@/lib/abfragen'
+import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
 import { klappeEingerichtet } from '@/lib/klappe'
@@ -29,6 +30,17 @@ export default async function PostSeite({
     post.typ === 'REEL' && angebunden && post.kunde.klappeProjektId
       ? await ladeKlappeVideos(post.kundeId)
       : { videos: [], fehler: null }
+
+  // Ziele fürs Übertragen des Ablaufs. Nur Reels desselben Kunden — ein
+  // Szenenplan gehört zu seinem Zusammenhang.
+  const andereReels =
+    post.typ === 'REEL'
+      ? await prisma.post.findMany({
+          where: { kundeId: post.kundeId, typ: 'REEL', id: { not: post.id } },
+          orderBy: { erstelltAm: 'desc' },
+          include: { szenen: { orderBy: { position: 'asc' } } },
+        })
+      : []
 
   const slides = ersteMedien(post, 'SLIDE')
   const medium = ersteMedien(post, 'MEDIUM')
@@ -85,6 +97,19 @@ export default async function PostSeite({
         istVideo={istVideo}
         vorschau={{ kunde: post.kunde.name, logo: thumbUrl(post.kunde.logoId) }}
         standardUhrzeit={post.kunde.standardUhrzeit}
+        andereReels={andereReels.map((r) => ({
+          id: r.id,
+          titel: r.titel,
+          postenAm: r.postenAm?.toISOString() ?? null,
+          szenen: r.szenen.map((sz) => ({
+            id: sz.id,
+            position: sz.position,
+            abschnitt: sz.abschnitt,
+            bildSzene: sz.bildSzene,
+            sprechertext: sz.sprechertext,
+            texteinblendung: sz.texteinblendung,
+          })),
+        }))}
         kommentare={post.kommentare.map((k) => ({
           id: k.id,
           autorName: k.autorName,

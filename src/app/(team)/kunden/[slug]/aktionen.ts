@@ -570,3 +570,46 @@ export async function freigabeZuruecknehmen(freigabeId: string) {
   })
   revalidatePath(`/kunden/${freigabe.post.kunde.slug}`, 'layout')
 }
+
+/**
+ * Überträgt den Ablauf eines Reels auf ein anderes. Wer ihn übernimmt,
+ * verliert seinen eigenen — deshalb fragt die Oberfläche vorher, wenn dort
+ * schon etwas steht, und stellt beide nebeneinander. Hier wird nur noch
+ * ausgeführt, was dort entschieden wurde.
+ */
+export async function szenenplanUebertragen(vonPostId: string, nachPostId: string) {
+  await nutzerOderRaus()
+
+  const [quelle, ziel] = await Promise.all([
+    prisma.post.findUniqueOrThrow({
+      where: { id: vonPostId },
+      include: { szenen: { orderBy: { position: 'asc' } } },
+    }),
+    prisma.post.findUniqueOrThrow({
+      where: { id: nachPostId },
+      include: { kunde: { select: { slug: true } } },
+    }),
+  ])
+
+  // Nur innerhalb desselben Kunden — ein Ablauf gehört zu seinem Kontext.
+  if (quelle.kundeId !== ziel.kundeId) return
+
+  await prisma.$transaction([
+    prisma.szene.deleteMany({ where: { postId: nachPostId } }),
+    ...quelle.szenen.map((szene, position) =>
+      prisma.szene.create({
+        data: {
+          postId: nachPostId,
+          position,
+          abschnitt: szene.abschnitt,
+          bildSzene: szene.bildSzene,
+          sprechertext: szene.sprechertext,
+          texteinblendung: szene.texteinblendung,
+        },
+      }),
+    ),
+    prisma.post.update({ where: { id: nachPostId }, data: { szenenplanAktiv: true } }),
+  ])
+
+  revalidatePath(`/kunden/${ziel.kunde.slug}`, 'layout')
+}

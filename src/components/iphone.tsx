@@ -1,5 +1,6 @@
 import type { PostTyp } from '@prisma/client'
 import Link from 'next/link'
+import { ReelPlayer } from './reel-player'
 import type { ReactNode } from 'react'
 
 /**
@@ -297,14 +298,7 @@ export function IPhoneReel({
       >
         {medium ? (
           istVideo ? (
-            <video
-              src={medium}
-              className="absolute inset-0 h-full w-full object-cover"
-              muted
-              loop
-              playsInline
-              controls
-            />
+            <ReelPlayer quelle={medium} />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={medium} alt="" className="absolute inset-0 h-full w-full object-cover" />

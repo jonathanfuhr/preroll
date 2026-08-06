@@ -3,7 +3,7 @@
 import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
 import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
-import { MedienDialog } from '@/components/medien-dialog'
+import { MedienDialog, type Medienabsicht } from '@/components/medien-dialog'
 import { KommentarListe, type Kommentareintrag } from '@/components/kommentar-liste'
 import {
   Fortschrittsbalken,
@@ -13,6 +13,7 @@ import {
 import { kalenderwoche } from '@/lib/format'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
+import type { Zielreel } from './uebertragen'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
 import { referenzvideoEntfernen, referenzvideoSetzen } from '../../referenz-aktionen'
@@ -87,6 +88,7 @@ export function PostEditor({
   vorschau,
   standardUhrzeit,
   kommentare,
+  andereReels,
   referenz,
   klappe,
   kundeSlug,
@@ -106,6 +108,8 @@ export function PostEditor({
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
   standardUhrzeit: string
   kommentare: Kommentareintrag[]
+  /** Andere Reels desselben Kunden — Ziele fürs Übertragen des Ablaufs. */
+  andereReels: Zielreel[]
   referenz: {
     mediumUrl: string | null
     geladen: boolean
@@ -135,7 +139,8 @@ export function PostEditor({
     vorschlagName: string | null
   }
 }) {
-  const [dialogOffen, setDialogOffen] = useState(false)
+  // `null` heißt zu; sonst steht darin, worum es geht.
+  const [dialogOffen, setDialogOffen] = useState<Medienabsicht | null>(null)
   // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
   // im Dialog und über den Eckdaten.
   const referenzstand = useReferenzstand(post.id, referenz.stand)
@@ -227,7 +232,7 @@ export function PostEditor({
           {referenzstand.meldung}{' '}
           <button
             type="button"
-            onClick={() => setDialogOffen(true)}
+            onClick={() => setDialogOffen('MEDIUM')}
             className="font-medium underline underline-offset-2"
           >
             Im Medien-Dialog erneut versuchen
@@ -299,6 +304,7 @@ export function PostEditor({
               aktiv={szenenplan}
               setAktiv={setSzenenplan}
               inhalte={post.inhalte ?? ''}
+              ziele={andereReels}
             />
           </Abschnitt>
         )}
@@ -380,17 +386,28 @@ export function PostEditor({
           medien={vorschauMedien}
           caption={caption}
           istVideo={istVideo}
-          aufUpload={() => setDialogOffen(true)}
+          aufUpload={() => setDialogOffen('MEDIUM')}
         />
 
         <div className="mt-3 flex max-w-[344px] flex-wrap items-center gap-2">
-          <Knopf klein onClick={() => setDialogOffen(true)}>
-            Datei hochladen
-          </Knopf>
-          {post.typ === 'REEL' && !thumbnailUrl && (
-            <span className="text-[11px] leading-tight text-leiser">
-              Thumbnail fehlt fürs Profilraster
-            </span>
+          {post.typ === 'REEL' ? (
+            <>
+              <Knopf klein onClick={() => setDialogOffen('MEDIUM')}>
+                Reel hochladen
+              </Knopf>
+              <Knopf klein onClick={() => setDialogOffen('THUMBNAIL')}>
+                Thumbnail hochladen
+              </Knopf>
+              {!thumbnailUrl && (
+                <span className="w-full text-[11px] leading-tight text-leiser">
+                  Ohne Thumbnail zieht Preroll beim Video-Upload ein Standbild heraus.
+                </span>
+              )}
+            </>
+          ) : (
+            <Knopf klein onClick={() => setDialogOffen('MEDIUM')}>
+              Datei hochladen
+            </Knopf>
           )}
         </div>
 
@@ -405,19 +422,45 @@ export function PostEditor({
       </div>
 
       <MedienDialog
-        offen={dialogOffen}
-        schliessen={() => setDialogOffen(false)}
+        offen={dialogOffen !== null}
+        schliessen={() => setDialogOffen(null)}
         postId={post.id}
         typ={post.typ}
-        reelZusatz={
+        absicht={dialogOffen ?? 'MEDIUM'}
+        videoQuellen={
           post.typ === 'REEL' ? (
-            <div className="grid gap-5">
-              {/* --------------------------------------------------- Referenzvideo */}
+            <>
+              {/* ------------------------------------------------- Aus Klappe */}
               <div className="border-t border-rahmen pt-5">
-                <p className="text-[12.5px] font-medium">Referenzvideo</p>
-                <p className="mt-1 mb-3 text-[11.5px] leading-relaxed text-leiser">
-                  Link auf ein Vorbild. Preroll legt eine lokale Kopie an — eingebettet wird die
-                  eigene Datei, weil Instagram und YouTube Einbettungen unvorhersehbar sperren.
+                <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">
+                  Aus Klappe holen
+                </h4>
+                <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
+                  Das fertige Reel aus dem Schnitt. Beim Anlegen entsteht dort automatisch das
+                  passende Video — beim Upload muss dann kein Name mehr getippt werden.
+                </p>
+                <KlappeFeld
+                  postId={post.id}
+                  kundeSlug={kundeSlug}
+                  eingerichtet={klappe.eingerichtet}
+                  projektName={klappe.projektName}
+                  videos={klappe.videos}
+                  ladefehler={klappe.ladefehler}
+                  verknuepft={klappe.verknuepft}
+                  meldung={meldungen.klappe}
+                />
+              </div>
+
+              {/* --------------------------------------------- Von einem Link */}
+              <div className="border-t border-rahmen pt-5">
+                <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">
+                  Von einem Link laden
+                </h4>
+                <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
+                  Instagram, TikTok, YouTube, Vimeo — alles, was sich herunterladen lässt. In der
+                  Konzeptphase steht hier das Vorbild, später ersetzt es das fertige Reel.
+                  Eingebettet wird immer die eigene Kopie, weil die Plattformen Einbettungen
+                  unvorhersehbar sperren.
                 </p>
 
                 {(meldungen.referenz ?? referenzstand.meldung) && (
@@ -451,56 +494,28 @@ export function PostEditor({
                       type="submit"
                       disabled={referenzstand.stand === 'LAEUFT'}
                     >
-                      {referenzstand.stand === 'LAEUFT' ? 'Läuft …' : 'Übernehmen und laden'}
+                      {referenzstand.stand === 'LAEUFT' ? 'Läuft …' : 'Laden und einsetzen'}
                     </Knopf>
                   </div>
                 </form>
 
                 {referenz.geladen && referenzstand.stand !== 'LAEUFT' && (
-                  <div className="mt-3 grid gap-2 rounded-md border border-rahmen bg-flaeche p-3">
-                    {referenz.mediumUrl && (
-                      <video
-                        src={referenz.mediumUrl}
-                        controls
-                        className="max-h-52 rounded-[3px] bg-black"
-                      />
-                    )}
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11.5px] text-leiser">
-                        Liegt lokal vor und wird in der Kundenvorschau eingebettet.
-                      </p>
-                      <form action={referenzvideoEntfernen.bind(null, post.id)}>
-                        <button
-                          type="submit"
-                          className="text-[11.5px] text-stiller hover:text-akzent"
-                        >
-                          Entfernen
-                        </button>
-                      </form>
-                    </div>
+                  <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-rahmen bg-flaeche-leise px-3 py-2.5">
+                    <p className="text-[11.5px] text-leiser">
+                      Kopie liegt vor und steht im Geräterahmen.
+                    </p>
+                    <form action={referenzvideoEntfernen.bind(null, post.id)}>
+                      <button
+                        type="submit"
+                        className="text-[11.5px] text-stiller hover:text-akzent"
+                      >
+                        Entfernen
+                      </button>
+                    </form>
                   </div>
                 )}
               </div>
-
-              {/* ----------------------------------------------- Finales Reel */}
-              <div className="border-t border-rahmen pt-5">
-                <p className="text-[12.5px] font-medium">Finales Reel aus Klappe</p>
-                <p className="mt-1 mb-3 text-[11.5px] leading-relaxed text-leiser">
-                  Beim Anlegen eines Reels entsteht in Klappe automatisch das passende Video — beim
-                  Upload aus dem Schnitt muss dann kein Name mehr getippt werden.
-                </p>
-                <KlappeFeld
-                  postId={post.id}
-                  kundeSlug={kundeSlug}
-                  eingerichtet={klappe.eingerichtet}
-                  projektName={klappe.projektName}
-                  videos={klappe.videos}
-                  ladefehler={klappe.ladefehler}
-                  verknuepft={klappe.verknuepft}
-                  meldung={meldungen.klappe}
-                />
-              </div>
-            </div>
+            </>
           ) : null
         }
       />

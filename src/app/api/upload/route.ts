@@ -6,12 +6,35 @@ import { thumbnailAusVideoErgaenzen } from '@/lib/video'
 import { pruefeFormat, transparenzHinweis } from '@/lib/format'
 import { berechneAuftrennung } from '@/lib/karussell'
 import { ERLAUBTE_TYPEN, speichereMedium, trenneGesamtbildAuf } from '@/lib/medien'
+import { ladeSitzung, loescheSitzung } from '@/lib/upload-sitzung'
 
-const MAX_GROESSE = 80 * 1024 * 1024
+const MAX_GROESSE = 500 * 1024 * 1024
+
+/** Eine fertig übertragene Datei — zusammengesetzt aus ihren Blöcken. */
+type Eingang = { inhalt: Buffer; name: string; typ: string }
 
 /**
- * Nimmt Medien entgegen. Der Upload läuft bewusst über einen Route Handler und
- * nicht über eine Server Action — Server Actions haben ein enges Größenlimit.
+ * Setzt die Blöcke zusammen und schließt die Sitzungen. Die Datei kommt hier
+ * nie am Stück über die Leitung — siehe `upload-sitzung.ts`.
+ */
+async function sammleDateien(formular: FormData): Promise<Eingang[]> {
+  const sitzungen = formular.getAll('sitzungen').map(String)
+  const namen = formular.getAll('namen').map(String)
+  const typen = formular.getAll('typen').map(String)
+
+  const eingaenge: Eingang[] = []
+  for (const [i, sitzung] of sitzungen.entries()) {
+    eingaenge.push({
+      inhalt: await ladeSitzung(sitzung),
+      name: namen[i] ?? 'datei',
+      typ: typen[i] ?? 'application/octet-stream',
+    })
+  }
+  return eingaenge
+}
+
+/**
+ * Schließt den Upload ab: Blöcke zusammensetzen, prüfen, ablegen.
  *
  * Modi:
  *  - `einzeln`  → jede Datei wird ein Medium (Beitrag, Slides, Thumbnail)
@@ -32,35 +55,66 @@ export async function POST(anfrage: NextRequest) {
   })
   if (!post) return Response.json({ fehler: 'Post nicht gefunden.' }, { status: 404 })
 
-  const dateien = formular.getAll('dateien').filter((d): d is File => d instanceof File)
+  const sitzungen = formular.getAll('sitzungen').map(String)
+  let dateien: Eingang[]
+  try {
+    dateien = await sammleDateien(formular)
+  } catch {
+    return Response.json({ fehler: 'Der Upload ist unvollständig angekommen.' }, { status: 400 })
+  }
+
   if (dateien.length === 0) {
     return Response.json({ fehler: 'Keine Datei empfangen.' }, { status: 400 })
   }
 
-  for (const datei of dateien) {
-    if (!ERLAUBTE_TYPEN.includes(datei.type as (typeof ERLAUBTE_TYPEN)[number])) {
-      return Response.json(
-        { fehler: `Dateityp ${datei.type || 'unbekannt'} wird nicht unterstützt.` },
-        { status: 415 },
-      )
+  try {
+    for (const datei of dateien) {
+      if (!ERLAUBTE_TYPEN.includes(datei.typ as (typeof ERLAUBTE_TYPEN)[number])) {
+        return Response.json(
+          { fehler: `Dateityp ${datei.typ || 'unbekannt'} wird nicht unterstützt.` },
+          { status: 415 },
+        )
+      }
+      if (datei.inhalt.byteLength > MAX_GROESSE) {
+        return Response.json(
+          { fehler: `${datei.name} ist größer als ${MAX_GROESSE / 1024 / 1024} MB.` },
+          { status: 413 },
+        )
+      }
     }
-    if (datei.size > MAX_GROESSE) {
-      return Response.json(
-        { fehler: `${datei.name} ist größer als 80 MB.` },
-        { status: 413 },
-      )
-    }
+    return await verarbeite({ post, nutzer, dateien, rolle, modus, formular, postId })
+  } finally {
+    // Die Blöcke haben ihren Zweck erfüllt — egal, wie es ausgegangen ist.
+    for (const sitzung of sitzungen) await loescheSitzung(sitzung)
   }
+}
+
+async function verarbeite({
+  post,
+  nutzer,
+  dateien,
+  rolle,
+  modus,
+  formular,
+  postId,
+}: {
+  post: NonNullable<Awaited<ReturnType<typeof prisma.post.findUnique>>>
+  nutzer: { id: string }
+  dateien: Eingang[]
+  rolle: MediumRolle
+  modus: string
+  formular: FormData
+  postId: string
+}): Promise<Response> {
 
   // ------------------------------------------------- Ein Gesamtbild auftrennen
   if (modus === 'gesamtbild') {
     const datei = dateien[0]
-    const inhalt = Buffer.from(await datei.arrayBuffer())
 
     const { medium: quelle, hatTransparenz } = await speichereMedium({
-      inhalt,
+      inhalt: datei.inhalt,
       dateiname: datei.name,
-      mimeTyp: datei.type,
+      mimeTyp: datei.typ,
       kundeId: post.kundeId,
       hochgeladenVonId: nutzer.id,
     })
@@ -124,11 +178,10 @@ export async function POST(anfrage: NextRequest) {
   }
 
   for (const datei of dateien) {
-    const inhalt = Buffer.from(await datei.arrayBuffer())
     const { medium, breite, hoehe, hatTransparenz } = await speichereMedium({
-      inhalt,
+      inhalt: datei.inhalt,
       dateiname: datei.name,
-      mimeTyp: datei.type,
+      mimeTyp: datei.typ,
       kundeId: post.kundeId,
       hochgeladenVonId: nutzer.id,
     })

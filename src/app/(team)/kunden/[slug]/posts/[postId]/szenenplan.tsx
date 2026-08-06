@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import { Feld, Textfeld, Umschalter } from '@/components/ui'
+import { SzenenplanUebertragen, type Zielreel } from './uebertragen'
 import { szeneAnlegen, szeneLoeschen, szenenSortieren, szeneSpeichern } from '../../aktionen'
 
 export type Szene = {
@@ -173,6 +174,7 @@ export function Szenenplan({
   aktiv,
   setAktiv,
   inhalte,
+  ziele,
 }: {
   postId: string
   szenen: Szene[]
@@ -180,6 +182,8 @@ export function Szenenplan({
   setAktiv: (wert: boolean) => void
   /** Freitext, der ohne Szenenplan an dessen Stelle tritt. */
   inhalte: string
+  /** Andere Reels desselben Kunden — Ziele fürs Übertragen. */
+  ziele: Zielreel[]
 }) {
   const router = useRouter()
   const [, starteUebergang] = useTransition()
@@ -233,18 +237,21 @@ export function Szenenplan({
           />
 
           {aktiv && (
-            <button
-              type="button"
-              onClick={() =>
-                starteUebergang(async () => {
-                  await szeneAnlegen(postId)
-                  router.refresh()
-                })
-              }
-              className="rounded-[4px] border border-rahmen-3 bg-flaeche px-3.5 py-2 text-[12.5px] text-tinte transition-colors hover:border-akzent hover:text-akzent"
-            >
-              Szene hinzufügen
-            </button>
+            <>
+              <SzenenplanUebertragen postId={postId} szenen={reihenfolge} ziele={ziele} />
+              <button
+                type="button"
+                onClick={() =>
+                  starteUebergang(async () => {
+                    await szeneAnlegen(postId)
+                    router.refresh()
+                  })
+                }
+                className="rounded-[4px] border border-rahmen-3 bg-flaeche px-3.5 py-2 text-[12.5px] text-tinte transition-colors hover:border-akzent hover:text-akzent"
+              >
+                Szene hinzufügen
+              </button>
+            </>
           )}
         </div>
       </div>
