@@ -179,6 +179,13 @@ npm run check   # Typecheck + Tests
   gestreamt, und die Fassungswahl räumt dafür das `MEDIUM` weg
   (`holeFassung`). Was gerade gilt, sagt `reelVideoQuelle`: eigenes `MEDIUM`
   vor Klappe-Fassung — so gewinnt immer die zuletzt getroffene Wahl.
+  **Übernehmen heißt räumen:** Die anderen beiden Quellen werden dabei
+  gelöst, nicht überdeckt — ein laufender Download wird abgebrochen und der
+  Link geleert (sonst überschriebe der fertige Download später das frische
+  Video), die Fassungswahl genullt. Ein überholter Download-Lauf erkennt das
+  am Link (`videoDownloadUrl !== url`) und schreibt nichts mehr. In den
+  **ZIP-Export** kommt eine Klappe-Fassung im Moment des Exports als
+  Durchreiche (`klappeVideoFuersZip`) — Team: Original, Gast: Abspielfassung.
 - **Medien-Upload läuft über den Geräterahmen.** Kein eigener Ablagebereich im
   Formular: Die leere Fläche im iPhone-Mockup ist der Knopf, ein Klick öffnet
   `MedienDialog` — und der zeigt je Post-Typ etwas anderes (Beitrag: eine

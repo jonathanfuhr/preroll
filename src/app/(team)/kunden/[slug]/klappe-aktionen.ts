@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { brichVideoDownloadAb } from '@/lib/video-download'
 import {
   klappeFassungen,
   klappeVideoAnlegen,
@@ -167,10 +168,12 @@ async function holeFassung(postId: string, videoId: string): Promise<string | nu
   const gewaehlt = brauchbar.find((f) => f.isFinal) ?? brauchbar[0]
 
   // Die Fassung übernimmt den Video-Platz — wie jede der drei Quellen
-  // ersetzt sie, was vorher dort stand. Ein hochgeladenes Video hätte sonst
-  // weiter Vorrang (`reelVideoQuelle`), und die Wahl liefe ins Leere. Die
-  // alte Datei bleibt als Medium in der Bibliothek.
+  // ersetzt sie, was vorher dort stand: Das MEDIUM wird ausgehängt (die
+  // Datei bleibt in der Bibliothek), ein laufender Download abgebrochen und
+  // der Link geräumt. Ohne das hätte ein hochgeladenes Video weiter Vorrang
+  // (`reelVideoQuelle`), und die Wahl liefe ins Leere.
   if (gewaehlt) {
+    await brichVideoDownloadAb(postId)
     await prisma.postMedium.deleteMany({ where: { postId, rolle: 'MEDIUM' } })
   }
 
@@ -180,6 +183,14 @@ async function holeFassung(postId: string, videoId: string): Promise<string | nu
       klappeVersionId: gewaehlt?.id ?? null,
       klappeVersionNummer: gewaehlt?.versionNumber ?? null,
       klappeStandAm: new Date(),
+      ...(gewaehlt
+        ? {
+            videoDownloadUrl: null,
+            videoDownloadStand: null,
+            videoDownloadFortschritt: 0,
+            videoDownloadMeldung: null,
+          }
+        : {}),
     },
   })
 

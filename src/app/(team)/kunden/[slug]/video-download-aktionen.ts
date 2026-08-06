@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { starteVideoDownload } from '@/lib/video-download'
+import { brichVideoDownloadAb, starteVideoDownload } from '@/lib/video-download'
 
 /**
  * Link übernehmen und in einem Zug herunterladen — im Medien-Dialog will man
@@ -26,6 +26,10 @@ export async function videoVonLinkLaden(postId: string, formular: FormData) {
     where: { id: postId },
     select: { kunde: { select: { slug: true } } },
   })
+
+  // Ein noch laufender Download gehört zum alten Link — er würde sonst später
+  // fertig werden und den neuen Stand überschreiben.
+  await brichVideoDownloadAb(postId)
 
   await prisma.post.update({
     where: { id: postId },

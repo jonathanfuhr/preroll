@@ -6,7 +6,9 @@ import { POST_MEDIEN } from '@/lib/abfragen'
 import { aktuellerGast, aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { zipDateiname, zipStempel } from '@/lib/format'
+import { klappeVideoFuersZip } from '@/lib/klappe'
 import { absoluterPfad } from '@/lib/medien'
+import { reelVideoQuelle } from '@/lib/reel-video'
 
 /**
  * Ein einzelner Post als ZIP — Slides, Reel, Thumbnail und die Caption als
@@ -65,6 +67,21 @@ export async function GET(
       })
     } catch {
       // Fehlende Datei überspringen — der Rest bleibt brauchbar.
+    }
+  }
+
+  // Liegt das Reel nur als Klappe-Fassung vor, hängt am Post kein MEDIUM —
+  // dann kommt das Video im Moment des Exports von Klappe. Kunden bekommen
+  // die Abspielfassung, das Team das Original.
+  if (post.typ === 'REEL' && reelVideoQuelle(post)?.herkunft === 'KLAPPE') {
+    const fassung = await klappeVideoFuersZip(
+      post.klappeVersionId!,
+      nutzer ? 'original' : 'proxy',
+    )
+    if (fassung) {
+      archiv.append(fassung.strom, { name: `${stempel}_Reel.${fassung.endung}` })
+    } else {
+      console.warn('[zip] Klappe-Fassung nicht abrufbar:', post.klappeVersionId)
     }
   }
 

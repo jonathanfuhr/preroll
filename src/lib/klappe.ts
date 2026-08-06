@@ -1,4 +1,5 @@
 import 'server-only'
+import { Readable } from 'node:stream'
 import { ladeEinstellungen } from './einstellungen'
 
 export { klappeVideoBeschreibung, klappeVideoName } from './klappe-namen'
@@ -233,6 +234,26 @@ export async function klappeVideoUmbenennen(
 }
 
 // ------------------------------------------------------------ Medien
+
+/**
+ * Die Fassung eines Reels für den ZIP-Export. Liegt das Video nur als
+ * Klappe-Stream vor, wird es im Moment des Exports von dort durchgereicht —
+ * ein ZIP mit fehlendem Reel wäre für den Scheduler wertlos.
+ */
+export async function klappeVideoFuersZip(
+  fassungId: string,
+  art: 'original' | 'proxy',
+): Promise<{ strom: Readable; endung: string } | null> {
+  const antwort = await klappeMedium(fassungId, art)
+  if (!antwort?.ok || !antwort.body) return null
+
+  const typ = antwort.headers.get('content-type') ?? ''
+  const endung = typ.includes('quicktime') ? 'mov' : typ.includes('webm') ? 'webm' : 'mp4'
+  return {
+    strom: Readable.fromWeb(antwort.body as Parameters<typeof Readable.fromWeb>[0]),
+    endung,
+  }
+}
 
 /** Abspielfassung, Original oder Posterframe einer Fassung durchreichen. */
 export async function klappeMedium(

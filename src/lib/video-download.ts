@@ -164,9 +164,15 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
     const datei = dateien.find((d) => /\.(mp4|mkv|webm|mov)$/i.test(d))
     if (!datei) throw new Error('yt-dlp hat keine Videodatei erzeugt.')
 
-    const inhalt = await readFile(path.join(ordner, datei))
     const post = await prisma.post.findUniqueOrThrow({ where: { id: postId } })
 
+    // Während des Downloads kann eine andere Quelle übernommen haben — dann
+    // ist dieser Lauf Geschichte und darf weder Video noch Stand schreiben.
+    // Erkennbar am Link: Übernahme und Leeren räumen ihn weg, ein neuer Link
+    // gehört zu einem neuen Lauf.
+    if (post.videoDownloadUrl !== url) return
+
+    const inhalt = await readFile(path.join(ordner, datei))
     const { medium } = await speichereMedium({
       inhalt,
       dateiname: datei,
@@ -188,6 +194,10 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
         videoDownloadStand: 'FERTIG',
         videoDownloadFortschritt: 100,
         videoDownloadMeldung: null,
+        // Der Download übernimmt den Platz — eine vorher gewählte
+        // Klappe-Fassung ist damit gelöst, nicht nur überdeckt.
+        klappeVersionId: null,
+        klappeVersionNummer: null,
       },
     })
 
@@ -199,6 +209,14 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
     // Eine abgelaufene Sitzung soll in den Einstellungen stehen, nicht nur an
     // diesem einen Post.
     if (text.toLowerCase().includes('empty media response')) await merkeAbgelaufen()
+
+    // Wurde der Lauf abgebrochen, weil eine andere Quelle übernommen oder
+    // jemand den Link geleert hat, wäre „FEHLER" gelogen — dann bleibt der
+    // geräumte Zustand stehen.
+    const aktuell = await prisma.post
+      .findUnique({ where: { id: postId }, select: { videoDownloadUrl: true } })
+      .catch(() => null)
+    if (aktuell?.videoDownloadUrl !== url) return
 
     await merkeStand(postId, { stand: 'FEHLER', fortschritt: 0, meldung: verstaendlich(text) })
   } finally {

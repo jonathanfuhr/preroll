@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { thumbnailAusVideoErgaenzen } from '@/lib/video'
+import { brichVideoDownloadAb } from '@/lib/video-download'
 import { pruefeFormat, transparenzHinweis } from '@/lib/format'
 import { berechneAuftrennung } from '@/lib/karussell'
 import { ERLAUBTE_TYPEN, speichereMedium, trenneGesamtbildAuf } from '@/lib/medien'
@@ -197,10 +198,27 @@ async function verarbeite({
     })
   }
 
-  // Ein Reel ohne Thumbnail zeigt im Profilraster nur Schraffur. Statt das
-  // anzumahnen, wird eins aus dem Video gezogen — ein Standbild ist besser
-  // als nichts und lässt sich jederzeit ersetzen.
   if (rolle === 'MEDIUM' && post.typ === 'REEL') {
+    // Der Upload übernimmt den Video-Platz — die anderen beiden Quellen
+    // werden gelöst, nicht nur überdeckt: ein laufender Download würde das
+    // frische Video sonst später überschreiben, ein stehen gebliebener Link
+    // sähe aus, als gehöre er zu diesem Video.
+    await brichVideoDownloadAb(postId)
+    await prisma.post.update({
+      where: { id: postId },
+      data: {
+        videoDownloadUrl: null,
+        videoDownloadStand: null,
+        videoDownloadFortschritt: 0,
+        videoDownloadMeldung: null,
+        klappeVersionId: null,
+        klappeVersionNummer: null,
+      },
+    })
+
+    // Ein Reel ohne Thumbnail zeigt im Profilraster nur Schraffur. Statt das
+    // anzumahnen, wird eins aus dem Video gezogen — ein Standbild ist besser
+    // als nichts und lässt sich jederzeit ersetzen.
     const erzeugt = await thumbnailAusVideoErgaenzen(postId)
     if (erzeugt) {
       hinweise.push('Kein Thumbnail hinterlegt — Preroll hat ein Standbild aus dem Video gezogen.')

@@ -7,7 +7,9 @@ import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche, zipDateiname, zipStempel } from '@/lib/format'
+import { klappeVideoFuersZip } from '@/lib/klappe'
 import { absoluterPfad } from '@/lib/medien'
+import { reelVideoQuelle } from '@/lib/reel-video'
 import { kommentarPdf } from '@/lib/pdf'
 
 /**
@@ -70,6 +72,20 @@ export async function GET(
         })
       } catch {
         // Fehlende Datei überspringen — der Rest des Archivs bleibt brauchbar.
+      }
+    }
+
+    // Reels, deren Video nur als Klappe-Fassung vorliegt, kommen im Moment
+    // des Exports von dort — die Route steht nur dem Team offen, also das
+    // Original.
+    if (post.typ === 'REEL' && reelVideoQuelle(post)?.herkunft === 'KLAPPE') {
+      const fassung = await klappeVideoFuersZip(post.klappeVersionId!, 'original')
+      if (fassung) {
+        archiv.append(fassung.strom, {
+          name: `${ordner}/${zipStempel(post.postenAm)}_Reel.${fassung.endung}`,
+        })
+      } else {
+        console.warn('[zip] Klappe-Fassung nicht abrufbar:', post.klappeVersionId)
       }
     }
 
