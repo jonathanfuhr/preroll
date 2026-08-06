@@ -27,6 +27,7 @@ COPY --from=build --chown=preroll:preroll /app/public ./public
 # nicht gebraucht — siehe docker-entrypoint.sh.
 COPY --from=build --chown=preroll:preroll /app/prisma/migrations ./prisma/migrations
 COPY --from=build --chown=preroll:preroll /app/scripts/db-migrate.ts ./scripts/db-migrate.ts
+COPY --from=build --chown=preroll:preroll /app/scripts/nutzer-anlegen.ts ./scripts/nutzer-anlegen.ts
 COPY --chown=preroll:preroll docker-entrypoint.sh ./
 
 RUN mkdir -p /app/data/uploads && chown -R preroll:preroll /app/data && chmod +x /app/docker-entrypoint.sh

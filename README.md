@@ -21,10 +21,21 @@ einem benannten Volume, die **hochgeladenen Medien dagegen auf einem Pfad des
 Hosts** (`MEDIEN_PFAD`) — dort sind sie im Finder erreichbar, laufen ins
 Backup und überleben jedes Neubauen des Images.
 
-Beispieldaten (Kunde Beispiel Handwerk GmbH, Content-Plan August 2026):
+**Erstes Konto anlegen** — ohne Konto kommt niemand in die Oberfläche, und
+über die Oberfläche selbst lässt sich keines anlegen:
 
 ```bash
-docker compose exec web npx prisma db seed
+docker compose exec web node --experimental-strip-types scripts/nutzer-anlegen.ts helena@thdvideo.de "Helena Avdijaj"
+```
+
+Das erste Konto einer leeren Installation wird automatisch Administrator. Ohne
+drittes Argument wird ein Passwort erzeugt und einmalig ausgegeben.
+
+Beispieldaten (Kunde Beispiel Handwerk GmbH, Content-Plan August 2026) — nur für eine
+Testinstanz, nicht für den Produktivbetrieb:
+
+```bash
+docker compose exec web node --experimental-strip-types prisma/seed.ts
 ```
 
 ## Veröffentlichen über Cloudflare Tunnel
