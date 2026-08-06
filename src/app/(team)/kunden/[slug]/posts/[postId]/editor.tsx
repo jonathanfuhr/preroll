@@ -5,7 +5,14 @@ import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
 import { MedienDialog } from '@/components/medien-dialog'
 import { KommentarListe, type Kommentareintrag } from '@/components/kommentar-liste'
+import {
+  Fortschrittsbalken,
+  useReferenzstand,
+  type Referenzstand,
+} from '@/components/referenz-fortschritt'
+import { kalenderwoche } from '@/lib/format'
 import { SlideSortierung } from '@/components/slide-sortierung'
+import { Szenenplan, type Szene } from './szenenplan'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
 import { referenzvideoEntfernen, referenzvideoSetzen } from '../../referenz-aktionen'
@@ -16,16 +23,11 @@ import {
   Knopf,
   Schalter,
   Textfeld,
+  TYP_TEXT,
+  TypBadge,
   Warnung,
 } from '@/components/ui'
-import {
-  postSpeichern,
-  postStatusSetzen,
-  slidesSortieren,
-  szeneAnlegen,
-  szeneLoeschen,
-  szeneSpeichern,
-} from '../../aktionen'
+import { postSpeichern, postStatusSetzen, slidesSortieren } from '../../aktionen'
 
 type PostDaten = {
   id: string
@@ -45,15 +47,6 @@ type PostDaten = {
   referenzVideoTitel: string | null
 }
 
-type Szene = {
-  id: string
-  position: number
-  abschnitt: string
-  bildSzene: string | null
-  sprechertext: string | null
-  texteinblendung: string | null
-}
-
 type CustomFeld = { id: string; name: string; typ: CustomFeldTyp; wert: string | null }
 
 const STATUS: PostStatus[] = ['KONZEPT', 'VORSCHAU', 'FINAL']
@@ -62,7 +55,24 @@ const STATUS_TEXT: Record<PostStatus, string> = {
   VORSCHAU: 'Vorschau',
   FINAL: 'Final',
 }
-const ABSCHNITTE = ['Hook', 'Intro', 'Szene', 'Abbinder']
+/** Ein Name, damit Titel und Speichern-Knopf außerhalb des Formulars stehen können. */
+const FORMULAR = 'post-formular'
+
+const TERMIN = new Intl.DateTimeFormat('de-DE', {
+  weekday: 'short',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+/** Der aktive Status trägt seine eigene Farbe — wie überall sonst auch. */
+const STATUS_AKTIV: Record<PostStatus, string> = {
+  KONZEPT: 'bg-konzept-flaeche text-konzept',
+  VORSCHAU: 'bg-vorschau-flaeche text-vorschau',
+  FINAL: 'bg-final-flaeche text-final',
+}
 
 export function PostEditor({
   post,
@@ -98,6 +108,7 @@ export function PostEditor({
   referenz: {
     mediumUrl: string | null
     geladen: boolean
+    stand: Referenzstand
   }
   klappe: {
     eingerichtet: boolean
@@ -124,6 +135,9 @@ export function PostEditor({
   }
 }) {
   const [dialogOffen, setDialogOffen] = useState(false)
+  // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
+  // im Dialog und über den Eckdaten.
+  const referenzstand = useReferenzstand(post.id, referenz.stand)
   const [szenenplan, setSzenenplan] = useState(post.szenenplanAktiv)
   // Die Caption steht im Zustand, damit die Vorschau beim Tippen mitläuft.
   const [caption, setCaption] = useState(post.caption)
@@ -137,57 +151,90 @@ export function PostEditor({
     : standardUhrzeit
 
   return (
-    <div className="flex flex-wrap items-start gap-10">
-      <div className="grid min-w-[520px] flex-1 gap-8">
-      {/* ------------------------------------------------------------ Status */}
-      <div className="flex items-center gap-2.5">
-        <span className="text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
-          Status
-        </span>
-        <div className="flex overflow-hidden rounded-[5px] border border-rahmen-3">
-          {STATUS.map((status) => (
-            <form key={status} action={postStatusSetzen.bind(null, post.id, status)}>
-              <button
-                type="submit"
-                className={`px-3.5 py-1.5 text-[12px] transition-colors ${
-                  post.status === status
-                    ? 'bg-tinte font-medium text-white'
-                    : 'bg-flaeche text-leise hover:bg-flaeche-tief'
-                }`}
-              >
-                {STATUS_TEXT[status]}
-              </button>
-            </form>
-          ))}
-        </div>
-      </div>
+    <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_344px]">
+      <div className="grid min-w-0 gap-8">
+        {/* -------------------------------------------------------- Kopfzeile */}
+        {/*
+          Nach Mockup 2e: Merkmale in einer Zeile, darunter der Titel als
+          große, rahmenlose Eingabe. Er ist die Überschrift der Seite und
+          zugleich das Feld — ein eigenes „Titel"-Kästchen wäre doppelt.
+        */}
+        <div className="flex flex-wrap items-start justify-between gap-8">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2.5 flex flex-wrap items-center gap-3">
+              <TypBadge typ={post.typ} />
+              {post.postenAm ? (
+                <>
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-[15px] font-bold text-tinte">KW</span>
+                    <span className="font-serif text-[22px] leading-none text-akzent">
+                      {kalenderwoche(new Date(post.postenAm))}
+                    </span>
+                  </span>
+                  <span className="text-[12.5px] text-still">
+                    {TERMIN.format(new Date(post.postenAm))} Uhr
+                  </span>
+                </>
+              ) : (
+                <span className="text-[12.5px] text-still">Noch kein Termin</span>
+              )}
+            </div>
 
-      <form action={postSpeichern.bind(null, post.id)} className="grid gap-8">
+            <input
+              form={FORMULAR}
+              name="titel"
+              defaultValue={post.titel}
+              required
+              aria-label="Titel"
+              className="-ml-2 w-full rounded-[5px] border border-transparent bg-transparent px-2 py-1.5 text-[26px] font-semibold tracking-[-0.02em] text-tinte transition-colors hover:border-rahmen hover:bg-flaeche-leise focus:border-rahmen-3 focus:bg-flaeche focus:outline-none"
+            />
+          </div>
+
+          <div className="flex shrink-0 flex-col items-end gap-2.5">
+            <span className="text-[11px] uppercase tracking-[0.1em] text-still">Status</span>
+            <div className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]">
+              {STATUS.map((status) => (
+                <form key={status} action={postStatusSetzen.bind(null, post.id, status)}>
+                  <button
+                    type="submit"
+                    className={`flex items-center gap-[7px] rounded-[4px] px-3.5 py-2 text-[12.5px] transition-colors ${
+                      post.status === status
+                        ? `font-semibold ${STATUS_AKTIV[status]}`
+                        : 'text-leise hover:bg-flaeche-tief'
+                    }`}
+                  >
+                    {post.status === status && (
+                      <span aria-hidden className="block size-[6px] rounded-full bg-current" />
+                    )}
+                    {STATUS_TEXT[status]}
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      {referenzstand.stand === 'LAEUFT' && <Fortschrittsbalken stand={referenzstand} />}
+
+      <form id={FORMULAR} action={postSpeichern.bind(null, post.id)} className="grid gap-8">
         {/* -------------------------------------------------------- Eckdaten */}
         <Abschnitt titel="Eckdaten">
           <div className="grid gap-4 rounded-md border border-rahmen bg-flaeche p-5">
-            <Feld beschriftung="Titel">
-              <Eingabe name="titel" defaultValue={post.titel} required />
-            </Feld>
-
-            <div className="grid grid-cols-[1fr_120px] gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <Feld
                 beschriftung="Posting-Datum"
-                hinweis={post.postenAm ? undefined : 'Noch offen — leer lassen geht.'}
+                hinweis={post.postenAm ? undefined : 'Leer lassen geht.'}
               >
                 <Eingabe name="postenAm" type="date" defaultValue={datum} />
               </Feld>
               <Feld beschriftung="Uhrzeit">
                 <Eingabe name="uhrzeit" type="time" defaultValue={uhrzeit} required />
               </Feld>
-            </div>
-
-            <Feld beschriftung="Kurzbeschreibung">
-              <Eingabe name="kurzbeschreibung" defaultValue={post.kurzbeschreibung ?? ''} />
-            </Feld>
-
-            <div className={`grid gap-4 ${post.typ === 'REEL' ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              {/* Länge ergibt nur beim Bewegtbild einen Sinn. */}
+              <Feld beschriftung={post.typ === 'REEL' ? 'Format' : 'Seitenverhältnis'}>
+                <div className="rounded-[5px] border border-rahmen bg-flaeche-leise px-3 py-[7px] text-[13px] text-leise">
+                  {post.typ === 'REEL' ? 'Reel · 9:16' : `${TYP_TEXT[post.typ]} · 4:5`}
+                </div>
+              </Feld>
               {post.typ === 'REEL' && (
                 <Feld beschriftung="Länge">
                   <Eingabe name="laenge" defaultValue={post.laenge ?? ''} placeholder="ca. 30 Sek." />
@@ -200,6 +247,11 @@ export function PostEditor({
                 <Eingabe name="stil" defaultValue={post.stil ?? ''} placeholder="nahbar, direkt" />
               </Feld>
             </div>
+
+            <Feld beschriftung="Kurzbeschreibung">
+              <Eingabe name="kurzbeschreibung" defaultValue={post.kurzbeschreibung ?? ''} />
+            </Feld>
+
           </div>
         </Abschnitt>
 
@@ -219,8 +271,8 @@ export function PostEditor({
         {/* --------------------------------------------------- Reel: Szenen */}
         {post.typ === 'REEL' && (
           <Abschnitt
-            titel="Szenen"
-            hinweis="Optional — ohne Szenenplan tritt ein freies Inhalte-Feld an seine Stelle."
+            titel="Ablauf"
+            hinweis="Mit Szenenplan entsteht die nummerierte Liste, die der Kunde später sieht. Ohne ihn tritt ein freies Inhalte-Feld an seine Stelle."
           >
             <div className="mb-4">
               <Schalter
@@ -231,7 +283,9 @@ export function PostEditor({
               />
             </div>
 
-            {!szenenplan && (
+            {szenenplan ? (
+              <Szenenplan postId={post.id} szenen={szenen} />
+            ) : (
               <Feld beschriftung="Inhalte" hinweis="Freitext — erscheint so auch in der Kundenvorschau.">
                 <Textfeld name="inhalte" defaultValue={post.inhalte ?? ''} rows={5} />
               </Feld>
@@ -304,7 +358,7 @@ export function PostEditor({
       </div>
 
       {/* ------------------------------------------------------- Vorschau */}
-      <div className="sticky top-24 shrink-0">
+      <div className="sticky top-24 justify-self-center xl:justify-self-end">
         <p className="mb-3 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
           So sieht es der Kunde
         </p>
@@ -356,9 +410,15 @@ export function PostEditor({
                   eigene Datei, weil Instagram und YouTube Einbettungen unvorhersehbar sperren.
                 </p>
 
-                {meldungen.referenz && (
+                {(meldungen.referenz ?? referenzstand.meldung) && (
                   <div className="mb-3">
-                    <Warnung>{meldungen.referenz}</Warnung>
+                    <Warnung>{meldungen.referenz ?? referenzstand.meldung}</Warnung>
+                  </div>
+                )}
+
+                {referenzstand.stand === 'LAEUFT' && (
+                  <div className="mb-3">
+                    <Fortschrittsbalken stand={referenzstand} />
                   </div>
                 )}
 
@@ -375,13 +435,18 @@ export function PostEditor({
                     placeholder={'Beschriftung, z. B. „Handwerk sucht dich“'}
                   />
                   <div>
-                    <Knopf klein art="primaer" type="submit">
-                      Übernehmen und laden
+                    <Knopf
+                      klein
+                      art="primaer"
+                      type="submit"
+                      disabled={referenzstand.stand === 'LAEUFT'}
+                    >
+                      {referenzstand.stand === 'LAEUFT' ? 'Läuft …' : 'Übernehmen und laden'}
                     </Knopf>
                   </div>
                 </form>
 
-                {referenz.geladen && (
+                {referenz.geladen && referenzstand.stand !== 'LAEUFT' && (
                   <div className="mt-3 grid gap-2 rounded-md border border-rahmen bg-flaeche p-3">
                     {referenz.mediumUrl && (
                       <video

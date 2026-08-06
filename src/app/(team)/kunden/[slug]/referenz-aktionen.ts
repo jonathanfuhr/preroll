@@ -5,13 +5,12 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { loescheMedium } from '@/lib/medien'
-import { ladeReferenzvideo } from '@/lib/referenzvideo'
+import { brichReferenzDownloadAb, starteReferenzDownload } from '@/lib/referenz-auftrag'
 
 /**
- * Lädt das Referenzvideo herunter und legt es lokal ab. Eingebettet wird
- * danach die eigene Kopie — Instagram und YouTube sperren Einbettungen
- * unvorhersehbar, und ein Video, das in der Kundenvorschau nicht läuft, ist
- * schlimmer als keines.
+ * Stößt den Download an und kehrt sofort zurück. Gearbeitet wird im
+ * Hintergrund — der Editor zeigt den Fortschritt und lässt sich derweil
+ * schließen. Warum kein Worker: siehe `src/lib/referenz-auftrag.ts`.
  */
 export async function referenzvideoLaden(postId: string) {
   const nutzer = await aktuellerNutzer()
@@ -19,37 +18,14 @@ export async function referenzvideoLaden(postId: string) {
 
   const post = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
-    include: { kunde: true, referenzVideoMedium: true },
+    select: { referenzVideoUrl: true, kunde: { select: { slug: true } } },
   })
 
   if (!post.referenzVideoUrl) {
     redirect(`/kunden/${post.kunde.slug}/posts/${postId}?referenz=kein-link`)
   }
 
-  const ergebnis = await ladeReferenzvideo({
-    url: post.referenzVideoUrl,
-    kundeId: post.kundeId,
-    hochgeladenVonId: nutzer.id,
-  })
-
-  if (!ergebnis.ok) {
-    redirect(
-      `/kunden/${post.kunde.slug}/posts/${postId}?referenz=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
-    )
-  }
-
-  // Eine frühere Kopie ersetzen, damit die Bibliothek nicht zuwächst.
-  const alt = post.referenzVideoMedium
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      referenzVideoMediumId: ergebnis.medium.id,
-      referenzVideoPfad: ergebnis.medium.pfad,
-      referenzVideoTitel: post.referenzVideoTitel ?? ergebnis.titel,
-    },
-  })
-  if (alt) await loescheMedium(alt).catch(() => {})
-
+  await starteReferenzDownload(postId)
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }
 
@@ -62,9 +38,16 @@ export async function referenzvideoEntfernen(postId: string) {
     include: { kunde: true, referenzVideoMedium: true },
   })
 
+  await brichReferenzDownloadAb(postId)
   await prisma.post.update({
     where: { id: postId },
-    data: { referenzVideoMediumId: null, referenzVideoPfad: null },
+    data: {
+      referenzVideoMediumId: null,
+      referenzVideoPfad: null,
+      referenzVideoStand: null,
+      referenzVideoFortschritt: 0,
+      referenzVideoMeldung: null,
+    },
   })
   if (post.referenzVideoMedium) await loescheMedium(post.referenzVideoMedium).catch(() => {})
 

@@ -265,6 +265,24 @@ export async function szeneSpeichern(szeneId: string, formular: FormData) {
   revalidatePath('/kunden', 'layout')
 }
 
+/**
+ * Reihenfolge nach dem Ziehen — die Positionen ergeben sich aus der Liste.
+ *
+ * In zwei Durchgängen: `position` ist je Post eindeutig, und beim direkten
+ * Umnummerieren kollidiert unterwegs fast immer eine Zeile mit einer anderen.
+ * Der Umweg über negative Werte hält alle Zwischenstände frei.
+ */
+export async function szenenSortieren(postId: string, ids: string[]) {
+  await nutzerOderRaus()
+  await prisma.$transaction([
+    ...ids.map((id, i) =>
+      prisma.szene.update({ where: { id, postId }, data: { position: -(i + 1) } }),
+    ),
+    ...ids.map((id, i) => prisma.szene.update({ where: { id, postId }, data: { position: i } })),
+  ])
+  revalidatePath('/kunden', 'layout')
+}
+
 export async function szeneLoeschen(szeneId: string) {
   await nutzerOderRaus()
   await prisma.szene.delete({ where: { id: szeneId } })

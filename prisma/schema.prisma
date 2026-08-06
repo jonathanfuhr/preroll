@@ -319,6 +319,11 @@ model Post {
   referenzVideoPfad     String?
   referenzVideoMediumId String?
   referenzVideoMedium   Medium? @relation("ReferenzVideo", fields: [referenzVideoMediumId], references: [id], onDelete: SetNull)
+  // Der Download läuft im Hintergrund weiter, auch wenn der Dialog zugeht —
+  // deshalb steht sein Stand in der Datenbank und nicht im Speicher.
+  referenzVideoStand       Ladestand?
+  referenzVideoFortschritt Int        @default(0)
+  referenzVideoMeldung     String?
 
   // Finales Reel aus Klappe. Das Video entsteht beim Anlegen des Posts
   // automatisch mit, damit beim Upload kein Name mehr getippt werden muss.
@@ -360,6 +365,13 @@ model PostMedium {
   @@unique([postId, rolle, position])
   @@index([mediumId])
   @@map("post_medium")
+}
+
+/** Wie weit ein Referenzvideo-Download ist. Leer heißt: keiner gelaufen. */
+enum Ladestand {
+  LAEUFT
+  FERTIG
+  FEHLER
 }
 
 model Szene {

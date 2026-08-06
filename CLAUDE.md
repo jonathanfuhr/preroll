@@ -162,6 +162,16 @@ npm run check   # Typecheck + Tests
   Reel: Video, Thumbnail, Referenzvideo-Link und das finale Video aus Klappe).
   Die Slide-Zahl wird schon im Browser aus den Bildmaßen ermittelt, damit sie
   vor dem Upload dasteht.
+- **Referenzvideo lädt im Hintergrund.** `yt-dlp` und `ffmpeg` stecken im
+  Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand liegt am
+  Post (`referenzVideoStand`, `-Fortschritt`, `-Meldung`) — nur so überlebt er
+  das Schließen des Dialogs. Der Editor fragt über `/api/posts/<id>/referenz`
+  nach. Bewusst **kein** Worker: siehe `src/lib/referenz-auftrag.ts`. Ein
+  Neustart des Containers verliert einen laufenden Download; er steht dann auf
+  `LAEUFT` und wird neu angestoßen.
+- **Reel ohne Thumbnail bekommt ein Standbild.** Beim Video-Upload zieht
+  `ffmpeg` ein Bild bei Sekunde 1 — Sekunde 0 ist oft schwarz. Nur wenn noch
+  keins hinterlegt ist.
 - **Referenzvideo und Länge nur beim Reel.** Beides ergibt bei Standbildern
   keinen Sinn. Der Referenz-Link lebt im Medien-Dialog, nicht im Hauptformular —
   `postSpeichern` darf ihn deshalb nur schreiben, wenn das Feld auch mitkommt

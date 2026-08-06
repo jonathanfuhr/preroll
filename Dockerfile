@@ -16,6 +16,12 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
+# yt-dlp lädt Referenzvideos von Instagram, YouTube und TikTok; ffmpeg fügt
+# die getrennten Video- und Tonspuren zusammen und zieht das Standbild fürs
+# Reel-Thumbnail. Beides aus Alpine, damit kein Python-Wheel gebaut werden
+# muss.
+RUN apk add --no-cache yt-dlp ffmpeg
+
 RUN addgroup -g 1001 -S preroll && adduser -S preroll -u 1001
 
 # Standalone-Build bringt nur die tatsächlich benötigten Module mit.

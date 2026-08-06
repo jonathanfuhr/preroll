@@ -4,19 +4,9 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
 import { klappeEingerichtet } from '@/lib/klappe'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
-import { kalenderwoche } from '@/lib/format'
 import { medienUrl, thumbUrl } from '@/lib/urls'
-import { StatusBadge, TypBadge } from '@/components/ui'
 import { BrotkrumeSetzen } from '@/components/brotkrumen'
 import { PostEditor } from './editor'
-
-const DATUM_LANG = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'short',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-})
-const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
 
 export default async function PostSeite({
   params,
@@ -51,24 +41,7 @@ export default async function PostSeite({
     <>
       <BrotkrumeSetzen stufen={[{ text: post.titel }]} />
 
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-6">
-        <div>
-          <div className="mb-1.5 flex items-center gap-3">
-            <TypBadge typ={post.typ} />
-            {post.postenAm && (
-              <span className="font-mono text-[11.5px] text-still">
-                KW {kalenderwoche(post.postenAm)}
-              </span>
-            )}
-            <StatusBadge status={post.status} />
-          </div>
-          <h2 className="text-[19px] font-semibold tracking-[-0.01em]">{post.titel}</h2>
-          <p className="mt-1 text-[12.5px] text-leiser">
-            {post.postenAm
-              ? `${DATUM_LANG.format(post.postenAm)} · ${UHRZEIT.format(post.postenAm)} Uhr`
-              : 'Noch kein Termin — im Kalender aus der Spalte „Ungeplant" auf einen Tag ziehen.'}
-          </p>
-        </div>
+      <div className="mb-5 flex justify-end">
         <Link href={`/kunden/${slug}`} className="text-[12.5px] text-leise hover:text-tinte">
           ← Zur Übersicht
         </Link>
@@ -125,6 +98,12 @@ export default async function PostSeite({
         referenz={{
           mediumUrl: medienUrl(post.referenzVideoMediumId),
           geladen: Boolean(post.referenzVideoMediumId),
+          stand: {
+            stand: post.referenzVideoStand,
+            fortschritt: post.referenzVideoFortschritt,
+            meldung: post.referenzVideoMeldung,
+            mediumUrl: medienUrl(post.referenzVideoMediumId),
+          },
         }}
         klappe={{
           eingerichtet: angebunden,

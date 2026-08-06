@@ -2,6 +2,7 @@ import type { MediumRolle } from '@prisma/client'
 import type { NextRequest } from 'next/server'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { thumbnailAusVideoErgaenzen } from '@/lib/video'
 import { pruefeFormat, transparenzHinweis } from '@/lib/format'
 import { berechneAuftrennung } from '@/lib/karussell'
 import { ERLAUBTE_TYPEN, speichereMedium, trenneGesamtbildAuf } from '@/lib/medien'
@@ -141,6 +142,16 @@ export async function POST(anfrage: NextRequest) {
     await prisma.postMedium.create({
       data: { postId, mediumId: medium.id, rolle, position: position++ },
     })
+  }
+
+  // Ein Reel ohne Thumbnail zeigt im Profilraster nur Schraffur. Statt das
+  // anzumahnen, wird eins aus dem Video gezogen — ein Standbild ist besser
+  // als nichts und lässt sich jederzeit ersetzen.
+  if (rolle === 'MEDIUM' && post.typ === 'REEL') {
+    const erzeugt = await thumbnailAusVideoErgaenzen(postId)
+    if (erzeugt) {
+      hinweise.push('Kein Thumbnail hinterlegt — Preroll hat ein Standbild aus dem Video gezogen.')
+    }
   }
 
   return Response.json({ ok: true, hinweise })
