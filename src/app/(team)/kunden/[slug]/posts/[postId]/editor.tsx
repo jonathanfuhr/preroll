@@ -20,6 +20,7 @@ import {
   Abschnitt,
   Eingabe,
   Feld,
+  Fehler,
   Knopf,
   Schalter,
   Textfeld,
@@ -215,6 +216,24 @@ export function PostEditor({
         </div>
 
       {referenzstand.stand === 'LAEUFT' && <Fortschrittsbalken stand={referenzstand} />}
+
+      {/*
+        Ein gescheiterter Download stand bislang nur im Medien-Dialog — also
+        genau dort, wo niemand nachschaut, der ihn schon geschlossen hat.
+      */}
+      {referenzstand.stand === 'FEHLER' && referenzstand.meldung && (
+        <Fehler>
+          <strong className="font-semibold">Referenzvideo nicht geladen.</strong>{' '}
+          {referenzstand.meldung}{' '}
+          <button
+            type="button"
+            onClick={() => setDialogOffen(true)}
+            className="font-medium underline underline-offset-2"
+          >
+            Im Medien-Dialog erneut versuchen
+          </button>
+        </Fehler>
+      )}
 
       <form id={FORMULAR} action={postSpeichern.bind(null, post.id)} className="grid gap-8">
         {/* -------------------------------------------------------- Eckdaten */}

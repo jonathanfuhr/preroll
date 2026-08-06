@@ -173,8 +173,11 @@ npm run check   # Typecheck + Tests
   `sessionid` (`alsCookiedatei` baut daraus die Datei). Sie liegt in den
   Einstellungen und wird nur für die Dauer eines Laufs in den Temp-Ordner
   geschrieben. Scheitert ein Download an der Anmeldung, steht das danach in
-  den Einstellungen — nicht nur an dem einen Post. YouTube, TikTok und Vimeo
-  brauchen nichts davon.
+  den Einstellungen — nicht nur an dem einen Post, und als rotes Band über dem
+  ganzen Backend. Preroll prüft die Sitzung **höchstens einmal am Tag** an
+  einem hinterlegten Reel-Link (`wacheUeberSitzung`, angestoßen vom
+  Team-Layout — Preroll hat keinen Zeitplaner) und meldet den Ablauf **einmal**
+  an die Administration. YouTube, TikTok und Vimeo brauchen nichts davon.
 - **Referenzvideo lädt im Hintergrund.** `yt-dlp` und `ffmpeg` stecken im
   Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand liegt am
   Post (`referenzVideoStand`, `-Fortschritt`, `-Meldung`) — nur so überlebt er

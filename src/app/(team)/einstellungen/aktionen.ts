@@ -63,8 +63,12 @@ export async function referenzvideoSpeichern(formular: FormData) {
       instagramCookies: null,
       instagramCookiesAm: null,
       instagramGeprueftAm: null,
+      instagramGemeldetAm: null,
       instagramFehler: null,
     })
+    // Das Warnbanner hängt im Layout — ohne dies bliebe es bis zum nächsten
+    // Seitenwechsel stehen, obwohl das Problem behoben ist.
+    revalidatePath('/', 'layout')
     redirect('/einstellungen')
   }
 
@@ -76,15 +80,21 @@ export async function referenzvideoSpeichern(formular: FormData) {
       instagramCookies: datei,
       instagramCookiesAm: new Date(),
       instagramGeprueftAm: null,
+      instagramGemeldetAm: null,
       instagramFehler: null,
     })
+    revalidatePath('/', 'layout')
   }
 
   // Steht eine Adresse im Prüffeld, gleich ausprobieren — sonst merkt man erst
   // beim nächsten Post, ob die Sitzung taugt.
   const testUrl = String(formular.get('testUrl') ?? '').trim()
+  // Der Prüf-Link bleibt liegen: Die tägliche Wache braucht ihn.
+  await speichereEinstellungen({ instagramTestUrl: testUrl || null })
+
   if (testUrl) {
     const ergebnis = await pruefeInstagram(testUrl)
+    revalidatePath('/', 'layout')
     redirect(
       ergebnis.ok
         ? `/einstellungen?ig=ok&meldung=${encodeURIComponent(ergebnis.titel)}`

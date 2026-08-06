@@ -1,5 +1,8 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer, beendeTeamSession } from '@/lib/auth'
+import { darfVerwalten } from '@/lib/rollen'
+import { wacheUeberSitzung } from '@/lib/instagram'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { thumbUrl } from '@/lib/urls'
@@ -35,6 +38,9 @@ export default async function TeamLayout({
 }) {
   const nutzer = await aktuellerNutzer()
   if (!nutzer) redirect('/anmelden')
+
+  // Höchstens einmal am Tag, im Hintergrund — blockiert die Seite nicht.
+  void wacheUeberSitzung().catch(() => {})
 
   const [einstellungen, kunden, meldungen, ungelesen, offeneKommentare] =
     await Promise.all([
@@ -116,6 +122,25 @@ export default async function TeamLayout({
               />
             </div>
           </header>
+
+          {/*
+            Eine abgelaufene Instagram-Sitzung fällt sonst erst auf, wenn
+            jemand ein Referenzvideo braucht — und dann steht die Arbeit.
+            Deshalb im ganzen Backend, nicht nur in den Einstellungen.
+          */}
+          {einstellungen.instagramFehler && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-8 py-2.5 text-[12.5px] text-akzent-dunkel">
+              <strong className="font-semibold">Instagram-Sitzung abgelaufen</strong>
+              <span className="text-akzent-dunkel/80">
+                Referenzvideos von Instagram lassen sich bis zur Erneuerung nicht laden.
+              </span>
+              {darfVerwalten(nutzer.rolle) && (
+                <Link href="/einstellungen" className="font-medium underline underline-offset-2">
+                  Jetzt erneuern
+                </Link>
+              )}
+            </div>
+          )}
 
           <main className="px-8 py-8">{children}</main>
         </div>

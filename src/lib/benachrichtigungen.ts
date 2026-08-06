@@ -224,3 +224,46 @@ export function zeitraumText(von: Date, bis: Date): string {
   const bisText = formatiereTag(bis, { month: 'long', year: 'numeric' })
   return vonText === bisText ? vonText : `${vonText} – ${bisText}`
 }
+
+/**
+ * Die Instagram-Sitzung ist abgelaufen. Geht an die Administration — sie ist
+ * die einzige Rolle, die sie erneuern kann.
+ */
+export async function meldeInstagramAbgelaufen(grund: string): Promise<void> {
+  const admins = await prisma.nutzer.findMany({
+    where: { rolle: 'ADMIN', aktiv: true },
+    select: { id: true, email: true, mailBenachrichtigungen: true, pushBenachrichtigungen: true },
+  })
+
+  const titel = 'Instagram-Sitzung erneuern'
+  const text = `${grund} Bis dahin lassen sich keine Referenzvideos von Instagram laden.`
+  const url = `${env.appUrl}/einstellungen`
+
+  if (admins.length === 0) return
+
+  await stilleZustellung(
+    prisma.benachrichtigung.createMany({
+      data: admins.map((nutzer) => ({ nutzerId: nutzer.id, art: 'WARTUNG' as const, titel, text, url })),
+    }),
+    'Wartungsmeldung anlegen',
+  )
+
+  for (const nutzer of admins) {
+    if (nutzer.mailBenachrichtigungen) {
+      await stilleZustellung(
+        sendeMail({
+          an: nutzer.email,
+          betreff: `Preroll: ${titel}`,
+          text: `${text}\n\n${url}`,
+        }),
+        `Mail an ${nutzer.email}`,
+      )
+    }
+    if (nutzer.pushBenachrichtigungen) {
+      await stilleZustellung(
+        sendePush({ nutzerId: nutzer.id }, { titel, text, url }),
+        `Push an ${nutzer.email}`,
+      )
+    }
+  }
+}

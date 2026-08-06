@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
+import { meldeInstagramAbgelaufen } from './benachrichtigungen'
 import { ladeEinstellungen, speichereEinstellungen } from './einstellungen'
 
 export { alsCookiedatei } from './instagram-cookies'
@@ -85,4 +86,41 @@ export async function merkeAbgelaufen(): Promise<void> {
     instagramFehler: 'Ein Download scheiterte zuletzt an der Anmeldung — Sitzung vermutlich abgelaufen.',
     instagramGeprueftAm: new Date(),
   }).catch(() => {})
+}
+
+// ------------------------------------------------------------------- Wache
+
+/** Höchstens einmal am Tag prüfen — öfter bringt nichts und fällt auf. */
+const PRUEFABSTAND = 24 * 3600 * 1000
+
+/**
+ * Prüft die Sitzung im Hintergrund, wenn die letzte Prüfung einen Tag her ist.
+ * Läuft beim Aufruf einer Backend-Seite mit und blockiert sie nicht — Preroll
+ * hat keinen Zeitplaner, und ein zweiter Container nur dafür wäre unsinnig.
+ *
+ * Ohne hinterlegten Prüf-Link passiert nichts: An welchem Reel geprüft wird,
+ * lässt sich nicht erraten.
+ */
+export async function wacheUeberSitzung(): Promise<void> {
+  const e = await ladeEinstellungen()
+  if (!e.instagramCookies?.trim() || !e.instagramTestUrl?.trim()) return
+
+  const faellig =
+    !e.instagramGeprueftAm || Date.now() - e.instagramGeprueftAm.getTime() > PRUEFABSTAND
+  if (!faellig) return
+
+  // Sofort vormerken, damit nicht mehrere Aufrufe gleichzeitig losprüfen.
+  await speichereEinstellungen({ instagramGeprueftAm: new Date() })
+
+  const ergebnis = await pruefeInstagram(e.instagramTestUrl)
+  if (ergebnis.ok) {
+    await speichereEinstellungen({ instagramGemeldetAm: null })
+    return
+  }
+
+  // Nur einmal je Ablauf melden — eine tägliche Mail über dasselbe Problem
+  // liest nach der zweiten niemand mehr.
+  if (e.instagramGemeldetAm) return
+  await speichereEinstellungen({ instagramGemeldetAm: new Date() })
+  await meldeInstagramAbgelaufen(ergebnis.fehler)
 }

@@ -543,6 +543,8 @@ enum BenachrichtigungArt {
   KOMMENTAR
   FREIGABE
   EINLADUNG
+  /** Etwas am Werkzeug selbst braucht Aufmerksamkeit, etwa eine abgelaufene Sitzung. */
+  WARTUNG
 }
 
 /**
@@ -625,6 +627,10 @@ model Einstellungen {
   instagramCookies   String?
   instagramCookiesAm DateTime?
   instagramGeprueftAm DateTime?
+  /** Reel, an dem die Sitzung geprüft wird — auch täglich im Hintergrund. */
+  instagramTestUrl    String?
+  /** Damit die Meldung an die Administration nur einmal je Ablauf rausgeht. */
+  instagramGemeldetAm DateTime?
   /** Leer heißt: Die letzte Prüfung lief durch. */
   instagramFehler    String?
 
