@@ -6,7 +6,9 @@ import { darfAnsprechpartnerSein, ROLLE_TEXT } from '@/lib/rollen'
 import { thumbUrl } from '@/lib/urls'
 import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Textfeld } from '@/components/ui'
 import { betreuungSpeichern, customFeldAnlegen, customFeldLoeschen, kundeSpeichern } from '../aktionen'
-import { klappeProjektZuordnen } from '../klappe-aktionen'
+import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
+import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
+import { AworkProjektWahl } from './awork-projekt'
 import { BetreuungFormular } from './betreuung'
 import { CustomFeldFormular } from './custom-felder'
 import { KlappeProjektWahl } from './klappe-projekt'
@@ -22,6 +24,13 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
   ])
 
   const projekte = angebunden ? await klappeProjekte() : null
+
+  // awork antwortet mit einer leeren Liste, solange es nicht eingerichtet ist
+  // — der Aufruf ist also auch dann unschädlich.
+  const [aworkAn, aworkListe] = await Promise.all([
+    aworkEingerichtet(),
+    aworkProjekte().catch(() => []),
+  ])
 
   return (
     <div className="max-w-[760px]">
@@ -130,6 +139,26 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
                 : []
             }
             fehler={projekte && !projekte.ok ? projekte.fehler : null}
+            aktualisieren={klappeProjekteAktualisieren.bind(null, slug)}
+          />
+        </Karte>
+      </Abschnitt>
+
+      <Abschnitt
+        titel="awork"
+        hinweis="Das Gegenstück in eurem Projektmanagement. Was Preroll damit tut, ist noch offen — die Zuordnung steht schon bereit."
+      >
+        <Karte className="p-5">
+          <AworkProjektWahl
+            zuordnen={aworkProjektZuordnen.bind(null, kunde.id)}
+            eingerichtet={aworkAn}
+            projektId={kunde.aworkProjektId}
+            projektName={kunde.aworkProjektName}
+            projekte={aworkListe.map((p) => ({
+              id: p.id,
+              name: p.name,
+              typ: p.projectTypeName ?? null,
+            }))}
           />
         </Karte>
       </Abschnitt>

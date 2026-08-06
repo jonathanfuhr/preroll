@@ -29,7 +29,13 @@ import {
   TypBadge,
   Warnung,
 } from '@/components/ui'
-import { postSpeichern, postStatusSetzen, slidesSortieren } from '../../aktionen'
+import {
+  postSpeichern,
+  postStatusSetzen,
+  slideEntfernen,
+  slidesSortieren,
+  slideWiederherstellen,
+} from '../../aktionen'
 
 type PostDaten = {
   id: string
@@ -279,6 +285,24 @@ export function PostEditor({
           </div>
         </Abschnitt>
 
+        {/* ---------------------------------------------------------- Slides */}
+        {post.typ === 'KARUSSELL' && slides.length > 0 && (
+          <Abschnitt
+            titel="Slides"
+            hinweis="In dieser Reihenfolge wischt sich der Kunde durch. Sortieren und Entfernen erst nach einem Klick auf „Bearbeiten“."
+          >
+            <div className="rounded-md border border-rahmen bg-flaeche p-5">
+              <SlideSortierung
+                postId={post.id}
+                slides={slides}
+                reihenfolgeSpeichern={slidesSortieren.bind(null, post.id)}
+                entfernen={slideEntfernen}
+                wiederherstellen={slideWiederherstellen}
+              />
+            </div>
+          </Abschnitt>
+        )}
+
         {/* --------------------------------------------------------- Caption */}
         <Abschnitt
           titel="Caption"
@@ -411,14 +435,6 @@ export function PostEditor({
           )}
         </div>
 
-        {post.typ === 'KARUSSELL' && slides.length > 0 && (
-          <div className="mt-4 max-w-[344px]">
-            <p className="mb-2 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
-              Slides · zum Sortieren ziehen
-            </p>
-            <SlideSortierung slides={slides} reihenfolgeSpeichern={slidesSortieren.bind(null, post.id)} />
-          </div>
-        )}
       </div>
 
       <MedienDialog

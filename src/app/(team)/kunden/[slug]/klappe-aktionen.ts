@@ -40,6 +40,33 @@ export async function klappeProjektZuordnen(kundeId: string, formular: FormData)
   revalidatePath(`/kunden/${kunde.slug}`, 'layout')
 }
 
+/**
+ * Holt die Projektliste frisch bei Klappe. Preroll fragt sie ohnehin bei
+ * jedem Aufruf der Stammdaten ab — der Knopf ist für den Fall, dass dort
+ * gerade ein Projekt entstanden ist und man nicht erst die Seite suchen will.
+ */
+export async function klappeProjekteAktualisieren(kundeSlug: string) {
+  await nutzerOderRaus()
+  revalidatePath(`/kunden/${kundeSlug}/stammdaten`)
+}
+
+export async function aworkProjektZuordnen(kundeId: string, formular: FormData) {
+  await nutzerOderRaus()
+
+  const wert = String(formular.get('aworkProjekt') ?? '').trim()
+  const [id, ...rest] = wert.split('|')
+
+  const kunde = await prisma.kunde.update({
+    where: { id: kundeId },
+    data: {
+      aworkProjektId: id || null,
+      aworkProjektName: rest.join('|') || null,
+    },
+  })
+
+  revalidatePath(`/kunden/${kunde.slug}`, 'layout')
+}
+
 // --------------------------------------------------------- Video am Post
 
 /**

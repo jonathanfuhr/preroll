@@ -1,5 +1,7 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+import { useTransition } from 'react'
 import { Auswahl, Fehler, Hinweis, Knopf } from '@/components/ui'
 
 export type KlappeProjektZeile = {
@@ -15,6 +17,7 @@ export type KlappeProjektZeile = {
  */
 export function KlappeProjektWahl({
   zuordnen,
+  aktualisieren,
   eingerichtet,
   projektId,
   projektName,
@@ -22,12 +25,16 @@ export function KlappeProjektWahl({
   fehler,
 }: {
   zuordnen: (formular: FormData) => Promise<void>
+  /** Holt die Liste frisch bei Klappe — für neu angelegte Projekte. */
+  aktualisieren: () => Promise<void>
   eingerichtet: boolean
   projektId: string | null
   projektName: string | null
   projekte: KlappeProjektZeile[]
   fehler: string | null
 }) {
+  const router = useRouter()
+  const [laeuft, starte] = useTransition()
   if (!eingerichtet) {
     return (
       <Hinweis>
@@ -74,7 +81,15 @@ export function KlappeProjektWahl({
         </p>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => starte(async () => { await aktualisieren(); router.refresh() })}
+          disabled={laeuft}
+          className="text-[11.5px] text-leise underline underline-offset-2 hover:text-tinte disabled:opacity-50"
+        >
+          {laeuft ? 'Wird geholt …' : `Projektliste aktualisieren (${projekte.length})`}
+        </button>
         <Knopf klein type="submit">
           Speichern
         </Knopf>

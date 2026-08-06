@@ -253,6 +253,31 @@ export function PostSektion({
 
           <Eckdaten eintraege={eckdaten} />
 
+          {/*
+            Alle Slides in Reihe. Im Geräterahmen sieht man immer nur einen —
+            hier fällt auf, ob der Beitrag als Ganzes zusammenpasst. Die
+            1-px-Fugen lassen die Kanten der einzelnen Slides erkennbar.
+          */}
+          {post.typ === 'KARUSSELL' && medien.length > 1 && (
+            <div className="mt-6 sm:mt-[34px]">
+              <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
+                Alle Slides
+              </div>
+              <div className="flex max-w-[600px] gap-px overflow-hidden rounded-[3px] bg-rahmen-3">
+                {medien.map((bild, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={bild}
+                    src={bild}
+                    alt={`Slide ${i + 1}`}
+                    className="min-w-0 flex-1 object-cover"
+                    style={{ aspectRatio: '4 / 5' }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {mitSzenen ? (
             <Ablauf szenen={szenen} laenge={post.laenge} />
           ) : (

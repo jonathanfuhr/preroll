@@ -613,3 +613,68 @@ export async function szenenplanUebertragen(vonPostId: string, nachPostId: strin
 
   revalidatePath(`/kunden/${ziel.kunde.slug}`, 'layout')
 }
+
+/**
+ * Entfernt einen Slide aus dem Karussell. Das Medium selbst bleibt in der
+ * Bibliothek — nur die Zuordnung fällt weg. Deshalb lässt sich das
+ * rückgängig machen, ohne die Datei erneut hochzuladen.
+ */
+export async function slideEntfernen(postId: string, mediumId: string) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { kunde: { select: { slug: true } } },
+  })
+
+  await prisma.postMedium.deleteMany({ where: { postId, mediumId, rolle: 'SLIDE' } })
+
+  // Lücken schließen, damit die Positionen lückenlos bleiben.
+  const rest = await prisma.postMedium.findMany({
+    where: { postId, rolle: 'SLIDE' },
+    orderBy: { position: 'asc' },
+  })
+  await prisma.$transaction(
+    rest.map((eintrag, position) =>
+      prisma.postMedium.update({ where: { id: eintrag.id }, data: { position } }),
+    ),
+  )
+
+  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}
+
+/** Zurücknehmen des Entfernens — der Slide kommt an seine alte Stelle. */
+export async function slideWiederherstellen(
+  postId: string,
+  mediumId: string,
+  position: number,
+) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { kunde: { select: { slug: true } } },
+  })
+
+  const rest = await prisma.postMedium.findMany({
+    where: { postId, rolle: 'SLIDE' },
+    orderBy: { position: 'asc' },
+  })
+
+  // Platz schaffen: alles ab der Zielstelle rückt eins weiter. Über negative
+  // Zwischenwerte, weil (postId, rolle, position) eindeutig ist.
+  const nachher = rest.slice(position)
+  await prisma.$transaction([
+    ...nachher.map((e, i) =>
+      prisma.postMedium.update({ where: { id: e.id }, data: { position: -(i + 1) } }),
+    ),
+    ...nachher.map((e, i) =>
+      prisma.postMedium.update({ where: { id: e.id }, data: { position: position + i + 1 } }),
+    ),
+    prisma.postMedium.create({
+      data: { postId, mediumId, rolle: 'SLIDE', position },
+    }),
+  ])
+
+  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}

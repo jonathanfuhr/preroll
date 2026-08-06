@@ -1,5 +1,6 @@
 import type { PostTyp } from '@prisma/client'
 import Link from 'next/link'
+import { KarussellFlaeche } from './karussell-blaettern'
 import { ReelPlayer } from './reel-player'
 import type { ReactNode } from 'react'
 
@@ -227,44 +228,27 @@ export function IPhoneKarussell({
   logo,
   slides,
   caption,
-  aktiv = 0,
   aufUpload,
 }: {
   kunde: string
   logo?: string | null
   slides: string[]
   caption: string
-  aktiv?: number
   aufUpload?: () => void
 }) {
-  const anzahl = Math.max(slides.length, 1)
   return (
     <Geraet>
       <Statusleiste />
       <Kopfzeile name={kunde} logo={logo} />
-      <div className="relative h-[400px] w-[320px] shrink-0 border-y border-grund">
-        {slides[aktiv] ? (
-          <>
-            {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={slides[aktiv]} alt="" className="h-full w-full object-cover" />
-          </>
-        ) : (
-          <Platzhalter text={`Slide ${aktiv + 1} · 4:5`} aufKlick={aufUpload} />
-        )}
-        <span className="absolute right-3 top-2.5 rounded-[10px] bg-black/55 px-2.5 py-[3px] font-mono text-[9.5px] text-white">
-          {aktiv + 1}/{anzahl}
-        </span>
-      </div>
-      <div className="flex shrink-0 items-center justify-center gap-[5px] pb-0.5 pt-2.5">
-        {Array.from({ length: anzahl }, (_, i) => (
-          <span
-            key={i}
-            className="block size-1.5 rounded-full"
-            style={{ background: i === aktiv ? '#57534f' : '#d5d1cc' }}
-          />
-        ))}
-      </div>
+
+      {/* Blättern liegt im eigenen Bauteil — dafür braucht es Zustand. */}
+      <KarussellFlaeche
+        slides={slides}
+        aufUpload={aufUpload}
+        ersetzenKnopf={aufUpload ? <ErsetzenKnopf aufKlick={aufUpload} /> : null}
+        platzhalter={(nummer) => <Platzhalter text={`Slide ${nummer} · 4:5`} />}
+      />
+
       <Aktionsleiste />
       <Caption name={kunde} text={caption} />
     </Geraet>

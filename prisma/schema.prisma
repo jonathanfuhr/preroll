@@ -178,6 +178,10 @@ model Kunde {
   // Kunden, und das wird auf Dauer unübersichtlich.
   klappeProjektId   String?
   klappeProjektName String?
+  // Das Gegenstück in awork. Was Preroll damit tut, ist noch offen — die
+  // Zuordnung steht schon, damit sie nicht später nachgetragen werden muss.
+  aworkProjektId    String?
+  aworkProjektName  String?
 
   // Der Hauptansprechpartner steht auf jeder Export-Seite dieses Kunden und
   // bekommt jede Rückmeldung — auch wenn für einen Export zusätzlich jemand
