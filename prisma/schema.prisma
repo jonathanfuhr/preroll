@@ -59,6 +59,7 @@ model Nutzer {
   benachrichtigungen Benachrichtigung[]
   hauptAnsprechpartnerVon Kunde[]  @relation("Hauptansprechpartner")
   betreut                 KundeBetreuer[]
+  favoriten               KundeFavorit[]
   zusatzAnsprechpartnerVon Export[] @relation("ZusatzAnsprechpartner")
 
   erstelltAm     DateTime  @default(now())
@@ -66,6 +67,24 @@ model Nutzer {
   zuletztAktivAm DateTime?
 
   @@map("nutzer")
+}
+
+/**
+ * Angehefteter Kunde — je Nutzer, nicht je Team. Wer drei Kunden betreut,
+ * will genau die in der Seitenleiste, nicht alle zwanzig.
+ */
+model KundeFavorit {
+  id       String @id @default(cuid())
+  nutzerId String
+  nutzer   Nutzer @relation(fields: [nutzerId], references: [id], onDelete: Cascade)
+  kundeId  String
+  kunde    Kunde  @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+
+  erstelltAm DateTime @default(now())
+
+  @@unique([nutzerId, kundeId])
+  @@index([kundeId])
+  @@map("kunde_favorit")
 }
 
 model NutzerSession {
@@ -194,8 +213,9 @@ model Kunde {
   hauptAnsprechpartnerId String?
   hauptAnsprechpartner   Nutzer? @relation("Hauptansprechpartner", fields: [hauptAnsprechpartnerId], references: [id], onDelete: SetNull)
 
-  betreuer KundeBetreuer[]
-  posts    Post[]
+  betreuer  KundeBetreuer[]
+  favoriten KundeFavorit[]
+  posts     Post[]
   medien          Medium[]
   exporte         Export[]
   customFelder    CustomFeldDefinition[]

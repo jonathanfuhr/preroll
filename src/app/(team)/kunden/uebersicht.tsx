@@ -2,7 +2,7 @@
 
 import type { PostStatus } from '@prisma/client'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { Karte, KnopfLink, Leerzustand, StatusBadge } from '@/components/ui'
 
 const DATUM = new Intl.DateTimeFormat('de-DE', {
@@ -14,6 +14,7 @@ const DATUM = new Intl.DateTimeFormat('de-DE', {
 
 export type Kundenkachel = {
   id: string
+  angeheftet: boolean
   slug: string
   name: string
   handle: string | null
@@ -38,9 +39,16 @@ const FILTER: Array<{ wert: Filter; text: string }> = [
  * Unterzeile die Beiträge in Arbeit. Gesucht wird im Browser — ein Bestand von
  * Kunden passt in eine Antwort.
  */
-export function Kundenuebersicht({ kunden }: { kunden: Kundenkachel[] }) {
+export function Kundenuebersicht({
+  kunden,
+  umschalten,
+}: {
+  kunden: Kundenkachel[]
+  umschalten: (kundeId: string) => Promise<void>
+}) {
   const [suche, setSuche] = useState('')
   const [filter, setFilter] = useState<Filter>('alle')
+  const [, starte] = useTransition()
 
   const gefiltert = useMemo(() => {
     const begriff = suche.trim().toLowerCase()
@@ -99,8 +107,23 @@ export function Kundenuebersicht({ kunden }: { kunden: Kundenkachel[] }) {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
           {gefiltert.map((kunde) => (
-            <Link key={kunde.id} href={`/kunden/${kunde.slug}`} className="group">
-              <Karte className="h-full p-[22px] transition-all group-hover:border-rahmen-4 group-hover:shadow-[0_6px_20px_rgba(28,22,16,.07)]">
+            <div key={kunde.id} className="group relative">
+              <button
+                type="button"
+                onClick={() => starte(async () => { await umschalten(kunde.id) })}
+                aria-label={kunde.angeheftet ? `${kunde.name} lösen` : `${kunde.name} anheften`}
+                title={kunde.angeheftet ? 'Nicht mehr anheften' : 'An die Seitenleiste heften'}
+                className={`absolute right-3 top-3 z-10 rounded p-1.5 transition-opacity ${
+                  kunde.angeheftet
+                    ? 'text-akzent opacity-100'
+                    : 'text-stiller opacity-0 group-hover:opacity-100'
+                }`}
+              >
+                <Stern gefuellt={kunde.angeheftet} />
+              </button>
+
+              <Link href={`/kunden/${kunde.slug}`} className="block">
+              <Karte className="h-full p-[22px] transition-all hover:border-rahmen-4 hover:shadow-[0_6px_20px_rgba(28,22,16,.07)]">
                 <div className="flex items-center gap-3.5">
                   {kunde.logo ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -162,7 +185,8 @@ export function Kundenuebersicht({ kunden }: { kunden: Kundenkachel[] }) {
                   </div>
                 </dl>
               </Karte>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}
@@ -227,5 +251,19 @@ function Kopf({
         </div>
       )}
     </>
+  )
+}
+
+function Stern({ gefuellt }: { gefuellt: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 12 12" aria-hidden>
+      <path
+        d="M6 1 7.55 4.2 11 4.7 8.5 7.15 9.1 10.6 6 8.97 2.9 10.6l.6-3.45L1 4.7l3.45-.5L6 1Z"
+        fill={gefuellt ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }

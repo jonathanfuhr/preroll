@@ -81,7 +81,7 @@ export function KarussellFlaeche({
         )}
       </div>
 
-      <div className="flex shrink-0 items-center justify-center gap-[5px] pb-0.5 pt-2.5">
+      <div className="flex shrink-0 items-center justify-center gap-px pb-0.5 pt-2.5">
         {Array.from({ length: anzahl }, (_, i) => (
           <button
             key={i}
@@ -89,7 +89,7 @@ export function KarussellFlaeche({
             onClick={() => setAktiv(i)}
             aria-label={`Zu Slide ${i + 1}`}
             aria-current={i === aktiv}
-            className="block rounded-full p-1 transition-opacity hover:opacity-60"
+            className="block cursor-pointer rounded-full px-[2px] py-1 transition-opacity hover:opacity-60"
           >
             <span
               className="block size-1.5 rounded-full"
@@ -117,7 +117,9 @@ function Pfeil({
       onClick={aufKlick}
       disabled={aus}
       aria-label={richtung === 'links' ? 'Vorheriger Slide' : 'Nächster Slide'}
-      className={`absolute top-1/2 z-20 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:group-hover:opacity-0 ${
+      // Langsam einblenden: Ein Pfeil, der beim Vorbeifahren aufblitzt,
+      // wirkt nervös.
+      className={`absolute top-1/2 z-20 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition-opacity duration-500 group-hover:opacity-100 focus-visible:opacity-100 disabled:group-hover:opacity-0 ${
         richtung === 'links' ? 'left-2' : 'right-2'
       }`}
     >

@@ -255,15 +255,6 @@ export function PostSektion({
             </p>
           )}
 
-          <div className="mt-5">
-            <a
-              href={`/api/posts/${post.id}/zip`}
-              className="inline-flex items-center rounded-[5px] border border-rahmen bg-flaeche px-3.5 py-2 text-[12.5px] font-medium text-tinte transition-colors hover:border-rahmen-4"
-            >
-              Dateien als ZIP
-            </a>
-          </div>
-
           <Eckdaten eintraege={eckdaten} />
 
           {/*

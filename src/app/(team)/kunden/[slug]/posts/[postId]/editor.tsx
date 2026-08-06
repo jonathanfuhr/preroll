@@ -206,6 +206,14 @@ export function PostEditor({
           </div>
 
           <div className="flex shrink-0 flex-col items-end gap-2.5">
+            <a
+              href={`/api/posts/${post.id}/zip`}
+              title="Alle Medien dieses Beitrags und die Caption als Textdatei"
+              className="inline-flex items-center rounded-[5px] border border-rahmen-3 bg-flaeche px-3 py-1.5 text-[12px] font-medium text-tinte transition-colors hover:border-rahmen-4"
+            >
+              Dateien als ZIP
+            </a>
+
             <span className="text-[11px] uppercase tracking-[0.1em] text-still">Status</span>
             <div className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]">
               {STATUS.map((status) => (
@@ -420,12 +428,6 @@ export function PostEditor({
         />
 
         <div className="mt-3 flex max-w-[344px] flex-wrap items-center gap-2">
-          <a
-            href={`/api/posts/${post.id}/zip`}
-            className="inline-flex items-center rounded-[5px] border border-rahmen-3 bg-flaeche px-3 py-1.5 text-[12px] font-medium text-tinte transition-colors hover:border-rahmen-4"
-          >
-            Als ZIP
-          </a>
           {post.typ === 'REEL' ? (
             <>
               <Knopf klein onClick={() => setDialogOffen('MEDIUM')}>

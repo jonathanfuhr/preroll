@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer, beendeTeamSession } from '@/lib/auth'
 import { darfVerwalten } from '@/lib/rollen'
 import { wacheUeberSitzung } from '@/lib/instagram'
+import { favoritUmschalten } from './favoriten-aktionen'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { thumbUrl } from '@/lib/urls'
@@ -42,13 +43,18 @@ export default async function TeamLayout({
   // Höchstens einmal am Tag, im Hintergrund — blockiert die Seite nicht.
   void wacheUeberSitzung().catch(() => {})
 
-  const [einstellungen, kunden, meldungen, ungelesen, offeneKommentare] =
+  const [einstellungen, kunden, favoriten, meldungen, ungelesen, offeneKommentare] =
     await Promise.all([
       ladeEinstellungen(),
       prisma.kunde.findMany({
         where: { archiviert: false },
         orderBy: { name: 'asc' },
-        select: { slug: true, name: true, logoId: true },
+        select: { id: true, slug: true, name: true, logoId: true },
+      }),
+      prisma.kundeFavorit.findMany({
+        where: { nutzerId: nutzer.id, kunde: { archiviert: false } },
+        orderBy: { kunde: { name: 'asc' } },
+        include: { kunde: { select: { id: true, slug: true, name: true, logoId: true } } },
       }),
       prisma.benachrichtigung.findMany({
         where: { nutzerId: nutzer.id },
@@ -82,11 +88,19 @@ export default async function TeamLayout({
       <div className="flex min-h-screen">
         <Seitenleiste
           kunden={kunden.map((k) => ({
+            id: k.id,
             slug: k.slug,
             name: k.name,
             logo: thumbUrl(k.logoId),
           }))}
+          favoriten={favoriten.map((f) => ({
+            id: f.kunde.id,
+            slug: f.kunde.slug,
+            name: f.kunde.name,
+            logo: thumbUrl(f.kunde.logoId),
+          }))}
           offeneKommentare={jeKunde}
+          umschalten={favoritUmschalten}
         />
 
         {/*

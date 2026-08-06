@@ -153,6 +153,16 @@
     }
   }
 
+  /*
+   * Tailwind 4 gibt Knöpfen `cursor: default`. Für ein Werkzeug, in dem den
+   * ganzen Tag geklickt wird, ist die Hand die richtige Rückmeldung.
+   */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary {
+    cursor: pointer;
+  }
+
   /* Platzhalter-Schraffur, solange kein Medium hinterlegt ist. */
   .schraffur {
     background: repeating-linear-gradient(

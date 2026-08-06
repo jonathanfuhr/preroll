@@ -1,4 +1,6 @@
+import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { favoritUmschalten } from '../favoriten-aktionen'
 import { offeneStufe } from '@/lib/freigabe'
 import { thumbUrl } from '@/lib/urls'
 import { Kundenuebersicht, type Kundenkachel } from './uebersicht'
@@ -6,6 +8,15 @@ import { Kundenuebersicht, type Kundenkachel } from './uebersicht'
 export const metadata = { title: 'Kunden — Preroll' }
 
 export default async function KundenSeite() {
+  const nutzer = await aktuellerNutzer()
+  const meineFavoriten = nutzer
+    ? await prisma.kundeFavorit.findMany({
+        where: { nutzerId: nutzer.id },
+        select: { kundeId: true },
+      })
+    : []
+  const angeheftet = new Set(meineFavoriten.map((f) => f.kundeId))
+
   const kunden = await prisma.kunde.findMany({
     where: { archiviert: false },
     orderBy: { name: 'asc' },
@@ -58,6 +69,7 @@ export default async function KundenSeite() {
 
   const kacheln: Kundenkachel[] = kunden.map((kunde) => ({
     id: kunde.id,
+    angeheftet: angeheftet.has(kunde.id),
     slug: kunde.slug,
     name: kunde.name,
     handle: kunde.handle,
@@ -69,5 +81,5 @@ export default async function KundenSeite() {
     freigabeOffen: freigabeJeKunde.get(kunde.id) ?? 0,
   }))
 
-  return <Kundenuebersicht kunden={kacheln} />
+  return <Kundenuebersicht kunden={kacheln} umschalten={favoritUmschalten} />
 }

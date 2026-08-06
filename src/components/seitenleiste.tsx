@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTransition } from 'react'
 import type { ReactNode } from 'react'
 
 /**
@@ -11,9 +12,80 @@ import type { ReactNode } from 'react'
  */
 
 export type KundeEintrag = {
+  id: string
   slug: string
   name: string
   logo: string | null
+}
+
+/**
+ * Eine Kundenzeile mit Logo, offenen Kommentaren und dem Stern zum Anheften.
+ * Der Stern erscheint erst beim Überfahren — angeheftet bleibt er stehen,
+ * sonst wüsste niemand, wie man wieder loswird, was man angeheftet hat.
+ */
+function Kundenzeile({
+  kunde,
+  aktiv,
+  kommentare,
+  angeheftet,
+  umschalten,
+}: {
+  kunde: KundeEintrag
+  aktiv: boolean
+  kommentare: number
+  angeheftet: boolean
+  umschalten: (kundeId: string) => Promise<void>
+}) {
+  const [, starte] = useTransition()
+
+  return (
+    <div className="group/kunde relative">
+      <Punkt href={`/kunden/${kunde.slug}`} aktiv={aktiv}>
+        {kunde.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={kunde.logo} alt="" className="size-[18px] shrink-0 rounded-[4px] object-cover" />
+        ) : (
+          <span className="schraffur size-[18px] shrink-0 rounded-[4px] border border-rahmen-3" />
+        )}
+        <span className="min-w-0 flex-1 truncate">{kunde.name}</span>
+
+        {kommentare > 0 && (
+          <span
+            title={`${kommentare} offene Kommentare`}
+            className="shrink-0 rounded-full bg-akzent px-1.5 py-px text-[10px] font-medium text-white"
+          >
+            {kommentare}
+          </span>
+        )}
+      </Punkt>
+
+      <button
+        type="button"
+        onClick={() => starte(async () => { await umschalten(kunde.id) })}
+        aria-label={angeheftet ? `${kunde.name} lösen` : `${kunde.name} anheften`}
+        title={angeheftet ? 'Nicht mehr anheften' : 'An die Leiste heften'}
+        className={`absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 transition-opacity ${
+          angeheftet ? 'text-akzent opacity-100' : 'text-stiller opacity-0 group-hover/kunde:opacity-100'
+        }`}
+      >
+        <Stern gefuellt={angeheftet} />
+      </button>
+    </div>
+  )
+}
+
+function Stern({ gefuellt }: { gefuellt: boolean }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+      <path
+        d="M6 1 7.55 4.2 11 4.7 8.5 7.15 9.1 10.6 6 8.97 2.9 10.6l.6-3.45L1 4.7l3.45-.5L6 1Z"
+        fill={gefuellt ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
 }
 
 const BEREICHE = [
@@ -65,10 +137,15 @@ function Punkt({
 
 export function Seitenleiste({
   kunden,
+  favoriten,
   offeneKommentare,
+  umschalten,
 }: {
   kunden: KundeEintrag[]
+  /** Angeheftete Kunden dieses Nutzers — stehen dauerhaft in der Leiste. */
+  favoriten: KundeEintrag[]
   offeneKommentare: Record<string, number>
+  umschalten: (kundeId: string) => Promise<void>
 }) {
   const pfad = usePathname()
   const slug = offenerKunde(pfad, kunden)
@@ -88,17 +165,32 @@ export function Seitenleiste({
           Kunden
         </Punkt>
 
+        {/*
+          Angeheftete Kunden stehen immer da — der Weg von einem zum nächsten
+          führte sonst jedes Mal über die Übersicht.
+        */}
+        {favoriten
+          .filter((f) => f.slug !== slug)
+          .map((f) => (
+            <Kundenzeile
+              key={f.slug}
+              kunde={f}
+              aktiv={false}
+              kommentare={offeneKommentare[f.slug] ?? 0}
+              angeheftet
+              umschalten={umschalten}
+            />
+          ))}
+
         {kunde && (
           <>
-            <Punkt href={basis} aktiv={pfad.startsWith(basis)}>
-              {kunde.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={kunde.logo} alt="" className="size-[18px] rounded-[4px] object-cover" />
-              ) : (
-                <span className="schraffur size-[18px] rounded-[4px] border border-rahmen-3" />
-              )}
-              <span className="truncate">{kunde.name}</span>
-            </Punkt>
+            <Kundenzeile
+              kunde={kunde}
+              aktiv={pfad.startsWith(basis)}
+              kommentare={offeneKommentare[kunde.slug] ?? 0}
+              angeheftet={favoriten.some((f) => f.slug === kunde.slug)}
+              umschalten={umschalten}
+            />
 
             {BEREICHE.map((bereich) => {
               const href = `${basis}${bereich.pfad}`
