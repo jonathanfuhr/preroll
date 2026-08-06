@@ -23,11 +23,10 @@ COPY --from=build --chown=preroll:preroll /app/.next/standalone ./
 COPY --from=build --chown=preroll:preroll /app/.next/static ./.next/static
 COPY --from=build --chown=preroll:preroll /app/public ./public
 
-# Migrationen und Prisma-CLI für den Start-Hook.
-COPY --from=build --chown=preroll:preroll /app/prisma ./prisma
-COPY --from=build --chown=preroll:preroll /app/prisma.config.ts ./prisma.config.ts
-COPY --from=build --chown=preroll:preroll /app/node_modules/prisma ./node_modules/prisma
-COPY --from=build --chown=preroll:preroll /app/node_modules/@prisma ./node_modules/@prisma
+# Migrationen und das Skript, das sie einspielt. Die Prisma-CLI wird dafür
+# nicht gebraucht — siehe docker-entrypoint.sh.
+COPY --from=build --chown=preroll:preroll /app/prisma/migrations ./prisma/migrations
+COPY --from=build --chown=preroll:preroll /app/scripts/db-migrate.ts ./scripts/db-migrate.ts
 COPY --chown=preroll:preroll docker-entrypoint.sh ./
 
 RUN mkdir -p /app/data/uploads && chown -R preroll:preroll /app/data && chmod +x /app/docker-entrypoint.sh
