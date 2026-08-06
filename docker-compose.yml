@@ -31,7 +31,13 @@ services:
       # MEDIEN_PFAD zeigt auf ein Verzeichnis auf dem Mac bzw. Server.
       - ${MEDIEN_PFAD:-./data}:/app/data
     ports:
-      - '${PORT:-3000}:3000'
+      # Nur auf die Loopback-Adresse veröffentlichen: Nach außen geht es über
+      # den Cloudflare-Tunnel, der nativ auf demselben Mac läuft. So ist die
+      # App aus dem LAN nicht erreichbar.
+      #
+      # 4400, weil auf dem Mac Mini bereits Klappe (3000) und Mappe (4300)
+      # liegen.
+      - '${BIND_ADDR:-127.0.0.1}:${PORT:-4400}:3000'
 
 volumes:
   postgres:

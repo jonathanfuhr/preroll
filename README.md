@@ -16,14 +16,61 @@ cp .env.example .env    # SESSION_SECRET und APP_URL setzen
 docker compose up -d --build
 ```
 
-Der Container spielt beim Start die Migrationen ein. Medien und Datenbank liegen
-in benannten Volumes.
+Der Container spielt beim Start die Migrationen ein. Die Datenbank liegt in
+einem benannten Volume, die **hochgeladenen Medien dagegen auf einem Pfad des
+Hosts** (`MEDIEN_PFAD`) — dort sind sie im Finder erreichbar, laufen ins
+Backup und überleben jedes Neubauen des Images.
 
 Beispieldaten (Kunde Beispiel Handwerk GmbH, Content-Plan August 2026):
 
 ```bash
 docker compose exec web npx prisma db seed
 ```
+
+## Veröffentlichen über Cloudflare Tunnel
+
+Auf dem Mac Mini läuft `cloudflared` **nativ** (Homebrew), nicht im Container.
+Damit sieht der Tunnel das Compose-Netz nicht — der Docker-Servicename `web`
+ist für ihn unerreichbar. Er geht über den veröffentlichten Host-Port:
+
+```
+Cloudflare  →  cloudflared (nativ)  →  http://localhost:4400  →  Container :3000
+```
+
+**Port 4400**, weil auf demselben Rechner schon Klappe (3000) und Mappe (4300)
+liegen. Veröffentlicht wird nur auf `127.0.0.1` — nach außen geht es
+ausschließlich durch den Tunnel, aus dem LAN ist die App nicht erreichbar.
+
+In `~/.cloudflared/config.yml` ergänzen:
+
+```yaml
+ingress:
+  - hostname: preroll.fuhrzwei.de
+    service: http://localhost:4400
+  # … bestehende Einträge für klappe und mappe …
+  - service: http_status:404
+```
+
+DNS-Eintrag anlegen und den Dienst neu laden:
+
+```bash
+cloudflared tunnel route dns <tunnel-name> preroll.fuhrzwei.de
+```
+
+```bash
+brew services restart cloudflared
+```
+
+**`APP_URL` muss die öffentliche https-Adresse sein**, nicht `localhost`: Sie
+steckt in Mails, Freigabe-Links und Web-Push — und entscheidet über das
+`secure`-Flag der Session-Cookies. Steht dort `http://…`, gehen die Cookies
+ohne `secure` raus.
+
+**Upload-Grenze beachten.** Cloudflare deckelt den Request-Body (in den
+kleineren Tarifen bei 100 MB). Ein Karussell mit vielen großen Slides geht als
+**eine** Anfrage raus und kann darüber liegen — dann bricht der Upload mit
+einem Cloudflare-Fehler ab, nicht mit einer Meldung aus Preroll. Im Zweifel
+die Slides in zwei Durchgängen hochladen oder das Limit im Tarif prüfen.
 
 ## Entwicklung
 
