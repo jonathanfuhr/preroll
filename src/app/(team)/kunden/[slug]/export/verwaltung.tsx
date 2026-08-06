@@ -10,7 +10,11 @@ import {
   gastEinladen,
 } from '../aktionen'
 
-type Ansprechpartner = { id: string; name: string; standard: boolean }
+import { ROLLE_TEXT } from '@/lib/rollen'
+import type { Rolle } from '@prisma/client'
+
+/** Konten, die als zusätzlicher Ansprechpartner in Frage kommen. */
+type Waehlbar = { id: string; name: string; rolle: Rolle }
 
 type ExportDaten = {
   id: string
@@ -20,7 +24,7 @@ type ExportDaten = {
   zeitraumVon: string
   zeitraumBis: string
   gueltigBis: string
-  ansprechpartnerId: string | null
+  zusatzAnsprechpartnerId: string | null
   kommentareErlaubt: boolean
   freigabenErlaubt: boolean
   konzepteMitzeigen: boolean
@@ -34,16 +38,15 @@ function AnsprechpartnerWahl({
   liste,
   ausgewaehlt,
 }: {
-  liste: Ansprechpartner[]
+  liste: Waehlbar[]
   ausgewaehlt?: string | null
 }) {
   return (
-    <Auswahl name="ansprechpartnerId" defaultValue={ausgewaehlt ?? ''}>
-      <option value="">— kein Ansprechpartner —</option>
+    <Auswahl name="zusatzAnsprechpartnerId" defaultValue={ausgewaehlt ?? ''}>
+      <option value="">— nur der Hauptansprechpartner —</option>
       {liste.map((a) => (
         <option key={a.id} value={a.id}>
-          {a.name}
-          {a.standard ? ' · Standard' : ''}
+          {a.name} · {ROLLE_TEXT[a.rolle]}
         </option>
       ))}
     </Auswahl>
@@ -74,13 +77,7 @@ function Optionen({ exp }: { exp?: ExportDaten }) {
   )
 }
 
-export function ExportAnlegen({
-  kundeId,
-  ansprechpartner,
-}: {
-  kundeId: string
-  ansprechpartner: Ansprechpartner[]
-}) {
+export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlbare: Waehlbar[] }) {
   const [offen, setOffen] = useState(false)
   const heute = new Date()
   const ersterTag = new Date(heute.getFullYear(), heute.getMonth(), 1).toISOString().slice(0, 10)
@@ -117,11 +114,11 @@ export function ExportAnlegen({
             <Eingabe name="gueltigBis" type="date" />
           </Feld>
 
-          <Feld beschriftung="Ansprechpartner auf der Export-Seite">
-            <AnsprechpartnerWahl
-              liste={ansprechpartner}
-              ausgewaehlt={ansprechpartner.find((a) => a.standard)?.id}
-            />
+          <Feld
+            beschriftung="Zusätzlicher Ansprechpartner"
+            hinweis="Erscheint neben dem Hauptansprechpartner des Kunden und bekommt dessen Rückmeldungen mit — ersetzt ihn also nicht."
+          >
+            <AnsprechpartnerWahl liste={waehlbare} />
           </Feld>
 
           <Optionen />
@@ -143,12 +140,12 @@ export function ExportAnlegen({
 export function ExportKarte({
   exp,
   basisUrl,
-  ansprechpartner,
+  waehlbare,
   gaeste,
 }: {
   exp: ExportDaten
   basisUrl: string
-  ansprechpartner: Ansprechpartner[]
+  waehlbare: Waehlbar[]
   gaeste: Array<{ id: string; name: string; email: string; geoeffnet: string | null }>
 }) {
   const [bearbeiten, setBearbeiten] = useState(false)
@@ -279,8 +276,11 @@ export function ExportKarte({
             </Feld>
           </div>
 
-          <Feld beschriftung="Ansprechpartner" hinweis="Gilt nur für diesen Link.">
-            <AnsprechpartnerWahl liste={ansprechpartner} ausgewaehlt={exp.ansprechpartnerId} />
+          <Feld
+            beschriftung="Zusätzlicher Ansprechpartner"
+            hinweis="Nur für diesen Link. Kommt zum Hauptansprechpartner dazu, ersetzt ihn nicht."
+          >
+            <AnsprechpartnerWahl liste={waehlbare} ausgewaehlt={exp.zusatzAnsprechpartnerId} />
           </Feld>
 
           <Optionen exp={exp} />

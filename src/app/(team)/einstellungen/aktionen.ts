@@ -36,6 +36,13 @@ export async function workspaceSpeichern(formular: FormData) {
   await speichereEinstellungen({
     workspaceName: text(formular, 'workspaceName') ?? 'Preroll',
     akzentfarbe: text(formular, 'akzentfarbe') ?? '#b00900',
+    ...(formular.has('agenturName')
+      ? {
+          agenturName: text(formular, 'agenturName'),
+          agenturAdresse: text(formular, 'agenturAdresse'),
+          agenturWebsite: text(formular, 'agenturWebsite'),
+        }
+      : {}),
   })
   revalidatePath('/einstellungen')
 }
@@ -104,13 +111,19 @@ export async function anmeldungSpeichern(formular: FormData) {
   revalidatePath('/einstellungen')
 }
 
+/** Was Preroll mit Klappe austauscht — die Kopplung selbst liegt woanders. */
 export async function klappeSpeichern(formular: FormData) {
   await adminOderRaus()
   await speichereEinstellungen({
-    klappeBasisUrl: text(formular, 'klappeBasisUrl')?.replace(/\/$/, '') ?? null,
-    ...(geheimnis(formular, 'klappeApiKey') ? { klappeApiKey: geheimnis(formular, 'klappeApiKey') } : {}),
+    klappeVideoAnlegen: formular.get('klappeVideoAnlegen') === 'on',
+    klappeNamenNachziehen: formular.get('klappeNamenNachziehen') === 'on',
+    klappeNamensschema: text(formular, 'klappeNamensschema') ?? '{datum} {titel}',
+    klappeNurEndfassung: formular.get('klappeNurEndfassung') === 'on',
+    klappeInterneZeigen: formular.get('klappeInterneZeigen') === 'on',
+    klappeAutoAktualisieren: formular.get('klappeAutoAktualisieren') === 'on',
+    klappeNameEnthaelt: text(formular, 'klappeNameEnthaelt'),
   })
-  revalidatePath('/einstellungen')
+  revalidatePath('/einstellungen/klappe')
 }
 
 /** Erzeugt das VAPID-Paar, falls noch keines vorliegt. */

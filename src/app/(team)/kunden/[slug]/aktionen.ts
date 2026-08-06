@@ -17,6 +17,15 @@ async function nutzerOderRaus() {
   return nutzer
 }
 
+/** Nächster Werktag um 10 Uhr — ein brauchbarer Startwert für einen Termin. */
+function naechsterWerktag(): Date {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1)
+  d.setHours(10, 0, 0, 0)
+  return d
+}
+
 function text(formular: FormData, feld: string): string | null {
   const wert = String(formular.get(feld) ?? '').trim()
   return wert === '' ? null : wert
@@ -86,14 +95,16 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
 
   const kunde = await prisma.kunde.findUniqueOrThrow({ where: { id: kundeId } })
   const typ = (text(formular, 'typ') ?? 'BEITRAG') as PostTyp
-  const datum = text(formular, 'postenAm') ?? new Date().toISOString().slice(0, 10)
-  const uhrzeit = text(formular, 'uhrzeit') ?? '10:00'
+
+  // Der Anlegen-Dialog fragt bewusst keinen Termin ab — er wird im Editor
+  // gesetzt. Bis dahin steht der nächste Werktag um 10 Uhr.
+  const termin = naechsterWerktag()
 
   const post = await prisma.post.create({
     data: {
       kundeId,
       typ,
-      postenAm: new Date(`${datum}T${uhrzeit}`),
+      postenAm: termin,
       titel: text(formular, 'titel') ?? 'Ohne Titel',
       verantwortlichId: nutzer.id,
       // Beim Reel ist der Szenenplan der Normalfall, sonst nicht.
@@ -257,40 +268,32 @@ export async function customFeldLoeschen(definitionId: string) {
   revalidatePath('/kunden', 'layout')
 }
 
-// --------------------------------------------------------- Ansprechpartner
+// -------------------------------------------------- Betreuung des Kunden
 
-export async function ansprechpartnerSpeichern(kundeId: string, formular: FormData) {
+/**
+ * Hauptansprechpartner und betreuende Konten. Ansprechpartner sind seit dem
+ * Rollenumbau Nutzerkonten — eine eigene Kontaktliste gibt es nicht mehr.
+ */
+export async function betreuungSpeichern(kundeId: string, formular: FormData) {
   await nutzerOderRaus()
 
-  const id = text(formular, 'id')
-  const daten = {
-    name: text(formular, 'name') ?? 'Ohne Namen',
-    rolle: text(formular, 'rolle'),
-    telefon: text(formular, 'telefon'),
-    email: text(formular, 'email'),
-    adresse: text(formular, 'adresse'),
-    website: text(formular, 'website'),
-    standard: formular.get('standard') === 'on',
+  const haupt = text(formular, 'hauptAnsprechpartnerId')
+  const betreuerIds = formular.getAll('betreuer').map(String).filter(Boolean)
+
+  const kunde = await prisma.kunde.update({
+    where: { id: kundeId },
+    data: { hauptAnsprechpartnerId: haupt },
+  })
+
+  // Zuweisungen komplett neu setzen — die Auswahl ist die Wahrheit.
+  await prisma.kundeBetreuer.deleteMany({ where: { kundeId } })
+  if (betreuerIds.length > 0) {
+    await prisma.kundeBetreuer.createMany({
+      data: betreuerIds.map((nutzerId) => ({ kundeId, nutzerId })),
+    })
   }
 
-  // Es gibt genau einen Standard-Ansprechpartner je Kunde.
-  if (daten.standard) {
-    await prisma.ansprechpartner.updateMany({ where: { kundeId }, data: { standard: false } })
-  }
-
-  if (id) {
-    await prisma.ansprechpartner.update({ where: { id }, data: daten })
-  } else {
-    await prisma.ansprechpartner.create({ data: { kundeId, ...daten } })
-  }
-
-  revalidatePath('/kunden', 'layout')
-}
-
-export async function ansprechpartnerLoeschen(id: string) {
-  await nutzerOderRaus()
-  await prisma.ansprechpartner.delete({ where: { id } })
-  revalidatePath('/kunden', 'layout')
+  revalidatePath(`/kunden/${kunde.slug}`, 'layout')
 }
 
 // ------------------------------------------------------------------ Export
@@ -311,7 +314,7 @@ export async function exportAnlegen(kundeId: string, formular: FormData) {
       zeitraumVon: new Date(von),
       zeitraumBis: new Date(bis),
       gueltigBis: text(formular, 'gueltigBis') ? new Date(text(formular, 'gueltigBis')!) : null,
-      ansprechpartnerId: text(formular, 'ansprechpartnerId'),
+      zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
       kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
       freigabenErlaubt: formular.get('freigabenErlaubt') === 'on',
       konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
@@ -334,7 +337,7 @@ export async function exportSpeichern(exportId: string, formular: FormData) {
       ...(von ? { zeitraumVon: new Date(von) } : {}),
       ...(bis ? { zeitraumBis: new Date(bis) } : {}),
       gueltigBis: text(formular, 'gueltigBis') ? new Date(text(formular, 'gueltigBis')!) : null,
-      ansprechpartnerId: text(formular, 'ansprechpartnerId'),
+      zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
       kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
       freigabenErlaubt: formular.get('freigabenErlaubt') === 'on',
       konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',

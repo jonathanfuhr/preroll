@@ -117,31 +117,41 @@ export function ExportHero({
 
 // --------------------------------------------------------------- Kontakt
 
-export function KontaktFuss({
-  name,
-  rolle,
-  telefon,
-  email,
-  adresse,
-  website,
-  foto,
-}: {
+export type Kontakt = {
   name: string
-  rolle: string | null
+  position: string | null
   telefon: string | null
   email: string | null
-  adresse: string | null
-  website: string | null
   foto: string | null
+}
+
+/**
+ * Kontakt-Fuß nach Mockup 1a. Steht für diesen Link zusätzlich jemand bereit,
+ * erscheinen beide nebeneinander — der Hauptansprechpartner des Kunden zuerst.
+ */
+export function KontaktFuss({
+  kontakte,
+  agenturAdresse,
+  agenturWebsite,
+}: {
+  kontakte: Kontakt[]
+  agenturAdresse: string | null
+  agenturWebsite: string | null
 }) {
+  const [erster, ...weitere] = kontakte
+
   const felder = [
-    { t: 'Telefon', w: telefon, href: telefon ? `tel:${telefon.replace(/\s/g, '')}` : null },
-    { t: 'E-Mail', w: email, href: email ? `mailto:${email}` : null },
-    { t: 'Adresse', w: adresse, href: null },
+    { t: 'Telefon', w: erster.telefon, href: erster.telefon ? `tel:${erster.telefon.replace(/\s/g, '')}` : null },
+    { t: 'E-Mail', w: erster.email, href: erster.email ? `mailto:${erster.email}` : null },
+    { t: 'Adresse', w: agenturAdresse, href: null },
     {
       t: 'Web',
-      w: website,
-      href: website ? (website.startsWith('http') ? website : `https://${website}`) : null,
+      w: agenturWebsite,
+      href: agenturWebsite
+        ? agenturWebsite.startsWith('http')
+          ? agenturWebsite
+          : `https://${agenturWebsite}`
+        : null,
     },
   ].filter((f) => f.w)
 
@@ -156,16 +166,14 @@ export function KontaktFuss({
             Kontakt
           </div>
           <p className="mb-7 max-w-[440px] text-[13.5px] leading-[1.75] text-[#5f5b57] md:mb-8 md:text-[14px]">
-            Fragen zum Plan oder etwas Dringendes? Melden Sie sich direkt bei Ihrer
-            Ansprechpartnerin.
+            Fragen zum Plan oder etwas Dringendes? Melden Sie sich direkt bei{' '}
+            {kontakte.length > 1 ? 'Ihren Ansprechpartnern' : 'Ihrer Ansprechperson'}.
           </p>
 
           <dl className="grid grid-cols-2 gap-x-8 gap-y-5 md:max-w-[490px] md:gap-x-12 md:gap-y-[22px]">
             {felder.map((feld) => (
               <div key={feld.t}>
-                <dt className="mb-[5px] text-[11px] uppercase tracking-[0.1em] text-still">
-                  {feld.t}
-                </dt>
+                <dt className="mb-[5px] text-[11px] uppercase tracking-[0.1em] text-still">{feld.t}</dt>
                 <dd className="whitespace-pre-line text-[13.5px] leading-[1.55] md:text-[14px]">
                   {feld.href ? (
                     <a href={feld.href} target={feld.t === 'Web' ? '_blank' : undefined} rel="noreferrer">
@@ -178,14 +186,40 @@ export function KontaktFuss({
               </div>
             ))}
           </dl>
+
+          {weitere.length > 0 && (
+            <div className="mt-8 border-t border-rahmen pt-6">
+              <div className="mb-3 text-[11px] uppercase tracking-[0.1em] text-still">
+                Für diesen Plan ebenfalls zuständig
+              </div>
+              <ul className="grid gap-3">
+                {weitere.map((k) => (
+                  <li key={k.name} className="flex items-center gap-3">
+                    {k.foto ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={k.foto} alt="" className="size-10 rounded-full object-cover grayscale" />
+                    ) : (
+                      <span className="schraffur size-10 rounded-full border border-dashed border-rahmen-3" />
+                    )}
+                    <div>
+                      <div className="text-[13.5px] font-medium">{k.name}</div>
+                      <div className="text-[11.5px] text-leiser">
+                        {[k.position, k.email].filter(Boolean).join(' · ')}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div className="relative w-[240px] justify-self-start md:w-[300px]">
-          {foto ? (
+          {erster.foto ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={foto}
-              alt={name}
+              src={erster.foto}
+              alt={erster.name}
               className="block h-[280px] w-full object-cover grayscale md:h-[340px]"
               style={{ objectPosition: '60% 20%' }}
             />
@@ -194,9 +228,9 @@ export function KontaktFuss({
           )}
           <div className="absolute -bottom-[18px] -left-6 bg-akzent px-[22px] pb-3.5 pt-4 text-white">
             <div className="text-[22px] leading-[1.1] md:text-[26px]" style={{ fontFamily: 'var(--font-serif)' }}>
-              {name}
+              {erster.name}
             </div>
-            {rolle && <div className="mt-0.5 text-[11.5px] text-white/85">{rolle}</div>}
+            {erster.position && <div className="mt-0.5 text-[11.5px] text-white/85">{erster.position}</div>}
           </div>
         </div>
       </div>

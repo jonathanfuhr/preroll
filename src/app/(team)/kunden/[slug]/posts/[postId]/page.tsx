@@ -8,6 +8,7 @@ import { kalenderwoche } from '@/lib/format'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { IPhoneVorschau } from '@/components/iphone'
 import { Karte, StatusBadge, TypBadge } from '@/components/ui'
+import { BrotkrumeSetzen } from '@/components/brotkrumen'
 import { PostEditor } from './editor'
 
 const DATUM_LANG = new Intl.DateTimeFormat('de-DE', {
@@ -54,6 +55,8 @@ export default async function PostSeite({
 
   return (
     <>
+      <BrotkrumeSetzen stufen={[{ text: post.titel }]} />
+
       <div className="mb-6 flex flex-wrap items-start justify-between gap-6">
         <div>
           <div className="mb-1.5 flex items-center gap-3">
@@ -150,7 +153,7 @@ export default async function PostSeite({
                 am: f.erstelltAm.toISOString(),
                 vomTeam: Boolean(f.nutzerId),
               })),
-              vorschlagName: post.kunde.ansprechpartner[0]?.name ?? null,
+              vorschlagName: post.kunde.hauptAnsprechpartner?.name ?? null,
             }}
             meldungen={{
               klappe:

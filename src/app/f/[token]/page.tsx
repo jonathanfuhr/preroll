@@ -4,6 +4,7 @@ import { aktuellerGast } from '@/lib/auth'
 import { zeitraumText } from '@/lib/benachrichtigungen'
 import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
+import { ladeEinstellungen } from '@/lib/einstellungen'
 import { feedVorschau, istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
@@ -28,8 +29,10 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   const exp = await prisma.export.findUnique({
     where: { token },
     include: {
-      kunde: { include: { logo: true } },
-      ansprechpartner: { include: { foto: true } },
+      kunde: {
+        include: { logo: true, hauptAnsprechpartner: { include: { foto: true } } },
+      },
+      zusatzAnsprechpartner: { include: { foto: true } },
       kommentare: { orderBy: { erstelltAm: 'asc' } },
     },
   })
@@ -52,6 +55,8 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   // 40 Tage — danach genügt der Link wieder allein.
   const gast = await aktuellerGast()
   if (!gast || !gast.name.trim()) redirect(`/f/${token}/anmelden`)
+
+  const einstellungen = await ladeEinstellungen()
 
   // Live-Sicht: bei jedem Aufruf frisch aus der Datenbank, kein Schnappschuss.
   const alle = await prisma.post.findMany({
@@ -101,6 +106,19 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     ? `KW ${kalenderwoche(sektionen[0].postenAm)}–${kalenderwoche(sektionen.at(-1)!.postenAm)}`
     : '—'
 
+  // Der Hauptansprechpartner steht immer da; ist für diesen Link zusätzlich
+  // jemand hinterlegt, kommt er daneben — er ersetzt ihn nicht.
+  const kontakte = [exp.kunde.hauptAnsprechpartner, exp.zusatzAnsprechpartner]
+    .filter((n) => n !== null)
+    .filter((n, i, alle) => alle.findIndex((a) => a!.id === n!.id) === i)
+    .map((n) => ({
+      name: n!.name,
+      position: n!.position,
+      telefon: n!.telefon,
+      email: n!.email,
+      foto: medienUrl(n!.fotoId),
+    }))
+
   const fortschritt = freigabeFortschritt(sektionen)
   const freigabeleiste = (
     <Freigabefortschritt erledigt={fortschritt.erledigt} gesamt={fortschritt.gesamt} />
@@ -126,9 +144,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         eckdaten={[
           { t: 'Beiträge', w: `${sektionen.length} · ${kwSpanne}` },
           { t: 'Kanal', w: 'Instagram' },
-          ...(exp.ansprechpartner?.rolle
-            ? [{ t: 'Agentur', w: exp.ansprechpartner.rolle.split('·').pop()!.trim() }]
-            : []),
+          ...(einstellungen.agenturName ? [{ t: 'Agentur', w: einstellungen.agenturName }] : []),
           ...(exp.gueltigBis ? [{ t: 'Rückmeldung bis', w: formatiereTag(exp.gueltigBis) }] : []),
         ]}
         aktionMobil={freigabeleiste}
@@ -256,15 +272,11 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         )}
       </div>
 
-      {exp.ansprechpartner && (
+      {kontakte.length > 0 && (
         <KontaktFuss
-          name={exp.ansprechpartner.name}
-          rolle={exp.ansprechpartner.rolle}
-          telefon={exp.ansprechpartner.telefon}
-          email={exp.ansprechpartner.email}
-          adresse={exp.ansprechpartner.adresse}
-          website={exp.ansprechpartner.website}
-          foto={medienUrl(exp.ansprechpartner.fotoId)}
+          kontakte={kontakte}
+          agenturAdresse={einstellungen.agenturAdresse}
+          agenturWebsite={einstellungen.agenturWebsite}
         />
       )}
     </div>

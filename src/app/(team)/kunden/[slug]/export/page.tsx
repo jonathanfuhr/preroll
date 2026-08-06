@@ -4,6 +4,7 @@ import { alsEingabe, formatiereTag } from '@/lib/datum'
 import { env } from '@/lib/env'
 import { istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
 import { freigabeFortschritt } from '@/lib/freigabe'
+import { darfAnsprechpartnerSein } from '@/lib/rollen'
 import { zeitraumText } from '@/lib/benachrichtigungen'
 import { Abschnitt, Karte, Leerzustand } from '@/components/ui'
 import { ExportAnlegen, ExportKarte } from './verwaltung'
@@ -15,12 +16,20 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
   const { slug } = await params
   const kunde = await ladeKunde(slug)
 
+  // Als zusätzlicher Ansprechpartner kommt jedes aktive Konto in Frage,
+  // das nicht im Schnitt sitzt.
+  const waehlbare = (
+    await prisma.nutzer.findMany({ where: { aktiv: true }, orderBy: { name: 'asc' } })
+  )
+    .filter((n) => darfAnsprechpartnerSein(n.rolle))
+    .map((n) => ({ id: n.id, name: n.name, rolle: n.rolle }))
+
   const [exporte, posts] = await Promise.all([
     prisma.export.findMany({
       where: { kundeId: kunde.id },
       orderBy: { zeitraumVon: 'desc' },
       include: {
-        ansprechpartner: true,
+        zusatzAnsprechpartner: true,
         gaeste: { include: { gast: true } },
         _count: { select: { kommentare: true } },
       },
@@ -56,14 +65,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
             {aktive.length} aktiv, {abgelaufene.length} abgelaufen
           </p>
         </div>
-        <ExportAnlegen
-          kundeId={kunde.id}
-          ansprechpartner={kunde.ansprechpartner.map((a) => ({
-            id: a.id,
-            name: a.name,
-            standard: a.standard,
-          }))}
-        />
+        <ExportAnlegen kundeId={kunde.id} waehlbare={waehlbare} />
       </div>
 
       {exporte.length === 0 ? (
@@ -91,7 +93,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
                       zeitraumVon: alsEingabe(exp.zeitraumVon),
                       zeitraumBis: alsEingabe(exp.zeitraumBis),
                       gueltigBis: exp.gueltigBis ? alsEingabe(exp.gueltigBis) : '',
-                      ansprechpartnerId: exp.ansprechpartnerId,
+                      zusatzAnsprechpartnerId: exp.zusatzAnsprechpartnerId,
                       kommentareErlaubt: exp.kommentareErlaubt,
                       freigabenErlaubt: exp.freigabenErlaubt,
                       konzepteMitzeigen: exp.konzepteMitzeigen,
@@ -103,11 +105,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
                       kommentare: exp._count.kommentare,
                     }}
                     basisUrl={env.appUrl}
-                    ansprechpartner={kunde.ansprechpartner.map((a) => ({
-                      id: a.id,
-                      name: a.name,
-                      standard: a.standard,
-                    }))}
+                    waehlbare={waehlbare}
                     gaeste={exp.gaeste.map((g) => ({
                       id: g.gast.id,
                       name: g.gast.name,
@@ -131,7 +129,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ slug: 
                           {zeitraumText(exp.zeitraumVon, exp.zeitraumBis)}
                         </td>
                         <td className="px-4 py-2.5 text-leiser">
-                          {exp.ansprechpartner?.name ?? '—'}
+                          {exp.zusatzAnsprechpartner?.name ?? '—'}
                         </td>
                         <td className="px-4 py-2.5 font-mono text-[11.5px] text-stiller">
                           /f/{exp.token}

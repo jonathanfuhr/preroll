@@ -13,9 +13,19 @@ datasource db {
 
 // ---------------------------------------------------------------- Team & Auth
 
+/**
+ * Alle Rollen dürfen alles lesen und bearbeiten — sie unterscheiden sich in
+ * den Rechten der Verwaltung und darin, wer worüber benachrichtigt wird.
+ */
 enum Rolle {
+  /** Zusätzlich Einstellungen und Benutzerverwaltung. */
   ADMIN
-  MITGLIED
+  /** Bekommt Benachrichtigungen von allen Kunden. */
+  PROJEKTMANAGER
+  /** Bekommt Benachrichtigungen der betreuten Kunden und eigener Exporte. */
+  DESIGNER
+  /** Wie Designer, aber nicht als Ansprechpartner wählbar. */
+  EDITOR
 }
 
 model Nutzer {
@@ -26,8 +36,15 @@ model Nutzer {
   passwortHash String?
   // Gesetzt, wenn das Konto über Microsoft Entra ID kommt.
   oidcSubjekt  String? @unique
-  rolle        Rolle   @default(MITGLIED)
+  rolle        Rolle   @default(EDITOR)
   aktiv        Boolean @default(true)
+
+  // Erscheinen im Kontakt-Fuß der Export-Seite, wenn dieses Konto dort als
+  // Ansprechpartner steht. Die Agenturanschrift steht in den Einstellungen.
+  position String?
+  telefon  String?
+  fotoId   String?
+  foto     Medium? @relation("NutzerFoto", fields: [fotoId], references: [id], onDelete: SetNull)
 
   mailBenachrichtigungen Boolean @default(true)
   pushBenachrichtigungen Boolean @default(true)
@@ -39,6 +56,10 @@ model Nutzer {
   kommentare     Kommentar[]
   einladungen    ExportGast[]    @relation("Einladungen")
   freigaben      Freigabe[]
+  benachrichtigungen Benachrichtigung[]
+  hauptAnsprechpartnerVon Kunde[]  @relation("Hauptansprechpartner")
+  betreut                 KundeBetreuer[]
+  zusatzAnsprechpartnerVon Export[] @relation("ZusatzAnsprechpartner")
 
   erstelltAm     DateTime  @default(now())
   aktualisiertAm DateTime  @updatedAt
@@ -149,14 +170,23 @@ model Kunde {
   kennzahlenAm   DateTime?
   kennzahlenTyp  KennzahlenQuelle @default(MANUELL)
 
+  // Vorbelegung für neue Posts, wenn beim Anlegen kein Termin gesetzt wird.
+  standardUhrzeit String @default("10:00")
+
   // Verbindet den Kunden mit seinem Projekt in Klappe. Ohne diese Zuordnung
   // zeigt die Videoauswahl nichts an — sonst stünden dort alle Videos aller
   // Kunden, und das wird auf Dauer unübersichtlich.
   klappeProjektId   String?
   klappeProjektName String?
 
-  ansprechpartner Ansprechpartner[]
-  posts           Post[]
+  // Der Hauptansprechpartner steht auf jeder Export-Seite dieses Kunden und
+  // bekommt jede Rückmeldung — auch wenn für einen Export zusätzlich jemand
+  // anderes hinterlegt ist.
+  hauptAnsprechpartnerId String?
+  hauptAnsprechpartner   Nutzer? @relation("Hauptansprechpartner", fields: [hauptAnsprechpartnerId], references: [id], onDelete: SetNull)
+
+  betreuer KundeBetreuer[]
+  posts    Post[]
   medien          Medium[]
   exporte         Export[]
   customFelder    CustomFeldDefinition[]
@@ -188,27 +218,22 @@ model KennzahlVerlauf {
   @@map("kennzahl_verlauf")
 }
 
-model Ansprechpartner {
-  id       String  @id @default(cuid())
+/**
+ * Wer einen Kunden betreut. Designer bekommen darüber ihre
+ * Benachrichtigungen; Projektmanager hören ohnehin bei allen Kunden mit.
+ */
+model KundeBetreuer {
+  id       String @id @default(cuid())
   kundeId  String
-  kunde    Kunde   @relation(fields: [kundeId], references: [id], onDelete: Cascade)
-  name     String
-  rolle    String?
-  telefon  String?
-  email    String?
-  adresse  String?
-  website  String?
-  fotoId   String?
-  foto     Medium? @relation("AnsprechpartnerFoto", fields: [fotoId], references: [id], onDelete: SetNull)
-  standard Boolean @default(false)
+  kunde    Kunde  @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  nutzerId String
+  nutzer   Nutzer @relation(fields: [nutzerId], references: [id], onDelete: Cascade)
 
-  exporte Export[]
+  erstelltAm DateTime @default(now())
 
-  erstelltAm     DateTime @default(now())
-  aktualisiertAm DateTime @updatedAt
-
-  @@index([kundeId])
-  @@map("ansprechpartner")
+  @@unique([kundeId, nutzerId])
+  @@index([nutzerId])
+  @@map("kunde_betreuer")
 }
 
 // ---------------------------------------------------------------------- Medien
@@ -237,7 +262,7 @@ model Medium {
 
   postMedien       PostMedium[]
   kundeLogo        Kunde[]           @relation("KundeLogo")
-  ansprechpartnerFoto Ansprechpartner[] @relation("AnsprechpartnerFoto")
+  nutzerFoto       Nutzer[]          @relation("NutzerFoto")
   referenzVideoVon Post[]            @relation("ReferenzVideo")
 
   erstelltAm DateTime @default(now())
@@ -397,9 +422,11 @@ model Export {
   zeitraumBis DateTime  @db.Date
   gueltigBis  DateTime?
 
-  // Überschreibt den Standard-Ansprechpartner des Kunden nur für diesen Link.
-  ansprechpartnerId String?
-  ansprechpartner   Ansprechpartner? @relation(fields: [ansprechpartnerId], references: [id], onDelete: SetNull)
+  // Zusätzlicher Ansprechpartner nur für diesen Link. Er erscheint neben dem
+  // Hauptansprechpartner des Kunden und bekommt dessen Rückmeldungen mit —
+  // ersetzt ihn also nicht.
+  zusatzAnsprechpartnerId String?
+  zusatzAnsprechpartner   Nutzer? @relation("ZusatzAnsprechpartner", fields: [zusatzAnsprechpartnerId], references: [id], onDelete: SetNull)
 
   kommentareErlaubt Boolean @default(true)
   // Darf der Kunde auf dieser Seite freigeben? Freigaben hängen am einzelnen
@@ -498,6 +525,37 @@ model Kommentar {
 
 // ------------------------------------------------------- Benachrichtigungen
 
+enum BenachrichtigungArt {
+  KOMMENTAR
+  FREIGABE
+  EINLADUNG
+}
+
+/**
+ * Meldungen für die Glocke in der Kopfzeile. Bewusst eigenständig neben Mail
+ * und Push: Wer beides abgeschaltet hat, soll trotzdem sehen, was passiert
+ * ist, sobald er die Oberfläche öffnet.
+ */
+model Benachrichtigung {
+  id       String              @id @default(cuid())
+  nutzerId String
+  nutzer   Nutzer              @relation(fields: [nutzerId], references: [id], onDelete: Cascade)
+  art      BenachrichtigungArt
+
+  titel String
+  text  String
+  url   String
+
+  kundeId String?
+  postId  String?
+
+  gelesenAm  DateTime?
+  erstelltAm DateTime  @default(now())
+
+  @@index([nutzerId, gelesenAm])
+  @@map("benachrichtigung")
+}
+
 model PushAbo {
   id       String  @id @default(cuid())
   nutzerId String?
@@ -567,12 +625,31 @@ model Einstellungen {
   vapidPublicKey  String?
   vapidPrivateKey String?
 
+  // Agenturanschrift für den Kontakt-Fuß der Export-Seite. Steht hier und
+  // nicht am Konto, weil sie für alle dieselbe ist.
+  agenturName    String?
+  agenturAdresse String?
+  agenturWebsite String?
+
   // Klappe-Anbindung für finale Reels. Der Token entsteht über die
   // Gerätekopplung und wird als Bearer-Token mitgeschickt.
   klappeBasisUrl    String?
   klappeApiKey      String?
   klappeGekoppeltAm DateTime?
   klappeKonto       String?
+
+  // Was beim Konzipieren eines Reels automatisch in Klappe entsteht.
+  klappeVideoAnlegen   Boolean @default(true)
+  klappeNamenNachziehen Boolean @default(true)
+  klappeNamensschema   String  @default("{datum} {titel}")
+
+  // Welche Fassungen Preroll übernimmt.
+  klappeNurEndfassung   Boolean @default(false)
+  klappeInterneZeigen   Boolean @default(false)
+  klappeAutoAktualisieren Boolean @default(true)
+
+  // Filtert die Videoauswahl im Editor zusätzlich zum Kundenprojekt.
+  klappeNameEnthaelt String?
 
   aktualisiertAm DateTime @updatedAt
 

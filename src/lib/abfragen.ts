@@ -14,7 +14,8 @@ export async function ladeKunde(slug: string) {
     where: { slug },
     include: {
       logo: true,
-      ansprechpartner: { orderBy: [{ standard: 'desc' }, { name: 'asc' }] },
+      hauptAnsprechpartner: true,
+      betreuer: { include: { nutzer: true } },
       customFelder: { orderBy: { position: 'asc' } },
     },
   })
@@ -42,7 +43,8 @@ export async function ladePost(postId: string) {
         include: {
           logo: true,
           customFelder: { orderBy: { position: 'asc' } },
-          ansprechpartner: { orderBy: [{ standard: 'desc' }, { name: 'asc' }] },
+          hauptAnsprechpartner: true,
+      betreuer: { include: { nutzer: true } },
         },
       },
       medien: POST_MEDIEN,

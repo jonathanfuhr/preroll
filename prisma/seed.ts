@@ -33,7 +33,13 @@ async function main() {
   await prisma.einstellungen.upsert({
     where: { id: 'singleton' },
     update: {},
-    create: { id: 'singleton', workspaceName: 'THD Video' },
+    create: {
+      id: 'singleton',
+      workspaceName: 'THD Video',
+      agenturName: 'THD Video',
+      agenturAdresse: 'Musterstraße 1, 12345 Musterstadt',
+      agenturWebsite: 'www.thdvideo.de',
+    },
   })
 
   const helena = await prisma.nutzer.upsert({
@@ -44,18 +50,21 @@ async function main() {
       name: 'Helena Avdijaj',
       initialen: 'HA',
       rolle: 'ADMIN',
+      position: 'Projektleitung',
+      telefon: '07024 4699830',
       passwortHash: await hashePasswort(START_PASSWORT),
     },
   })
 
-  await prisma.nutzer.upsert({
+  const marco = await prisma.nutzer.upsert({
     where: { email: 'marco@thdvideo.de' },
     update: {},
     create: {
       email: 'marco@thdvideo.de',
       name: 'Marco Denk',
       initialen: 'MD',
-      rolle: 'MITGLIED',
+      rolle: 'DESIGNER',
+      position: 'Gestaltung',
       passwortHash: await hashePasswort(START_PASSWORT),
     },
   })
@@ -76,20 +85,17 @@ async function main() {
     },
   })
 
-  const ansprechpartner = await prisma.ansprechpartner.upsert({
-    where: { id: 'seed-helena' },
+  // Ansprechpartner sind Nutzerkonten. Der Hauptansprechpartner steht auf
+  // jeder Export-Seite dieses Kunden und bekommt jede Rückmeldung.
+  await prisma.kunde.update({
+    where: { id: kunde.id },
+    data: { hauptAnsprechpartnerId: helena.id },
+  })
+
+  await prisma.kundeBetreuer.upsert({
+    where: { kundeId_nutzerId: { kundeId: kunde.id, nutzerId: marco.id } },
     update: {},
-    create: {
-      id: 'seed-helena',
-      kundeId: kunde.id,
-      name: 'Helena Avdijaj',
-      rolle: 'Ansprechpartnerin · THD Video',
-      telefon: '07024 4699830',
-      email: 'helena@thdvideo.de',
-      adresse: 'Musterstraße 1, 12345 Musterstadt',
-      website: 'www.thdvideo.de',
-      standard: true,
-    },
+    create: { kundeId: kunde.id, nutzerId: marco.id },
   })
 
   // Eigene Felder, wie im Reel-Editor gezeigt.
@@ -237,7 +243,6 @@ async function main() {
         zeitraumVon: new Date('2026-08-01T00:00:00.000Z'),
         zeitraumBis: new Date('2026-08-31T00:00:00.000Z'),
         gueltigBis: new Date('2026-09-30T00:00:00.000Z'),
-        ansprechpartnerId: ansprechpartner.id,
       },
     })
   }

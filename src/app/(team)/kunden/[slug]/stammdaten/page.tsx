@@ -1,17 +1,41 @@
 import { ladeKunde } from '@/lib/abfragen'
 import { formatiereTag } from '@/lib/datum'
+import { prisma } from '@/lib/db'
+import { klappeEingerichtet, klappeProjekte } from '@/lib/klappe'
+import { darfAnsprechpartnerSein, ROLLE_TEXT } from '@/lib/rollen'
+import { thumbUrl } from '@/lib/urls'
 import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Textfeld } from '@/components/ui'
-import { customFeldAnlegen, customFeldLoeschen, kundeSpeichern } from '../aktionen'
+import { betreuungSpeichern, customFeldAnlegen, customFeldLoeschen, kundeSpeichern } from '../aktionen'
+import { klappeProjektZuordnen } from '../klappe-aktionen'
+import { BetreuungFormular } from './betreuung'
 import { CustomFeldFormular } from './custom-felder'
+import { KlappeProjektWahl } from './klappe-projekt'
+import { LogoAblage } from './logo'
 
 export default async function StammdatenSeite({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const kunde = await ladeKunde(slug)
 
+  const [team, angebunden] = await Promise.all([
+    prisma.nutzer.findMany({ where: { aktiv: true }, orderBy: { name: 'asc' } }),
+    klappeEingerichtet(),
+  ])
+
+  const projekte = angebunden ? await klappeProjekte() : null
+
   return (
-    <div className="max-w-[720px]">
-      <Abschnitt titel="Stammdaten">
+    <div className="max-w-[760px]">
+      <h1 className="mb-6 text-[24px] font-semibold tracking-[-0.02em]">Stammdaten</h1>
+
+      <Abschnitt
+        titel="Profil"
+        hinweis="Logo und Angaben erscheinen in der Feed-Vorschau und auf der Export-Seite."
+      >
         <Karte className="p-5">
+          <div className="mb-5 border-b border-rahmen pb-5">
+            <LogoAblage kundeId={kunde.id} logo={thumbUrl(kunde.logoId)} />
+          </div>
+
           <form action={kundeSpeichern.bind(null, kunde.id)} className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <Feld beschriftung="Name">
@@ -38,8 +62,8 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
               <h3 className="mb-1 text-[13px] font-semibold">Profil-Kennzahlen</h3>
               <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
                 Erscheinen über der Feed-Vorschau — intern wie auf der Export-Seite. Aktuell von
-                Hand gepflegt; der automatische Abruf über die Instagram Graph API
-                (Business Discovery) kommt, sobald die Meta-App durch das App Review ist.
+                Hand gepflegt; der Abruf über die Instagram Graph API kommt, sobald die Meta-App
+                durch das App Review ist.
                 {kunde.kennzahlenAm &&
                   ` Zuletzt aktualisiert am ${formatiereTag(kunde.kennzahlenAm, { dateStyle: 'long' })}.`}
               </p>
@@ -62,6 +86,51 @@ export default async function StammdatenSeite({ params }: { params: Promise<{ sl
               </Knopf>
             </div>
           </form>
+        </Karte>
+      </Abschnitt>
+
+      <Abschnitt
+        titel="Betreuung"
+        hinweis="Der Hauptansprechpartner steht auf jeder Export-Seite dieses Kunden und bekommt jede Rückmeldung."
+      >
+        <Karte className="p-5">
+          <BetreuungFormular
+            speichern={betreuungSpeichern.bind(null, kunde.id)}
+            hauptAnsprechpartnerId={kunde.hauptAnsprechpartnerId}
+            betreuerIds={kunde.betreuer.map((b) => b.nutzerId)}
+            team={team.map((n) => ({
+              id: n.id,
+              name: n.name,
+              rolleText: ROLLE_TEXT[n.rolle],
+              waehlbar: darfAnsprechpartnerSein(n.rolle),
+              betreutMoeglich: n.rolle === 'DESIGNER',
+            }))}
+          />
+        </Karte>
+      </Abschnitt>
+
+      <Abschnitt
+        titel="Klappe"
+        hinweis="Ordnet diesem Kunden sein Projekt in Klappe zu. Ohne Zuordnung bleibt die Videoauswahl im Reel-Editor leer."
+      >
+        <Karte className="p-5">
+          <KlappeProjektWahl
+            zuordnen={klappeProjektZuordnen.bind(null, kunde.id)}
+            eingerichtet={angebunden}
+            projektId={kunde.klappeProjektId}
+            projektName={kunde.klappeProjektName}
+            projekte={
+              projekte?.ok
+                ? projekte.daten.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    kunde: p.customer,
+                    videos: p.videoCount,
+                  }))
+                : []
+            }
+            fehler={projekte && !projekte.ok ? projekte.fehler : null}
+          />
         </Karte>
       </Abschnitt>
 
