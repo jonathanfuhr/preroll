@@ -46,6 +46,14 @@ export default async function PostSeite({
   const medium = ersteMedien(post, 'MEDIUM')
   const thumbnail = ersteMedien(post, 'THUMBNAIL')
 
+  // Ein selbst gezogenes Standbild trägt das Video als Quelle — daran ist es
+  // zu erkennen, ohne dass es dafür ein eigenes Feld bräuchte.
+  const thumbEintrag = post.medien.find((m) => m.rolle === 'THUMBNAIL')
+  const videoEintrag = post.medien.find((m) => m.rolle === 'MEDIUM')
+  const thumbnailAutomatisch = Boolean(
+    thumbEintrag && videoEintrag && thumbEintrag.medium.quelleId === videoEintrag.mediumId,
+  )
+
   const mediumEintrag = post.medien.find((m) => m.rolle === 'MEDIUM')
   const istVideo = mediumEintrag?.medium.mimeTyp.startsWith('video/') ?? false
 
@@ -94,6 +102,7 @@ export default async function PostSeite({
         slideUrls={slides.map((id) => medienUrl(id)!).filter(Boolean)}
         mediumUrl={medienUrl(medium[0])}
         thumbnailUrl={thumbUrl(thumbnail[0])}
+        thumbnailAutomatisch={thumbnailAutomatisch}
         istVideo={istVideo}
         vorschau={{ kunde: post.kunde.name, logo: thumbUrl(post.kunde.logoId) }}
         standardUhrzeit={post.kunde.standardUhrzeit}

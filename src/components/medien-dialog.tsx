@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react'
 import { berechneAuftrennung, erkenneSlideAnzahl } from '@/lib/karussell'
 import { ladeHoch, type Fortschritt } from '@/lib/hochladen'
+import { EinfacherPlayer } from './reel-player'
 import { UploadBalken } from './upload-balken'
 import { Fehler, Hinweis, Knopf, Warnung } from './ui'
 
@@ -372,30 +373,45 @@ function EinfachInhalt({
 
 // ------------------------------------------------------------------ Rahmen
 
-/** Was der Dialog gerade regeln soll. */
-export type Medienabsicht = 'MEDIUM' | 'THUMBNAIL'
-
 export function MedienDialog({
   offen,
   schliessen,
   postId,
   typ,
-  absicht = 'MEDIUM',
   videoQuellen,
+  videoUrl,
+  thumbnailUrl,
+  thumbnailAutomatisch,
 }: {
   offen: boolean
   schliessen: () => void
   postId: string
   typ: PostTyp
-  /** Beim Reel: „das Video" oder „das Thumbnail". Sonst ohne Bedeutung. */
-  absicht?: Medienabsicht
   /**
    * Die anderen beiden Wege zum Reel-Video — aus Klappe holen oder von einem
    * Link laden. Sie stehen gleichberechtigt neben der Ablage: Es ist
    * dieselbe Stelle im Post, nur eine andere Quelle.
    */
   videoQuellen?: ReactNode
+  videoUrl?: string | null
+  thumbnailUrl?: string | null
+  /**
+   * Aus dem Video gezogen statt hochgeladen. Dann zeigt die rechte Spalte
+   * weiter ihre Ablage — sonst sähe es aus, als sei die Arbeit getan.
+   */
+  thumbnailAutomatisch?: boolean
 }) {
+  // „Ersetzen" blendet die Quellen einer Spalte wieder ein, ohne dass vorher
+  // etwas gelöscht werden müsste.
+  const [videoErsetzen, setVideoErsetzen] = useState(false)
+  const [thumbErsetzen, setThumbErsetzen] = useState(false)
+
+  useEffect(() => {
+    if (!offen) {
+      setVideoErsetzen(false)
+      setThumbErsetzen(false)
+    }
+  }, [offen])
   // Solange der Dialog steht, soll die Seite dahinter still halten.
   useEffect(() => {
     if (!offen) return
@@ -422,28 +438,26 @@ export function MedienDialog({
       onClick={schliessen}
     >
       <div
-        className="w-full max-w-[560px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl"
+        className={`w-full rounded-md border border-rahmen bg-flaeche p-6 shadow-xl ${
+          typ === 'REEL' ? 'max-w-[820px]' : 'max-w-[560px]'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h3 className="text-[16px] font-semibold">
-              {typ !== 'REEL'
-                ? typ === 'KARUSSELL'
+              {typ === 'REEL'
+                ? 'Video und Thumbnail'
+                : typ === 'KARUSSELL'
                   ? 'Karussell-Bilder'
-                  : 'Grafik'
-                : absicht === 'THUMBNAIL'
-                  ? 'Thumbnail'
-                  : 'Video'}
+                  : 'Grafik'}
             </h3>
             <p className="mt-1 text-[12.5px] text-leise">
-              {typ !== 'REEL'
-                ? typ === 'KARUSSELL'
+              {typ === 'REEL'
+                ? 'Zwei Sachen, zwei Wege: Das Video kann hochgeladen, aus Klappe geholt oder von einem Link geladen werden — das Thumbnail wird hochgeladen.'
+                : typ === 'KARUSSELL'
                   ? 'Einzelne Slides oder ein Gesamtbild, das aufgetrennt wird.'
-                  : 'Ein Bild im Verhältnis 4:5.'
-                : absicht === 'THUMBNAIL'
-                  ? 'Das Standbild fürs Profilraster. Ohne eins zieht Preroll eines aus dem Video.'
-                  : 'Drei Wege zum selben Platz: hochladen, aus Klappe holen oder von einem Link laden. Was schon da ist, wird ersetzt.'}
+                  : 'Ein Bild im Verhältnis 4:5.'}
             </p>
           </div>
           <button
@@ -468,35 +482,92 @@ export function MedienDialog({
 
         {typ === 'KARUSSELL' && <KarussellInhalt postId={postId} fertig={schliessen} />}
 
-        {typ === 'REEL' && absicht === 'THUMBNAIL' && (
-          <EinfachInhalt
-            postId={postId}
-            rolle="THUMBNAIL"
-            titel="Thumbnail hierher ziehen"
-            hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 4:5-Ausschnitt gezeigt."
-            fertig={schliessen}
-          />
-        )}
+        {typ === 'REEL' && (
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* ------------------------------------------------------ Video */}
+            <div className="grid content-start gap-4">
+              <h4 className="text-[10.5px] uppercase tracking-[0.1em] text-still">Video</h4>
 
-        {typ === 'REEL' && absicht === 'MEDIUM' && (
-          <div className="grid gap-6">
-            <div>
-              <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">
-                Video hochladen
-              </h4>
-              <EinfachInhalt
-                postId={postId}
-                rolle="MEDIUM"
-                titel="Video hierher ziehen"
-                hinweis="Erwartet: 9:16. MP4 oder MOV. Ohne Thumbnail zieht Preroll ein Standbild daraus."
-                video
-                fertig={schliessen}
-              />
+              {videoUrl && !videoErsetzen ? (
+                <>
+                  {/* 9:16 in voller Spaltenbreite wäre über 700 px hoch — dann
+                      stünde „Ersetzen" unter dem sichtbaren Bereich. */}
+                  <div className="mx-auto w-full max-w-[190px]">
+                    <EinfacherPlayer quelle={videoUrl} thumbnail={thumbnailUrl ?? null} />
+                  </div>
+                  <Knopf klein onClick={() => setVideoErsetzen(true)}>
+                    Ersetzen
+                  </Knopf>
+                </>
+              ) : (
+                <>
+                  <EinfachInhalt
+                    postId={postId}
+                    rolle="MEDIUM"
+                    titel="Video hierher ziehen"
+                    hinweis="Erwartet: 9:16. MP4 oder MOV."
+                    video
+                    fertig={() => setVideoErsetzen(false)}
+                  />
+                  {videoQuellen}
+                  {videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setVideoErsetzen(false)}
+                      className="text-[11.5px] text-stiller hover:text-tinte"
+                    >
+                      Abbrechen — bestehendes Video behalten
+                    </button>
+                  )}
+                </>
+              )}
             </div>
 
-            {videoQuellen}
+            {/* -------------------------------------------------- Thumbnail */}
+            <div className="grid content-start gap-4">
+              <h4 className="text-[10.5px] uppercase tracking-[0.1em] text-still">Thumbnail</h4>
 
-            <div className="flex justify-end border-t border-rahmen pt-4">
+              {thumbnailUrl && !thumbnailAutomatisch && !thumbErsetzen ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={thumbnailUrl}
+                    alt="Thumbnail"
+                    className="mx-auto aspect-[9/16] w-full max-w-[190px] rounded-[5px] border border-rahmen object-cover"
+                  />
+                  <Knopf klein onClick={() => setThumbErsetzen(true)}>
+                    Ersetzen
+                  </Knopf>
+                </>
+              ) : (
+                <>
+                  <EinfachInhalt
+                    postId={postId}
+                    rolle="THUMBNAIL"
+                    titel="Thumbnail hierher ziehen"
+                    hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 4:5-Ausschnitt gezeigt."
+                    fertig={() => setThumbErsetzen(false)}
+                  />
+                  {thumbnailAutomatisch && (
+                    <Hinweis>
+                      Zurzeit steht dort ein Standbild aus dem Video. Ein eigenes Thumbnail
+                      ersetzt es.
+                    </Hinweis>
+                  )}
+                  {thumbnailUrl && !thumbnailAutomatisch && (
+                    <button
+                      type="button"
+                      onClick={() => setThumbErsetzen(false)}
+                      className="text-[11.5px] text-stiller hover:text-tinte"
+                    >
+                      Abbrechen — bestehendes Thumbnail behalten
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="flex justify-end border-t border-rahmen pt-4 sm:col-span-2">
               <Knopf onClick={schliessen}>Fertig</Knopf>
             </div>
           </div>

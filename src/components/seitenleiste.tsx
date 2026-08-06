@@ -47,12 +47,13 @@ function Kundenzeile({
         ) : (
           <span className="schraffur size-[18px] shrink-0 rounded-[4px] border border-rahmen-3" />
         )}
-        <span className="min-w-0 flex-1 truncate">{kunde.name}</span>
+        {/* Rechts bleibt Platz für den Stern, sonst schiebt er sich über den Namen. */}
+        <span className="min-w-0 flex-1 truncate pr-5">{kunde.name}</span>
 
         {kommentare > 0 && (
           <span
             title={`${kommentare} offene Kommentare`}
-            className="shrink-0 rounded-full bg-akzent px-1.5 py-px text-[10px] font-medium text-white"
+            className="mr-5 shrink-0 rounded-full bg-akzent px-1.5 py-px text-[10px] font-medium text-white"
           >
             {kommentare}
           </span>

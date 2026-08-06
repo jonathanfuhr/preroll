@@ -3,7 +3,7 @@
 import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
 import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
-import { MedienDialog, type Medienabsicht } from '@/components/medien-dialog'
+import { MedienDialog } from '@/components/medien-dialog'
 import { KommentarListe, type Kommentareintrag } from '@/components/kommentar-liste'
 import {
   Fortschrittsbalken,
@@ -90,6 +90,7 @@ export function PostEditor({
   slideUrls,
   mediumUrl,
   thumbnailUrl,
+  thumbnailAutomatisch,
   istVideo,
   vorschau,
   standardUhrzeit,
@@ -110,6 +111,8 @@ export function PostEditor({
   slideUrls: string[]
   mediumUrl: string | null
   thumbnailUrl: string | null
+  /** Aus dem Video gezogen statt hochgeladen. */
+  thumbnailAutomatisch: boolean
   istVideo: boolean
   vorschau: { kunde: string; logo: string | null }
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
@@ -148,8 +151,7 @@ export function PostEditor({
     vorschlagName: string | null
   }
 }) {
-  // `null` heißt zu; sonst steht darin, worum es geht.
-  const [dialogOffen, setDialogOffen] = useState<Medienabsicht | null>(null)
+  const [dialogOffen, setDialogOffen] = useState(false)
   // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
   // im Dialog und über den Eckdaten.
   const referenzstand = useReferenzstand(post.id, referenz.stand)
@@ -249,7 +251,7 @@ export function PostEditor({
           {referenzstand.meldung}{' '}
           <button
             type="button"
-            onClick={() => setDialogOffen('MEDIUM')}
+            onClick={() => setDialogOffen(true)}
             className="font-medium underline underline-offset-2"
           >
             Im Medien-Dialog erneut versuchen
@@ -424,39 +426,30 @@ export function PostEditor({
           caption={caption}
           istVideo={istVideo}
           thumbnail={thumbnailUrl}
-          aufUpload={() => setDialogOffen('MEDIUM')}
+          aufUpload={() => setDialogOffen(true)}
         />
 
         <div className="mt-3 flex max-w-[344px] flex-wrap items-center gap-2">
-          {post.typ === 'REEL' ? (
-            <>
-              <Knopf klein onClick={() => setDialogOffen('MEDIUM')}>
-                Reel hochladen
-              </Knopf>
-              <Knopf klein onClick={() => setDialogOffen('THUMBNAIL')}>
-                Thumbnail hochladen
-              </Knopf>
-              {!thumbnailUrl && (
-                <span className="w-full text-[11px] leading-tight text-leiser">
-                  Ohne Thumbnail zieht Preroll beim Video-Upload ein Standbild heraus.
-                </span>
-              )}
-            </>
-          ) : (
-            <Knopf klein onClick={() => setDialogOffen('MEDIUM')}>
-              Datei hochladen
-            </Knopf>
+          <Knopf klein onClick={() => setDialogOffen(true)}>
+            Hochladen
+          </Knopf>
+          {post.typ === 'REEL' && thumbnailAutomatisch && (
+            <span className="w-full text-[11px] leading-tight text-leiser">
+              Das Thumbnail ist ein Standbild aus dem Video.
+            </span>
           )}
         </div>
 
       </div>
 
       <MedienDialog
-        offen={dialogOffen !== null}
-        schliessen={() => setDialogOffen(null)}
+        offen={dialogOffen}
+        schliessen={() => setDialogOffen(false)}
         postId={post.id}
         typ={post.typ}
-        absicht={dialogOffen ?? 'MEDIUM'}
+        videoUrl={istVideo ? mediumUrl : null}
+        thumbnailUrl={thumbnailUrl}
+        thumbnailAutomatisch={thumbnailAutomatisch}
         videoQuellen={
           post.typ === 'REEL' ? (
             <>

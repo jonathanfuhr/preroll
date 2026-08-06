@@ -162,6 +162,11 @@ npm run check   # Typecheck + Tests
   sie zusammen (`upload-sitzung.ts`). Nebenbei gibt es dadurch einen echten
   Fortschrittsbalken. Bewusst **ohne** Wiederaufnahme nach Verbindungsabriss
   wie in Klappe: Preroll lädt Reels, keine 40-GB-Rushes.
+- **Vier Stufen beim Kunden, „Gepostet" wird berechnet.** Konzept → Vorschau
+  → Final → Gepostet. Die letzte steht **nicht** in der Datenbank: Final plus
+  Termin in der Vergangenheit ergibt „Gepostet" (`abgeleiteteStufe`). Ein
+  fünfter Wert müsste nachgezogen werden und könnte falsch stehen. Bei Kunden
+  ohne Freigabepflicht fällt in den Erklärungen der Satz zur Freigabe weg.
 - **Reel-Video und Referenzvideo sind derselbe Platz.** Sie stehen nur zu
   verschiedenen Zeitpunkten dort und ersetzen einander: erst das Vorbild aus
   dem Netz, später das fertige Reel. Der Dialog bietet dafür drei

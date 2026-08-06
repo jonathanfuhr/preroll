@@ -1,7 +1,9 @@
 import type { PostStatus, PostTyp } from '@prisma/client'
 import type { ReactNode } from 'react'
 import { kalenderwoche } from '@/lib/format'
+import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
+import { StatusLeiste } from './status-leiste'
 
 /**
  * Eine Post-Sektion auf der Export-Seite — nachgebaut aus Mockup 1a
@@ -145,6 +147,7 @@ export function PostSektion({
   logo,
   medien,
   thumbnail,
+  mitFreigaben = true,
   istVideo,
   szenen,
   referenzVideoUrl,
@@ -169,6 +172,8 @@ export function PostSektion({
   kunde: string
   logo: string | null
   medien: string[]
+  /** Aus bei eigenen Kanälen — dann fehlt in den Erklärungen der Satz zur Freigabe. */
+  mitFreigaben?: boolean
   /** Reel-Thumbnail — steht vor dem Video, solange nichts läuft. */
   thumbnail?: string | null
   istVideo: boolean
@@ -210,21 +215,16 @@ export function PostSektion({
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
           <span className="text-[12.5px] text-[#77746f] sm:text-[13px]">
             {DATUM.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)}
           </span>
-          <span
-            className="inline-flex items-center gap-[7px] rounded-[3px] px-[11px] py-[5px] text-[11.5px] font-medium"
-            style={{ background: status.flaeche, color: status.farbe }}
-          >
-            <span
-              aria-hidden
-              className="block size-1.5 rounded-full"
-              style={{ background: status.farbe }}
-            />
-            {STATUS_TEXT[post.status]}
-          </span>
+
+          {/* Ein Etikett sagt nur, wo etwas steht — nicht, was noch kommt. */}
+          <StatusLeiste
+            stufe={abgeleiteteStufe(post.status, post.postenAm)}
+            mitFreigaben={mitFreigaben}
+          />
         </div>
       </div>
 

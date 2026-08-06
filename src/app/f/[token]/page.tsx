@@ -244,6 +244,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
               }
               istVideo={medium?.medium.mimeTyp.startsWith('video/') ?? false}
               thumbnail={thumb ? medienUrl(thumb.medium.id) : null}
+              mitFreigaben={mitFreigaben}
               szenen={post.szenen}
               referenzVideoUrl={
                 post.referenzVideoMediumId
