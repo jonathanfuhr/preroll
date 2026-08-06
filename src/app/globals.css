@@ -128,6 +128,19 @@
   }
 
   /*
+   * In der Feed-Planung darf der Rahmen größer sein und mit dem Raster
+   * mitwachsen — dort ist er das Arbeitsmittel, nicht nur eine Vorschau.
+   */
+  .geraet-gross {
+    zoom: 1.22;
+  }
+
+  .geraet-waechst .geraet-schirm {
+    height: auto;
+    min-height: 621px;
+  }
+
+  /*
    * Der Rahmen hat feste Maße — auf schmalen Geräten wird er als Ganzes
    * verkleinert, statt das Innenleben umzubrechen. Sonst stimmen die
    * Instagram-Proportionen nicht mehr.

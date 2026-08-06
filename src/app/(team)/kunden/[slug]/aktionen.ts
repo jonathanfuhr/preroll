@@ -17,15 +17,6 @@ async function nutzerOderRaus() {
   return nutzer
 }
 
-/** Nächster Werktag um 10 Uhr — ein brauchbarer Startwert für einen Termin. */
-function naechsterWerktag(): Date {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1)
-  d.setHours(10, 0, 0, 0)
-  return d
-}
-
 function text(formular: FormData, feld: string): string | null {
   const wert = String(formular.get(feld) ?? '').trim()
   return wert === '' ? null : wert
@@ -96,15 +87,13 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
   const kunde = await prisma.kunde.findUniqueOrThrow({ where: { id: kundeId } })
   const typ = (text(formular, 'typ') ?? 'BEITRAG') as PostTyp
 
-  // Der Anlegen-Dialog fragt bewusst keinen Termin ab — er wird im Editor
-  // gesetzt. Bis dahin steht der nächste Werktag um 10 Uhr.
-  const termin = naechsterWerktag()
-
+  // Der Anlegen-Dialog fragt bewusst keinen Termin ab. Bis einer gesetzt ist,
+  // steht der Post im Kalender in der Spalte „Ungeplant" — ein erfundenes
+  // Datum wäre schlechter als gar keines.
   const post = await prisma.post.create({
     data: {
       kundeId,
       typ,
-      postenAm: termin,
       titel: text(formular, 'titel') ?? 'Ohne Titel',
       verantwortlichId: nutzer.id,
       // Beim Reel ist der Szenenplan der Normalfall, sonst nicht.
@@ -158,10 +147,17 @@ export async function postSpeichern(postId: string, formular: FormData) {
       ziel: text(formular, 'ziel'),
       stil: text(formular, 'stil'),
       inhalte: text(formular, 'inhalte'),
-      referenzVideoUrl: text(formular, 'referenzVideoUrl'),
-      referenzVideoTitel: text(formular, 'referenzVideoTitel'),
       szenenplanAktiv: formular.get('szenenplanAktiv') === 'on',
-      ...(datum ? { postenAm: new Date(`${datum}T${uhrzeit}`) } : {}),
+      // Das Referenzvideo hängt am Medien-Dialog; steht sein Feld nicht im
+      // Formular, darf das Speichern den Link nicht stillschweigend löschen.
+      ...(formular.has('referenzVideoUrl')
+        ? {
+            referenzVideoUrl: text(formular, 'referenzVideoUrl'),
+            referenzVideoTitel: text(formular, 'referenzVideoTitel'),
+          }
+        : {}),
+      // Leeres Datumsfeld heißt: der Post wird wieder ungeplant.
+      postenAm: datum ? new Date(`${datum}T${uhrzeit}`) : null,
     },
     include: { kunde: true },
   })
@@ -184,6 +180,42 @@ export async function postSpeichern(postId: string, formular: FormData) {
 
   // Titel oder Termin geändert? Dann heißt das Video in Klappe nach.
   await klappeVideoNachziehen(postId)
+
+  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}
+
+/**
+ * Termin per Drag & Drop im Kalender. Ein bereits terminierter Post behält
+ * seine Uhrzeit — wer ihn nur um zwei Tage schiebt, will nicht auch die Zeit
+ * neu setzen. Ein ungeplanter bekommt die Standard-Uhrzeit des Kunden.
+ *
+ * `tag` im Format JJJJ-MM-TT; `null` legt den Post zurück zu den ungeplanten.
+ */
+export async function postTerminieren(postId: string, tag: string | null) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { kunde: { select: { slug: true, standardUhrzeit: true } } },
+  })
+
+  if (tag === null) {
+    await prisma.post.update({ where: { id: postId }, data: { postenAm: null } })
+    revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+    return
+  }
+
+  const uhrzeit = post.postenAm
+    ? `${String(post.postenAm.getHours()).padStart(2, '0')}:${String(post.postenAm.getMinutes()).padStart(2, '0')}`
+    : post.kunde.standardUhrzeit
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: { postenAm: new Date(`${tag}T${uhrzeit}`) },
+  })
+
+  // In Klappe trägt das Video das Datum im Namen — der zieht mit.
+  await klappeVideoNachziehen(postId).catch(() => {})
 
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }

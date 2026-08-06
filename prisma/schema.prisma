@@ -292,8 +292,10 @@ model Post {
   typ     PostTyp
   status  PostStatus @default(KONZEPT)
 
-  // Datum und Uhrzeit der Veröffentlichung — trägt die ZIP-Dateinamen.
-  postenAm DateTime
+  // Datum und Uhrzeit der Veröffentlichung — trägt die ZIP-Dateinamen. Leer
+  // heißt: noch ungeplant. Solche Posts stehen im Kalender in einer eigenen
+  // Spalte und lassen sich von dort auf einen Tag ziehen.
+  postenAm DateTime?
 
   titel            String
   kurzbeschreibung String?

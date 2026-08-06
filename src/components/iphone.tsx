@@ -1,4 +1,5 @@
 import type { PostTyp } from '@prisma/client'
+import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 /**
@@ -7,9 +8,18 @@ import type { ReactNode } from 'react'
  * Uhrzeit und Batterie sind fix — sie sollen echt wirken, nicht aktuell sein.
  */
 
-export function Geraet({ dunkel, children }: { dunkel?: boolean; children: ReactNode }) {
+export function Geraet({
+  dunkel,
+  zusatz,
+  children,
+}: {
+  dunkel?: boolean
+  /** Zusätzliche Klassen am Rahmen, etwa `geraet-gross`. */
+  zusatz?: string
+  children: ReactNode
+}) {
   return (
-    <div className="geraet">
+    <div className={zusatz ? `geraet ${zusatz}` : 'geraet'}>
       <div className="geraet-innen">
         <div className="geraet-schirm" style={dunkel ? { background: '#000' } : undefined}>
           {children}
@@ -131,13 +141,45 @@ export function Caption({ name, text }: { name: string; text: string }) {
   )
 }
 
-function Platzhalter({ text }: { text: string }) {
-  return (
-    <div className="schraffur flex h-full w-full items-center justify-center">
+function Platzhalter({ text, aufKlick }: { text: string; aufKlick?: () => void }) {
+  const inhalt = (
+    <>
       <span className="rounded-[3px] bg-white/85 px-2.5 py-1 font-mono text-[11px] text-leiser">
         {text}
       </span>
-    </div>
+      {aufKlick && (
+        <span className="mt-2 rounded-[5px] bg-akzent px-3 py-1.5 text-[11.5px] font-medium text-white">
+          Datei hochladen
+        </span>
+      )}
+    </>
+  )
+
+  // Im Bearbeitungsmodus ist die leere Medienfläche selbst die Ablage — dort
+  // erwartet man sie, nicht in einem Formular weiter unten.
+  return aufKlick ? (
+    <button
+      type="button"
+      onClick={aufKlick}
+      className="schraffur flex h-full w-full cursor-pointer flex-col items-center justify-center transition-opacity hover:opacity-80"
+    >
+      {inhalt}
+    </button>
+  ) : (
+    <div className="schraffur flex h-full w-full flex-col items-center justify-center">{inhalt}</div>
+  )
+}
+
+/** Kleiner Knopf über einem vorhandenen Medium, zum Ersetzen. */
+function ErsetzenKnopf({ aufKlick }: { aufKlick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={aufKlick}
+      className="absolute right-2 top-2 z-10 rounded-[4px] bg-black/55 px-2.5 py-1 text-[10.5px] font-medium text-white backdrop-blur transition-colors hover:bg-black/75"
+    >
+      ersetzen
+    </button>
   )
 }
 
@@ -148,22 +190,27 @@ export function IPhoneBeitrag({
   logo,
   bild,
   caption,
+  aufUpload,
 }: {
   kunde: string
   logo?: string | null
   bild?: string | null
   caption: string
+  aufUpload?: () => void
 }) {
   return (
     <Geraet>
       <Statusleiste />
       <Kopfzeile name={kunde} logo={logo} />
-      <div className="h-[400px] w-[320px] shrink-0 border-y border-grund">
+      <div className="relative h-[400px] w-[320px] shrink-0 border-y border-grund">
         {bild ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={bild} alt="" className="h-full w-full object-cover" />
+          <>
+            {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={bild} alt="" className="h-full w-full object-cover" />
+          </>
         ) : (
-          <Platzhalter text="Grafik 4:5 · 1080 × 1350" />
+          <Platzhalter text="Grafik 4:5 · 1080 × 1350" aufKlick={aufUpload} />
         )}
       </div>
       <Aktionsleiste />
@@ -180,12 +227,14 @@ export function IPhoneKarussell({
   slides,
   caption,
   aktiv = 0,
+  aufUpload,
 }: {
   kunde: string
   logo?: string | null
   slides: string[]
   caption: string
   aktiv?: number
+  aufUpload?: () => void
 }) {
   const anzahl = Math.max(slides.length, 1)
   return (
@@ -194,10 +243,13 @@ export function IPhoneKarussell({
       <Kopfzeile name={kunde} logo={logo} />
       <div className="relative h-[400px] w-[320px] shrink-0 border-y border-grund">
         {slides[aktiv] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={slides[aktiv]} alt="" className="h-full w-full object-cover" />
+          <>
+            {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={slides[aktiv]} alt="" className="h-full w-full object-cover" />
+          </>
         ) : (
-          <Platzhalter text={`Slide ${aktiv + 1} · 4:5`} />
+          <Platzhalter text={`Slide ${aktiv + 1} · 4:5`} aufKlick={aufUpload} />
         )}
         <span className="absolute right-3 top-2.5 rounded-[10px] bg-black/55 px-2.5 py-[3px] font-mono text-[9.5px] text-white">
           {aktiv + 1}/{anzahl}
@@ -226,12 +278,14 @@ export function IPhoneReel({
   medium,
   istVideo,
   caption,
+  aufUpload,
 }: {
   kunde: string
   logo?: string | null
   medium?: string | null
   istVideo?: boolean
   caption: string
+  aufUpload?: () => void
 }) {
   return (
     <Geraet dunkel>
@@ -255,11 +309,26 @@ export function IPhoneReel({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={medium} alt="" className="absolute inset-0 h-full w-full object-cover" />
           )
+        ) : aufUpload ? (
+          <button
+            type="button"
+            onClick={aufUpload}
+            className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 transition-opacity hover:opacity-80"
+          >
+            <span className="rounded-[3px] bg-black/40 px-2.5 py-1.5 font-mono text-[11px] text-white/80">
+              Reel 9:16 · 1080 × 1920
+            </span>
+            <span className="rounded-[5px] bg-akzent px-3 py-1.5 text-[11.5px] font-medium text-white">
+              Datei hochladen
+            </span>
+          </button>
         ) : (
           <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[3px] bg-black/40 px-2.5 py-1.5 font-mono text-[11px] text-white/80">
             Reel 9:16 · 1080 × 1920
           </span>
         )}
+
+        {medium && aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
 
         <div className="relative z-10">
           <Statusleiste hell />
@@ -353,6 +422,8 @@ export function IPhoneFeed({
   follower,
   gefolgt,
   kacheln,
+  gross,
+  fuss,
 }: {
   kunde: string
   handle?: string | null
@@ -360,13 +431,17 @@ export function IPhoneFeed({
   beitraege?: number | null
   follower?: number | null
   gefolgt?: number | null
-  kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string }>
+  kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string; href?: string }>
+  /** Vergrößert den Rahmen und lässt ihn mit dem Raster mitwachsen. */
+  gross?: boolean
+  /** Steht unter dem Raster im Schirm — etwa „Mehr anzeigen". */
+  fuss?: ReactNode
 }) {
   const zahl = (wert?: number | null) =>
     wert === null || wert === undefined ? '—' : new Intl.NumberFormat('de-DE').format(wert)
 
   return (
-    <Geraet>
+    <Geraet zusatz={gross ? 'geraet-gross geraet-waechst' : undefined}>
       <Statusleiste />
 
       <div className="flex shrink-0 items-center justify-between gap-2.5 px-4 pb-3">
@@ -403,14 +478,18 @@ export function IPhoneFeed({
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-3 content-start gap-[2px] overflow-hidden pt-[2px]">
+      <div
+        className={`grid grid-cols-3 content-start gap-[2px] pt-[2px] ${
+          gross ? '' : 'min-h-0 flex-1 overflow-hidden'
+        }`}
+      >
         {kacheln.length === 0 ? (
           <span className="schraffur col-span-3 flex aspect-[12/5] items-center justify-center font-mono text-[10px] text-leiser">
             Noch keine Beiträge
           </span>
         ) : (
           kacheln.map((kachel) => (
-            <div key={kachel.id} className="relative aspect-[4/5] overflow-hidden bg-flaeche-tief">
+            <Kachelrahmen key={kachel.id} href={kachel.href}>
               {kachel.bild ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={kachel.bild} alt={kachel.titel} className="h-full w-full object-cover" />
@@ -432,11 +511,25 @@ export function IPhoneFeed({
                   style={{ boxShadow: '3px -3px 0 -1px #fff' }}
                 />
               )}
-            </div>
+            </Kachelrahmen>
           ))
         )}
       </div>
+
+      {fuss}
     </Geraet>
+  )
+}
+
+/** Kachel im Profilraster — verlinkt, wenn ein Ziel mitkommt. */
+function Kachelrahmen({ href, children }: { href?: string; children: ReactNode }) {
+  const klassen = 'relative block aspect-[4/5] overflow-hidden bg-flaeche-tief'
+  return href ? (
+    <Link href={href} className={klassen}>
+      {children}
+    </Link>
+  ) : (
+    <div className={klassen}>{children}</div>
   )
 }
 
@@ -448,6 +541,7 @@ export function IPhoneVorschau({
   medien,
   caption,
   istVideo,
+  aufUpload,
 }: {
   typ: PostTyp
   kunde: string
@@ -455,14 +549,25 @@ export function IPhoneVorschau({
   medien: string[]
   caption: string
   istVideo?: boolean
+  /** Gesetzt im Editor — dann ist die Medienfläche selbst die Ablage. */
+  aufUpload?: () => void
 }) {
   if (typ === 'REEL') {
     return (
-      <IPhoneReel kunde={kunde} logo={logo} medium={medien[0]} istVideo={istVideo} caption={caption} />
+      <IPhoneReel
+        kunde={kunde}
+        logo={logo}
+        medium={medien[0]}
+        istVideo={istVideo}
+        caption={caption}
+        aufUpload={aufUpload}
+      />
     )
   }
   if (typ === 'KARUSSELL') {
-    return <IPhoneKarussell kunde={kunde} logo={logo} slides={medien} caption={caption} />
+    return (
+      <IPhoneKarussell kunde={kunde} logo={logo} slides={medien} caption={caption} aufUpload={aufUpload} />
+    )
   }
-  return <IPhoneBeitrag kunde={kunde} logo={logo} bild={medien[0]} caption={caption} />
+  return <IPhoneBeitrag kunde={kunde} logo={logo} bild={medien[0]} caption={caption} aufUpload={aufUpload} />
 }

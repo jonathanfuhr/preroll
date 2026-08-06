@@ -230,6 +230,32 @@ async function main() {
       },
     })
 
+    // Zwei Posts ohne Termin — sie zeigen die Spalte „Ungeplant" im Kalender.
+    await prisma.post.create({
+      data: {
+        kundeId: kunde.id,
+        typ: 'BEITRAG',
+        status: 'KONZEPT',
+        postenAm: null,
+        titel: 'Team-Vorstellung Werkstatt',
+        kurzbeschreibung: 'Idee ohne Termin — wartet auf einen freien Tag.',
+        verantwortlichId: helena.id,
+      },
+    })
+
+    await prisma.post.create({
+      data: {
+        kundeId: kunde.id,
+        typ: 'REEL',
+        status: 'KONZEPT',
+        postenAm: null,
+        titel: 'Maschinenpark im Zeitraffer',
+        kurzbeschreibung: 'Noch nicht eingeplant.',
+        szenenplanAktiv: true,
+        verantwortlichId: helena.id,
+      },
+    })
+
     void reel
   }
 

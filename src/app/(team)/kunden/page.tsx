@@ -106,7 +106,7 @@ export default async function KundenSeite() {
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="text-still">Nächster Termin</dt>
                       <dd className="text-right text-tinte-3">
-                        {naechster ? (
+                        {naechster?.postenAm ? (
                           <span className="flex items-center gap-2">
                             <StatusBadge status={naechster.status} klein />
                             {DATUM.format(naechster.postenAm)}

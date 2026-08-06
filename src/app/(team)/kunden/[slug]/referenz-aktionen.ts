@@ -70,3 +70,35 @@ export async function referenzvideoEntfernen(postId: string) {
 
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }
+
+/**
+ * Link übernehmen und in einem Zug herunterladen — im Medien-Dialog will man
+ * beides nicht getrennt anstoßen.
+ */
+export async function referenzvideoSetzen(postId: string, formular: FormData) {
+  const nutzer = await aktuellerNutzer()
+  if (!nutzer) redirect('/anmelden')
+
+  const url = String(formular.get('referenzVideoUrl') ?? '').trim()
+  const titel = String(formular.get('referenzVideoTitel') ?? '').trim()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    select: { kunde: { select: { slug: true } } },
+  })
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: {
+      referenzVideoUrl: url === '' ? null : url,
+      referenzVideoTitel: titel === '' ? null : titel,
+    },
+  })
+
+  if (url === '') {
+    revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+    return
+  }
+
+  await referenzvideoLaden(postId)
+}

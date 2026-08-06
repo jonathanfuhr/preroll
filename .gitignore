@@ -20,3 +20,5 @@ coverage/
 .vitest/
 
 .VSCodeCounter/
+# Claude Code: lokale Einstellungen bleiben lokal
+.claude/settings.local.json

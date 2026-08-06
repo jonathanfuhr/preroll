@@ -24,14 +24,24 @@ export async function ladeKunde(slug: string) {
 }
 
 export async function ladePosts(kundeId: string) {
-  return prisma.post.findMany({
+  const posts = await prisma.post.findMany({
     where: { kundeId },
-    orderBy: { postenAm: 'asc' },
+    orderBy: { erstelltAm: 'asc' },
     include: {
       medien: POST_MEDIEN,
       verantwortlich: true,
+      freigaben: { select: { stufe: true } },
       _count: { select: { kommentare: true, szenen: true } },
     },
+  })
+
+  // Chronologisch, ungeplante ans Ende. Die Sortierung steht hier und nicht in
+  // der Abfrage, weil Prisma 7 die Null-Reihenfolge nur mit Preview-Schalter
+  // ausdrücken kann — und ein Kundenbestand passt ohnehin in den Speicher.
+  return posts.sort((a, b) => {
+    if (!a.postenAm) return b.postenAm ? 1 : 0
+    if (!b.postenAm) return -1
+    return a.postenAm.getTime() - b.postenAm.getTime()
   })
 }
 

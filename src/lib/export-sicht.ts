@@ -5,7 +5,15 @@ export type SichtPost = {
   id: string
   typ: PostTyp
   status: PostStatus
-  postenAm: Date
+  /** Ungeplante Posts (ohne Termin) tauchen in keinem Export auf. */
+  postenAm: Date | null
+}
+
+/** Ein Post mit Termin — nach dem Aussieben steht das Datum fest. */
+type Geplant<T> = T & { postenAm: Date }
+
+function nurGeplante<T extends SichtPost>(posts: T[]): Array<Geplant<T>> {
+  return posts.filter((p): p is Geplant<T> => p.postenAm !== null)
 }
 
 export type Sichtregeln = {
@@ -27,11 +35,14 @@ function sichtbarerStatus(status: PostStatus, konzepteMitzeigen: boolean): boole
  * Die Posts, die als eigene Sektion auf der Export-Seite erscheinen:
  * alles im Zeitraum, dessen Status freigegeben ist.
  */
-export function postsImZeitraum<T extends SichtPost>(posts: T[], regeln: Sichtregeln): T[] {
+export function postsImZeitraum<T extends SichtPost>(
+  posts: T[],
+  regeln: Sichtregeln,
+): Array<Geplant<T>> {
   const von = tagesbeginn(regeln.zeitraumVon)
   const bis = tagesende(regeln.zeitraumBis)
 
-  return posts
+  return nurGeplante(posts)
     .filter((p) => p.postenAm >= von && p.postenAm <= bis)
     .filter((p) => sichtbarerStatus(p.status, regeln.konzepteMitzeigen))
     .sort((a, b) => a.postenAm.getTime() - b.postenAm.getTime())
@@ -44,7 +55,10 @@ export function postsImZeitraum<T extends SichtPost>(posts: T[], regeln: Sichtre
  *
  * Neueste zuerst, damit die erste Kachel oben links landet.
  */
-export function feedVorschau<T extends SichtPost>(posts: T[], regeln: Sichtregeln): T[] {
+export function feedVorschau<T extends SichtPost>(
+  posts: T[],
+  regeln: Sichtregeln,
+): Array<Geplant<T>> {
   const sichtbareImZeitraum = postsImZeitraum(posts, regeln)
 
   // Ohne freigegebene Posts im Zeitraum gäbe es keine Obergrenze — dann zählt
@@ -54,7 +68,7 @@ export function feedVorschau<T extends SichtPost>(posts: T[], regeln: Sichtregel
 
   const von = tagesbeginn(regeln.zeitraumVon)
 
-  return posts
+  return nurGeplante(posts)
     .filter((p) => p.postenAm <= letzterImZeitraum)
     // Vor dem Zeitraum: alles zeigen, das ist bereits veröffentlicht.
     // Im Zeitraum: nur, was freigegeben ist.

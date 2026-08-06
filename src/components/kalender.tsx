@@ -8,12 +8,31 @@ export type Kalendereintrag = {
   id: string
   typ: PostTyp
   titel: string
-  postenAm: Date
+  /** Ohne Termin: der Post ist noch ungeplant. */
+  postenAm: Date | null
   /** Sprungmarke oder Link auf den Post. */
   href?: string
 }
 
-const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+export const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+
+/** Die Wochenzeilen eines Monats — jede von Montag bis Sonntag. */
+export function wochenDesMonats(monat: Date): Date[][] {
+  const ersterTag = new Date(monat.getFullYear(), monat.getMonth(), 1)
+  const letzterTag = new Date(monat.getFullYear(), monat.getMonth() + 1, 0)
+
+  const wochen: Date[][] = []
+  for (let start = wochenbeginn(ersterTag); start <= letzterTag; start.setDate(start.getDate() + 7)) {
+    wochen.push(
+      Array.from({ length: 7 }, (_, i) => {
+        const t = new Date(start)
+        t.setDate(t.getDate() + i)
+        return t
+      }),
+    )
+  }
+  return wochen
+}
 
 // Was in eine Zelle fester Höhe passt; der Rest steht als „+n weitere" darunter.
 const MAX_EINTRAEGE = 3
@@ -21,14 +40,14 @@ const MAX_EINTRAEGE = 3
 const MAX_KOMPAKT = 4
 
 /** Montag der Woche, in der das Datum liegt. */
-function wochenbeginn(datum: Date): Date {
+export function wochenbeginn(datum: Date): Date {
   const d = new Date(datum.getFullYear(), datum.getMonth(), datum.getDate())
   const versatz = (d.getDay() + 6) % 7
   d.setDate(d.getDate() - versatz)
   return d
 }
 
-function gleicherTag(a: Date, b: Date): boolean {
+export function gleicherTag(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
   )
@@ -51,18 +70,7 @@ export function Monatskalender({
   /** Wenn der Kalender schon in einer Karte mit eigener Kopfzeile sitzt. */
   ohneRahmen?: boolean
 }) {
-  const ersterTag = new Date(monat.getFullYear(), monat.getMonth(), 1)
-  const letzterTag = new Date(monat.getFullYear(), monat.getMonth() + 1, 0)
-
-  const wochen: Date[][] = []
-  for (let start = wochenbeginn(ersterTag); start <= letzterTag; start.setDate(start.getDate() + 7)) {
-    const woche = Array.from({ length: 7 }, (_, i) => {
-      const t = new Date(start)
-      t.setDate(t.getDate() + i)
-      return t
-    })
-    wochen.push(woche)
-  }
+  const wochen = wochenDesMonats(monat)
 
   const monatsName = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(monat)
 
@@ -114,7 +122,7 @@ export function Monatskalender({
 
             {woche.map((tag) => {
               const imMonat = tag.getMonth() === monat.getMonth()
-              const desTages = eintraege.filter((e) => gleicherTag(e.postenAm, tag))
+              const desTages = eintraege.filter((e) => e.postenAm && gleicherTag(e.postenAm, tag))
               const sichtbar = desTages.slice(0, kompakt ? MAX_KOMPAKT : MAX_EINTRAEGE)
               const weitere = desTages.length - sichtbar.length
 

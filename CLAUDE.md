@@ -114,6 +114,15 @@ npm run check   # Typecheck + Tests
 - **Transparente Pixel** in Post-Grafiken sind praktisch immer ein Versehen und
   werden gewarnt. Geprüft wird mit `stats().isOpaque`, nicht mit `hasAlpha` —
   viele PNGs tragen einen deckenden Alphakanal.
+- **Posts dürfen ungeplant sein.** `postenAm` ist optional. Der Anlegen-Dialog
+  fragt bewusst kein Datum ab — ein erfundener Termin ist schlechter als gar
+  keiner. Ungeplante Posts stehen im Kalender in der Spalte „Ungeplant" und
+  werden von dort auf einen Tag gezogen. Sie erscheinen in **keinem** Export
+  (`postsImZeitraum` und `feedVorschau` sieben sie aus).
+- **Uhrzeit beim Verschieben.** Aus „Ungeplant" auf einen Tag gezogen bekommt
+  ein Post die `standardUhrzeit` des Kunden aus den Stammdaten. Wird ein bereits
+  terminierter Post umgelegt, **bleibt seine Uhrzeit** — wer ihn zwei Tage
+  schiebt, will die Zeit nicht neu setzen (`postTerminieren`).
 - **Freigaben hängen am einzelnen Post, nicht am Link** — und es sind zwei:
   Konzept vor dem Dreh, Vorschau danach. Welche ansteht, ergibt sich aus dem
   Status (`src/lib/freigabe.ts`), nie aus dem Formular. Das Team kann eine
@@ -136,6 +145,17 @@ npm run check   # Typecheck + Tests
   ohne Zusatz eindeutig.
 - **Status-Farben.** Konzept grau, Vorschau orange, Final grün — überall
   identisch. Post-Typen: Reel rot, Karussell blau, Beitrag grün.
+- **Medien-Upload läuft über den Geräterahmen.** Kein eigener Ablagebereich im
+  Formular: Die leere Fläche im iPhone-Mockup ist der Knopf, ein Klick öffnet
+  `MedienDialog` — und der zeigt je Post-Typ etwas anderes (Beitrag: eine
+  Ablage; Karussell: Einzelslides oder Gesamtbild mit erkannter Slide-Zahl;
+  Reel: Video, Thumbnail, Referenzvideo-Link und das finale Video aus Klappe).
+  Die Slide-Zahl wird schon im Browser aus den Bildmaßen ermittelt, damit sie
+  vor dem Upload dasteht.
+- **Referenzvideo und Länge nur beim Reel.** Beides ergibt bei Standbildern
+  keinen Sinn. Der Referenz-Link lebt im Medien-Dialog, nicht im Hauptformular —
+  `postSpeichern` darf ihn deshalb nur schreiben, wenn das Feld auch mitkommt
+  (`formular.has('referenzVideoUrl')`), sonst löscht ein Speichern ihn still.
 
 ## Design
 
@@ -159,7 +179,9 @@ Farben werden dort ergänzt statt im Bauteil hartkodiert.
 
 Geräterahmen: 344 × 645 px außen, 320 × 621 px Bildschirm, Reel-Fläche
 320 × 569 px (9:16), Kommentarzeile 52 px — **nur beim Reel**, sichtbar, aber
-nicht bedienbar.
+nicht bedienbar. In der Feed-Planung wächst der Rahmen mit dem Raster mit und
+ist um 22 % vergrößert (`.geraet-gross`, `.geraet-waechst`); dort ist er
+Arbeitsmittel, nicht bloß Vorschau.
 
 ## Struktur
 

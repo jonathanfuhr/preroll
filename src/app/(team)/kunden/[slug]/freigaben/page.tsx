@@ -76,7 +76,11 @@ export default async function FreigabenSeite({ params }: { params: Promise<{ slu
                 return (
                   <tr key={post.id} className="border-b border-rahmen last:border-b-0 hover:bg-flaeche-leise">
                     <td className="whitespace-nowrap px-3 py-2.5 text-tinte-3">
-                      {DATUM.format(post.postenAm)}
+                      {post.postenAm ? (
+                        DATUM.format(post.postenAm)
+                      ) : (
+                        <span className="text-stiller">ungeplant</span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5">
                       <TypBadge typ={post.typ} />

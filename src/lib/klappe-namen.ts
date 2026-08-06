@@ -7,16 +7,22 @@
 
 /**
  * Name des Videos in Klappe. Datum voran, damit die Liste dort chronologisch
- * lesbar bleibt — dieselbe Logik wie bei den ZIP-Dateinamen.
+ * lesbar bleibt — dieselbe Logik wie bei den ZIP-Dateinamen. Ein ungeplanter
+ * Post hat noch kein Datum; dann trägt das Video nur den Titel, und beim
+ * Terminieren wird der Name nachgezogen.
  */
-export function klappeVideoName(postenAm: Date, titel: string): string {
+export function klappeVideoName(postenAm: Date | null, titel: string): string {
+  if (!postenAm) return titel
+
   const jj = String(postenAm.getFullYear() % 100).padStart(2, '0')
   const mm = String(postenAm.getMonth() + 1).padStart(2, '0')
   const tt = String(postenAm.getDate()).padStart(2, '0')
   return `${jj}${mm}${tt} ${titel}`
 }
 
-export function klappeVideoBeschreibung(postenAm: Date, kunde: string): string {
+export function klappeVideoBeschreibung(postenAm: Date | null, kunde: string): string {
+  if (!postenAm) return `Aus Preroll · ${kunde} · Termin noch offen`
+
   const termin = new Intl.DateTimeFormat('de-DE', {
     dateStyle: 'full',
     timeStyle: 'short',

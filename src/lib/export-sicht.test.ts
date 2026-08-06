@@ -50,13 +50,24 @@ describe('feedVorschau', () => {
     expect(kacheln).not.toContain('aug-konzept')
   })
 
+  it('lässt ungeplante Posts außen vor — ohne Termin gehört nichts in einen Export', () => {
+    const mitUngeplantem = [
+      ...posts,
+      { id: 'ohne-termin', typ: 'REEL' as const, status: 'FINAL' as const, postenAm: null },
+    ]
+    expect(feedVorschau(mitUngeplantem, regeln).map((p) => p.id)).not.toContain('ohne-termin')
+    expect(postsImZeitraum(mitUngeplantem, regeln).map((p) => p.id)).not.toContain('ohne-termin')
+  })
+
   it('sortiert neueste zuerst — die erste Kachel landet oben links', () => {
     const kacheln = feedVorschau(posts, regeln).map((p) => p.id)
     expect(kacheln).toEqual(['aug-karussell', 'aug-reel', 'juli-b', 'juli-a'])
   })
 
   it('behält ältere Posts auch dann, wenn im Zeitraum nichts freigegeben ist', () => {
-    const nurKonzepte = posts.filter((p) => p.status === 'KONZEPT' || p.postenAm < regeln.zeitraumVon)
+    const nurKonzepte = posts.filter(
+      (p) => p.status === 'KONZEPT' || p.postenAm! < regeln.zeitraumVon,
+    )
     const kacheln = feedVorschau(nurKonzepte, regeln).map((p) => p.id)
     expect(kacheln).toEqual(['juli-b', 'juli-a'])
   })
