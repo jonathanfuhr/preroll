@@ -21,15 +21,15 @@ einem benannten Volume, die **hochgeladenen Medien dagegen auf einem Pfad des
 Hosts** (`MEDIEN_PFAD`) — dort sind sie im Finder erreichbar, laufen ins
 Backup und überleben jedes Neubauen des Images.
 
-**Erstes Konto anlegen** — ohne Konto kommt niemand in die Oberfläche, und
-über die Oberfläche selbst lässt sich keines anlegen:
+**Erster Start:** Die Seite fragt beim ersten Aufruf nach Name, E-Mail und
+Passwort — dieses Konto wird automatisch Administrator und landet direkt in
+den Einstellungen. Danach ist die Einrichtungsseite gesperrt.
+
+Weitere Konten lassen sich auch von der Kommandozeile anlegen:
 
 ```bash
 docker compose exec web node --experimental-strip-types scripts/nutzer-anlegen.ts helena@thdvideo.de "Helena Avdijaj"
 ```
-
-Das erste Konto einer leeren Installation wird automatisch Administrator. Ohne
-drittes Argument wird ein Passwort erzeugt und einmalig ausgegeben.
 
 Beispieldaten (Kunde Beispiel Handwerk GmbH, Content-Plan August 2026) — nur für eine
 Testinstanz, nicht für den Produktivbetrieb:

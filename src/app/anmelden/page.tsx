@@ -36,6 +36,8 @@ export default async function AnmeldenSeite({
 }: {
   searchParams: Promise<{ fehler?: string }>
 }) {
+  // Frische Installation: erst muss ein Konto entstehen.
+  if ((await prisma.nutzer.count()) === 0) redirect('/einrichten')
   if (await aktuellerNutzer()) redirect('/kunden')
 
   const { fehler } = await searchParams
