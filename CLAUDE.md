@@ -162,6 +162,12 @@ npm run check   # Typecheck + Tests
   Reel: Video, Thumbnail, Referenzvideo-Link und das finale Video aus Klappe).
   Die Slide-Zahl wird schon im Browser aus den Bildmaßen ermittelt, damit sie
   vor dem Upload dasteht.
+- **Instagram gibt Reels nur an eine angemeldete Sitzung heraus** — auch die,
+  die im privaten Browserfenster laufen. Weder eine neuere yt-dlp-Fassung noch
+  ein Browser-User-Agent ändern das. Der dokumentierte Weg ist eine
+  `cookies.txt`; sie liegt in den Einstellungen (`instagramCookies`) und wird
+  nur für die Dauer des Laufs in den Temp-Ordner geschrieben. YouTube, TikTok
+  und Vimeo brauchen sie nicht.
 - **Referenzvideo lädt im Hintergrund.** `yt-dlp` und `ffmpeg` stecken im
   Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand liegt am
   Post (`referenzVideoStand`, `-Fortschritt`, `-Meldung`) — nur so überlebt er
@@ -191,6 +197,11 @@ Die Mockups liegen unter `design/` und sind die verbindliche Vorlage:
 | `Export-Seite Kunde.dc.html` | 1a Desktop, 1b Mobile, 1c Kommentare |
 | `Backend.dc.html` | 2a–2i: Kundenübersicht bis Ansprechpartner |
 | `iPhone-Layer.dc.html` | 3a–3d: Geräterahmen je Post-Typ |
+
+Die **Arbeitsfläche des Backends ist weiß**, die Seitenleiste leicht getönt
+(`flaeche-leise`) — wie in den Mockups. Karten tragen ihren Rahmen, nicht den
+Kontrast zum Hintergrund. Umgekehrt (graue Fläche, weiße Karten) wirkt
+schwerer und war nie so gezeichnet.
 
 Optik: hell, zurückhaltend, white-label-nah — die **Kundenmarke** steht im
 Vordergrund, nicht das Werkzeug. Eine dezente Akzentfarbe (`#b00900`), Poppins

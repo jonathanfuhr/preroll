@@ -619,6 +619,11 @@ model Einstellungen {
   // awork — vorerst nur die Verbindung. Was Preroll dorthin schreibt (Aufgaben,
   // Kommentare), ist noch nicht entschieden; die Anbindung steht schon, damit
   // der Schlüssel nicht später nachgereicht werden muss.
+  // Instagram verlangt für viele Reels eine angemeldete Sitzung — ohne
+  // Cookies antwortet es mit einer leeren Medienantwort, egal von welcher
+  // Adresse. Inhalt einer cookies.txt im Netscape-Format.
+  instagramCookies String?
+
   aworkAktiv     Boolean @default(false)
   aworkApiKey    String?
   aworkGeprueftAm DateTime?

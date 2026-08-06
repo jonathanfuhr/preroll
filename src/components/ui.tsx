@@ -246,6 +246,42 @@ export function Schalter({
   )
 }
 
+/**
+ * Der Kippschalter aus Mockup 2e — 38 × 22 px, Knopf 16 px, Beschriftung
+ * links daneben. Wo ein Häkchen in einer Liste von Feldern richtig ist, steht
+ * `Schalter`; dieser hier gehört in eine Kopfzeile, wo er eine ganze Sektion
+ * umlegt und das auch aussehen soll.
+ */
+export function Umschalter({
+  beschriftung,
+  checked,
+  ...rest
+}: ComponentProps<'input'> & { beschriftung: string }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5">
+      <span className="text-[12.5px] text-tinte-3">{beschriftung}</span>
+      <input type="checkbox" checked={checked} className="peer sr-only" {...rest} />
+      {/*
+        Farbe und Knopfstellung hängen am Zustand, nicht an `peer-checked`:
+        Der Nachbarselektor tut dasselbe, aber wer den Schalter liest, sieht
+        so unmittelbar, was an welchem Zustand hängt.
+      */}
+      <span
+        aria-hidden
+        className={`relative block h-[22px] w-[38px] shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-rahmen-4 ${
+          checked ? 'bg-akzent' : 'bg-rahmen-2'
+        }`}
+      >
+        <span
+          className={`absolute top-[3px] block size-4 rounded-full bg-white transition-[left] ${
+            checked ? 'left-[19px]' : 'left-[3px]'
+          }`}
+        />
+      </span>
+    </label>
+  )
+}
+
 // ----------------------------------------------------------------- Kleinkram
 
 export function Kennzahl({ wert, beschriftung }: { wert: ReactNode; beschriftung: string }) {

@@ -272,24 +272,15 @@ export function PostEditor({
         {post.typ === 'REEL' && (
           <Abschnitt
             titel="Ablauf"
-            hinweis="Mit Szenenplan entsteht die nummerierte Liste, die der Kunde später sieht. Ohne ihn tritt ein freies Inhalte-Feld an seine Stelle."
+            hinweis="Mit Szenenplan entsteht die nummerierte Liste, die der Kunde später sieht."
           >
-            <div className="mb-4">
-              <Schalter
-                name="szenenplanAktiv"
-                beschriftung="Szenenplan verwenden"
-                checked={szenenplan}
-                onChange={(e) => setSzenenplan(e.target.checked)}
-              />
-            </div>
-
-            {szenenplan ? (
-              <Szenenplan postId={post.id} szenen={szenen} />
-            ) : (
-              <Feld beschriftung="Inhalte" hinweis="Freitext — erscheint so auch in der Kundenvorschau.">
-                <Textfeld name="inhalte" defaultValue={post.inhalte ?? ''} rows={5} />
-              </Feld>
-            )}
+            <Szenenplan
+              postId={post.id}
+              szenen={szenen}
+              aktiv={szenenplan}
+              setAktiv={setSzenenplan}
+              inhalte={post.inhalte ?? ''}
+            />
           </Abschnitt>
         )}
 

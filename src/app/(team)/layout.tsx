@@ -83,8 +83,13 @@ export default async function TeamLayout({
           offeneKommentare={jeKunde}
         />
 
-        <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between gap-6 border-b border-rahmen bg-grund/95 px-8 backdrop-blur">
+        {/*
+          Arbeitsfläche hell wie in den Mockups: Der Inhalt steht auf Weiß,
+          die Seitenleiste ist leicht getönt. Umgekehrt — graue Fläche, weiße
+          Karten — wirkt schwerer und war nie so gezeichnet.
+        */}
+        <div className="min-w-0 flex-1 bg-flaeche">
+          <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between gap-6 border-b border-rahmen bg-flaeche/95 px-8 backdrop-blur">
             <Brotkrumen
               kunden={kunden.map((k) => ({ slug: k.slug, name: k.name }))}
             />

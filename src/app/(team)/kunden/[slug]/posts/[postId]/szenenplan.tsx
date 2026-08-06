@@ -19,6 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
+import { Feld, Textfeld, Umschalter } from '@/components/ui'
 import { szeneAnlegen, szeneLoeschen, szenenSortieren, szeneSpeichern } from '../../aktionen'
 
 export type Szene = {
@@ -166,7 +167,20 @@ function Szenenzeile({ szene, nummer }: { szene: Szene; nummer: number }) {
  * Abschnitt links. Bislang stand hier nur ein Schalter — die Szenen selbst
  * waren nie gebaut.
  */
-export function Szenenplan({ postId, szenen }: { postId: string; szenen: Szene[] }) {
+export function Szenenplan({
+  postId,
+  szenen,
+  aktiv,
+  setAktiv,
+  inhalte,
+}: {
+  postId: string
+  szenen: Szene[]
+  aktiv: boolean
+  setAktiv: (wert: boolean) => void
+  /** Freitext, der ohne Szenenplan an dessen Stelle tritt. */
+  inhalte: string
+}) {
   const router = useRouter()
   const [, starteUebergang] = useTransition()
   const [reihenfolge, setReihenfolge] = useState(szenen)
@@ -197,31 +211,54 @@ export function Szenenplan({ postId, szenen }: { postId: string; szenen: Szene[]
 
   return (
     <div className="overflow-hidden rounded-md border border-rahmen bg-flaeche">
-      <div className="flex items-center justify-between gap-4 border-b border-rahmen px-6 py-[18px]">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-rahmen px-6 py-[18px]">
         <div>
           <div className="text-[13px] font-semibold text-tinte">
-            Szenen <span className="font-normal text-still">· {reihenfolge.length}</span>
+            Szenen
+            {aktiv && <span className="font-normal text-still"> · {reihenfolge.length}</span>}
           </div>
           <p className="mt-[3px] text-[11.5px] text-leiser">
-            Ziehen zum Sortieren · Änderungen werden beim Verlassen des Feldes gespeichert
+            {aktiv
+              ? 'Ziehen zum Sortieren · Änderungen werden beim Verlassen des Feldes gespeichert'
+              : 'Ohne Szenenplan tritt ein freies Inhalte-Feld an seine Stelle'}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() =>
-            starteUebergang(async () => {
-              await szeneAnlegen(postId)
-              router.refresh()
-            })
-          }
-          className="shrink-0 rounded-[4px] border border-rahmen-3 bg-flaeche px-3.5 py-2 text-[12.5px] text-tinte transition-colors hover:border-akzent hover:text-akzent"
-        >
-          Szene hinzufügen
-        </button>
+        <div className="flex shrink-0 items-center gap-[18px]">
+          <Umschalter
+            name="szenenplanAktiv"
+            beschriftung="Szenenplan"
+            checked={aktiv}
+            onChange={(e) => setAktiv(e.target.checked)}
+          />
+
+          {aktiv && (
+            <button
+              type="button"
+              onClick={() =>
+                starteUebergang(async () => {
+                  await szeneAnlegen(postId)
+                  router.refresh()
+                })
+              }
+              className="rounded-[4px] border border-rahmen-3 bg-flaeche px-3.5 py-2 text-[12.5px] text-tinte transition-colors hover:border-akzent hover:text-akzent"
+            >
+              Szene hinzufügen
+            </button>
+          )}
+        </div>
       </div>
 
-      {reihenfolge.length === 0 ? (
+      {!aktiv ? (
+        <div className="px-6 py-5">
+          <Feld
+            beschriftung="Inhalte"
+            hinweis="Freitext — erscheint so auch in der Kundenvorschau."
+          >
+            <Textfeld name="inhalte" defaultValue={inhalte} rows={5} />
+          </Feld>
+        </div>
+      ) : reihenfolge.length === 0 ? (
         <p className="px-6 py-8 text-center text-[12.5px] text-stiller">
           Noch keine Szene. Der Plan beginnt üblicherweise mit einem Hook.
         </p>

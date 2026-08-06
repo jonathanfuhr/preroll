@@ -49,6 +49,26 @@ export async function workspaceSpeichern(formular: FormData) {
   revalidatePath('/einstellungen')
 }
 
+/**
+ * Instagram gibt viele Reels nur an eine angemeldete Sitzung heraus. Der von
+ * yt-dlp dokumentierte Weg dagegen ist eine cookies.txt — sie liegt hier wie
+ * ein Geheimnis und wird nie im Klartext zurückgezeigt.
+ */
+export async function referenzvideoSpeichern(formular: FormData) {
+  await adminOderRaus()
+
+  const inhalt = String(formular.get('instagramCookies') ?? '').trim()
+  await speichereEinstellungen({
+    // Leeres Feld heißt „unverändert"; gelöscht wird über das Häkchen.
+    ...(formular.get('cookiesLoeschen') === 'on'
+      ? { instagramCookies: null }
+      : inhalt
+        ? { instagramCookies: inhalt }
+        : {}),
+  })
+  revalidatePath('/einstellungen')
+}
+
 export async function mailSpeichern(formular: FormData) {
   await adminOderRaus()
 

@@ -3,7 +3,9 @@ import { spawn } from 'node:child_process'
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { writeFile } from 'node:fs/promises'
 import { prisma } from './db'
+import { ladeEinstellungen } from './einstellungen'
 import { speichereMedium, loescheMedium } from './medien'
 import { istPlattformLink, ytDlpVerfuegbar } from './referenzvideo'
 
@@ -32,6 +34,34 @@ const ZEITLIMIT = 15 * 60_000
  */
 const laufende = new Map<string, AbortController>()
 
+/**
+ * Aus yt-dlps englischer Fehlerzeile eine Meldung machen, mit der jemand
+ * etwas anfangen kann. Der häufigste Fall ist Instagram: Ohne angemeldete
+ * Sitzung antwortet es mit einer leeren Medienantwort — unabhängig davon, ob
+ * der Beitrag im privaten Browserfenster zu sehen ist.
+ */
+function verstaendlich(rohtext: string): string {
+  const text = rohtext.toLowerCase()
+
+  if (text.includes('empty media response') || text.includes('login required')) {
+    return (
+      'Instagram gibt das Video ohne angemeldete Sitzung nicht heraus. Unter ' +
+      'Einstellungen → Workspace lässt sich eine cookies.txt hinterlegen; danach ' +
+      'klappt der Download. Ohne sie bleibt der Link gespeichert und wird in der ' +
+      'Kundenvorschau verlinkt.'
+    )
+  }
+  if (text.includes('rate-limit') || text.includes('429')) {
+    return 'Die Plattform bremst gerade ab. In ein paar Minuten noch einmal versuchen.'
+  }
+  if (text.includes('private') || text.includes('not available')) {
+    return 'Der Beitrag ist nicht öffentlich abrufbar.'
+  }
+  if (text.includes('aborted')) return 'Der Download wurde abgebrochen.'
+
+  return `Das Video konnte nicht geladen werden: ${rohtext.slice(0, 240)}`
+}
+
 function prozentAus(zeile: string): number | null {
   // yt-dlp mit --newline: „[download]   4.2% of  12.34MiB at …"
   const treffer = /\[download\]\s+(\d{1,3}(?:\.\d+)?)%/.exec(zeile)
@@ -59,6 +89,7 @@ async function merkeStand(
 function ladeMitFortschritt(
   url: string,
   ordner: string,
+  keksdatei: string | null,
   aufProzent: (p: number) => void,
   abbruch: AbortSignal,
 ): Promise<void> {
@@ -66,6 +97,7 @@ function ladeMitFortschritt(
     const lauf = spawn(
       'yt-dlp',
       [
+        ...(keksdatei ? ['--cookies', keksdatei] : []),
         '--newline',
         '--no-playlist',
         '--no-warnings',
@@ -106,9 +138,19 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
   let zuletztGemeldet = -1
 
   try {
+    // Die Cookies landen nur für die Dauer des Laufs auf der Platte, im
+    // Temp-Ordner, der am Ende ohnehin gelöscht wird.
+    const einstellungen = await ladeEinstellungen()
+    let keksdatei: string | null = null
+    if (einstellungen.instagramCookies?.trim()) {
+      keksdatei = path.join(ordner, 'cookies.txt')
+      await writeFile(keksdatei, einstellungen.instagramCookies, { mode: 0o600 })
+    }
+
     await ladeMitFortschritt(
       url,
       ordner,
+      keksdatei,
       (p) => {
         // Nur bei ganzen Prozentschritten schreiben — yt-dlp meldet mehrmals
         // je Sekunde, und die Datenbank ist kein Fortschrittsbalken.
@@ -151,13 +193,7 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
     if (alt) await loescheMedium(alt).catch(() => {})
   } catch (fehler) {
     const text = fehler instanceof Error ? fehler.message : String(fehler)
-    await merkeStand(postId, {
-      stand: 'FEHLER',
-      fortschritt: 0,
-      meldung: text.includes('aborted')
-        ? 'Der Download wurde abgebrochen.'
-        : `Das Video konnte nicht geladen werden: ${text.slice(0, 240)}`,
-    })
+    await merkeStand(postId, { stand: 'FEHLER', fortschritt: 0, meldung: verstaendlich(text) })
   } finally {
     laufende.delete(postId)
     await rm(ordner, { recursive: true, force: true }).catch(() => {})
