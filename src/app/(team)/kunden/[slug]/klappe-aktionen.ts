@@ -166,6 +166,14 @@ async function holeFassung(postId: string, videoId: string): Promise<string | nu
   const brauchbar = fassungen.daten.filter((f) => !f.internal && f.status === 'READY')
   const gewaehlt = brauchbar.find((f) => f.isFinal) ?? brauchbar[0]
 
+  // Die Fassung übernimmt den Video-Platz — wie jede der drei Quellen
+  // ersetzt sie, was vorher dort stand. Ein hochgeladenes Video hätte sonst
+  // weiter Vorrang (`reelVideoQuelle`), und die Wahl liefe ins Leere. Die
+  // alte Datei bleibt als Medium in der Bibliothek.
+  if (gewaehlt) {
+    await prisma.postMedium.deleteMany({ where: { postId, rolle: 'MEDIUM' } })
+  }
+
   await prisma.post.update({
     where: { id: postId },
     data: {

@@ -236,7 +236,7 @@ export async function meldeInstagramAbgelaufen(grund: string): Promise<void> {
   })
 
   const titel = 'Instagram-Sitzung erneuern'
-  const text = `${grund} Bis dahin lassen sich keine Referenzvideos von Instagram laden.`
+  const text = `${grund} Bis dahin lassen sich keine Videos von Instagram laden.`
   const url = `${env.appUrl}/einstellungen`
 
   if (admins.length === 0) return

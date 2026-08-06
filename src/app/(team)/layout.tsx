@@ -140,14 +140,14 @@ export default async function TeamLayout({
 
           {/*
             Eine abgelaufene Instagram-Sitzung fällt sonst erst auf, wenn
-            jemand ein Referenzvideo braucht — und dann steht die Arbeit.
+            jemand ein Video von Instagram braucht — und dann steht die Arbeit.
             Deshalb im ganzen Backend, nicht nur in den Einstellungen.
           */}
           {einstellungen.instagramFehler && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-8 py-2.5 text-[12.5px] text-akzent-dunkel">
               <strong className="font-semibold">Instagram-Sitzung abgelaufen</strong>
               <span className="text-akzent-dunkel/80">
-                Referenzvideos von Instagram lassen sich bis zur Erneuerung nicht laden.
+                Videos von Instagram lassen sich bis zur Erneuerung nicht laden.
               </span>
               {darfVerwalten(nutzer.rolle) && (
                 <Link href="/einstellungen" className="font-medium underline underline-offset-2">

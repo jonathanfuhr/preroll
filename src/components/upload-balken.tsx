@@ -4,7 +4,7 @@ import type { Fortschritt } from '@/lib/hochladen'
 
 /**
  * Fortschritt eines Uploads. Bewusst dieselbe Optik wie beim
- * Referenzvideo-Download — für den, der davorsitzt, ist es dasselbe Warten.
+ * Video-Download — für den, der davorsitzt, ist es dasselbe Warten.
  */
 export function UploadBalken({ stand }: { stand: Fortschritt | null }) {
   if (!stand) return null

@@ -8,6 +8,7 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { feedVorschau, istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
+import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
@@ -232,6 +233,9 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
             .map((m) => medienUrl(m.medium.id)!)
           const medium = post.medien.find((m) => m.rolle === 'MEDIUM')
           const thumb = post.medien.find((m) => m.rolle === 'THUMBNAIL')
+          // Der eine Video-Platz des Reels — Upload, Link-Download und
+          // Klappe-Fassung landen alle hier, nicht in einer Extra-Anzeige.
+          const reelVideo = post.typ === 'REEL' ? reelVideoQuelle(post) : null
 
           return (
             <PostSektion
@@ -240,19 +244,24 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
               kunde={exp.kunde.name}
               logo={thumbUrl(exp.kunde.logoId)}
               medien={
-                post.typ === 'KARUSSELL' ? slides : medium ? [medienUrl(medium.medium.id)!] : []
+                post.typ === 'KARUSSELL'
+                  ? slides
+                  : post.typ === 'REEL'
+                    ? reelVideo
+                      ? [reelVideo.url]
+                      : []
+                    : medium
+                      ? [medienUrl(medium.medium.id)!]
+                      : []
               }
-              istVideo={medium?.medium.mimeTyp.startsWith('video/') ?? false}
+              istVideo={
+                post.typ === 'REEL'
+                  ? Boolean(reelVideo)
+                  : (medium?.medium.mimeTyp.startsWith('video/') ?? false)
+              }
               thumbnail={thumb ? medienUrl(thumb.medium.id) : null}
               mitFreigaben={mitFreigaben}
               szenen={post.szenen}
-              referenzVideoUrl={
-                post.referenzVideoMediumId
-                  ? medienUrl(post.referenzVideoMediumId)
-                  : post.referenzVideoUrl
-              }
-              referenzVideoTitel={post.referenzVideoTitel}
-              klappeVideoUrl={post.klappeVersionId ? `/api/klappe/${post.klappeVersionId}` : null}
               kommentare={
                 <>
                   <PostFreigabe

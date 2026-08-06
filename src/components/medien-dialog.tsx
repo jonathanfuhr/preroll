@@ -396,10 +396,10 @@ export function MedienDialog({
   videoQuellen?: ReactNode
   videoUrl?: string | null
   /**
-   * Woher das gezeigte Video stammt. Ohne diese Zeile sähe ein Referenzvideo
-   * aus wie das fertige Reel — und niemand würde es je ersetzen.
+   * Woher das gezeigte Video stammt. Die Klappe-Fassung liegt nicht bei
+   * Preroll — das soll man ihr ansehen, sonst wundert man sich beim Export.
    */
-  videoHerkunft?: 'UPLOAD' | 'KLAPPE' | 'REFERENZ' | null
+  videoHerkunft?: 'MEDIUM' | 'KLAPPE' | null
   thumbnailUrl?: string | null
   /**
    * Aus dem Video gezogen statt hochgeladen. Dann zeigt die rechte Spalte
@@ -504,11 +504,10 @@ export function MedienDialog({
                   <div className="mx-auto w-full max-w-[190px]">
                     <EinfacherPlayer quelle={videoUrl} thumbnail={null} />
                   </div>
-                  {videoHerkunft && videoHerkunft !== 'UPLOAD' && (
+                  {videoHerkunft === 'KLAPPE' && (
                     <p className="text-[11.5px] leading-snug text-leiser">
-                      {videoHerkunft === 'KLAPPE'
-                        ? 'Fassung aus Klappe. Sie liegt dort und wird von dort abgespielt — Preroll hält keine zweite Kopie.'
-                        : 'Von einem Link geladen. In der Konzeptphase das Vorbild — später ersetzt es das fertige Reel.'}
+                      Fassung aus Klappe. Sie liegt dort und wird von dort abgespielt — Preroll
+                      hält keine zweite Kopie.
                     </p>
                   )}
                   <Knopf klein onClick={() => setVideoErsetzen(true)}>

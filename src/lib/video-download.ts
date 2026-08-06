@@ -5,11 +5,17 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { prisma } from './db'
 import { merkeAbgelaufen, schreibeCookiedatei } from './instagram'
-import { speichereMedium, loescheMedium } from './medien'
-import { istPlattformLink, ytDlpVerfuegbar } from './referenzvideo'
+import { speichereMedium } from './medien'
+import { thumbnailAusVideoErgaenzen } from './video'
+import { istPlattformLink, ytDlpVerfuegbar } from './video-links'
 
 /**
- * Referenzvideos im Hintergrund laden.
+ * Videos von einem Link im Hintergrund laden.
+ *
+ * Das Ergebnis hängt als MEDIUM am Post — derselbe Platz, den auch ein
+ * Upload füllt. In der Konzeptphase steht dort das Vorbild aus dem Netz,
+ * später ersetzt es das fertige Reel; ein eigener Referenzvideo-Platz
+ * existiert nicht.
  *
  * Ein Download dauert je nach Plattform eine halbe bis mehrere Minuten. Ihn
  * in der Server-Aktion abzuwarten hieße: Der Dialog steht offen, bis es
@@ -46,8 +52,7 @@ function verstaendlich(rohtext: string): string {
     return (
       'Instagram gibt das Video ohne angemeldete Sitzung nicht heraus. Unter ' +
       'Einstellungen → Workspace lässt sich eine hinterlegen — ist dort schon eine, ' +
-      'ist sie abgelaufen. Ohne sie bleibt der Link gespeichert und wird in der ' +
-      'Kundenvorschau verlinkt.'
+      'ist sie abgelaufen. Der Link bleibt gespeichert.'
     )
   }
   if (text.includes('rate-limit') || text.includes('429')) {
@@ -76,9 +81,9 @@ async function merkeStand(
     .update({
       where: { id: postId },
       data: {
-        ...(daten.fortschritt === undefined ? {} : { referenzVideoFortschritt: daten.fortschritt }),
-        ...(daten.stand === undefined ? {} : { referenzVideoStand: daten.stand }),
-        ...(daten.meldung === undefined ? {} : { referenzVideoMeldung: daten.meldung }),
+        ...(daten.fortschritt === undefined ? {} : { videoDownloadFortschritt: daten.fortschritt }),
+        ...(daten.stand === undefined ? {} : { videoDownloadStand: daten.stand }),
+        ...(daten.meldung === undefined ? {} : { videoDownloadMeldung: daten.meldung }),
       },
     })
     .catch(() => {})
@@ -133,7 +138,7 @@ function ladeMitFortschritt(
 }
 
 async function fuehreAus(postId: string, url: string, abbruch: AbortController): Promise<void> {
-  const ordner = await mkdtemp(path.join(tmpdir(), 'preroll-referenz-'))
+  const ordner = await mkdtemp(path.join(tmpdir(), 'preroll-video-'))
   let zuletztGemeldet = -1
 
   try {
@@ -160,10 +165,7 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
     if (!datei) throw new Error('yt-dlp hat keine Videodatei erzeugt.')
 
     const inhalt = await readFile(path.join(ordner, datei))
-    const post = await prisma.post.findUniqueOrThrow({
-      where: { id: postId },
-      include: { referenzVideoMedium: true },
-    })
+    const post = await prisma.post.findUniqueOrThrow({ where: { id: postId } })
 
     const { medium } = await speichereMedium({
       inhalt,
@@ -172,19 +174,25 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
       kundeId: post.kundeId,
     })
 
-    const alt = post.referenzVideoMedium
+    // Derselbe Platz wie beim Upload: bestehendes MEDIUM aushängen, das
+    // geladene einsetzen. Die alte Datei bleibt als Medium in der Bibliothek —
+    // genau wie bei „Ersetzen" per Upload.
+    await prisma.postMedium.deleteMany({ where: { postId, rolle: 'MEDIUM' } })
+    await prisma.postMedium.create({
+      data: { postId, mediumId: medium.id, rolle: 'MEDIUM', position: 0 },
+    })
+
     await prisma.post.update({
       where: { id: postId },
       data: {
-        referenzVideoMediumId: medium.id,
-        referenzVideoPfad: medium.pfad,
-        referenzVideoTitel: post.referenzVideoTitel ?? datei.replace(/\.[^.]+$/, ''),
-        referenzVideoStand: 'FERTIG',
-        referenzVideoFortschritt: 100,
-        referenzVideoMeldung: null,
+        videoDownloadStand: 'FERTIG',
+        videoDownloadFortschritt: 100,
+        videoDownloadMeldung: null,
       },
     })
-    if (alt) await loescheMedium(alt).catch(() => {})
+
+    // Wie beim Upload: Ein Reel ohne Thumbnail bekommt ein Standbild.
+    await thumbnailAusVideoErgaenzen(postId)
   } catch (fehler) {
     const text = fehler instanceof Error ? fehler.message : String(fehler)
 
@@ -206,19 +214,19 @@ export type Anstossergebnis = { ok: true } | { ok: false; fehler: string }
  * danach weiter — Preroll ist ein dauerhaft laufender Node-Prozess, kein
  * Funktionsaufruf, der nach der Antwort abgeräumt wird.
  */
-export async function starteReferenzDownload(postId: string): Promise<Anstossergebnis> {
+export async function starteVideoDownload(postId: string): Promise<Anstossergebnis> {
   const post = await prisma.post.findUnique({
     where: { id: postId },
-    select: { referenzVideoUrl: true, referenzVideoStand: true },
+    select: { videoDownloadUrl: true, videoDownloadStand: true },
   })
-  if (!post?.referenzVideoUrl) return { ok: false, fehler: 'Kein Link hinterlegt.' }
+  if (!post?.videoDownloadUrl) return { ok: false, fehler: 'Kein Link hinterlegt.' }
   if (laufende.has(postId)) return { ok: true }
 
   // Direkte Videolinks kann yt-dlp auch — ein zweiter Weg wäre nur eine
   // zweite Fehlerquelle. Fehlt yt-dlp, sagt das die Meldung.
   if (!(await ytDlpVerfuegbar())) {
-    const fehler = istPlattformLink(post.referenzVideoUrl)
-      ? 'Für Instagram-, YouTube- und TikTok-Links wird yt-dlp benötigt, das hier nicht installiert ist. Der Link bleibt gespeichert und wird in der Kundenvorschau verlinkt.'
+    const fehler = istPlattformLink(post.videoDownloadUrl)
+      ? 'Für Instagram-, YouTube- und TikTok-Links wird yt-dlp benötigt, das hier nicht installiert ist. Der Link bleibt gespeichert.'
       : 'yt-dlp ist auf diesem Server nicht installiert.'
     await merkeStand(postId, { stand: 'FEHLER', fortschritt: 0, meldung: fehler })
     return { ok: false, fehler }
@@ -230,14 +238,14 @@ export async function starteReferenzDownload(postId: string): Promise<Anstosserg
   await merkeStand(postId, { stand: 'LAEUFT', fortschritt: 0, meldung: null })
 
   const zeitwaechter = setTimeout(() => abbruch.abort(), ZEITLIMIT)
-  void fuehreAus(postId, post.referenzVideoUrl, abbruch).finally(() =>
+  void fuehreAus(postId, post.videoDownloadUrl, abbruch).finally(() =>
     clearTimeout(zeitwaechter),
   )
 
   return { ok: true }
 }
 
-export async function brichReferenzDownloadAb(postId: string): Promise<void> {
+export async function brichVideoDownloadAb(postId: string): Promise<void> {
   laufende.get(postId)?.abort()
   laufende.delete(postId)
 }

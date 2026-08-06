@@ -5,11 +5,10 @@ import { useEffect, useState } from 'react'
 
 export type Ladestand = 'LAEUFT' | 'FERTIG' | 'FEHLER' | null
 
-export type Referenzstand = {
+export type Downloadstand = {
   stand: Ladestand
   fortschritt: number
   meldung: string | null
-  mediumUrl: string | null
 }
 
 /**
@@ -17,12 +16,12 @@ export type Referenzstand = {
  * sobald er fertig ist. Der Haken sitzt hier und nicht im Balken selbst,
  * damit Dialog und Editor denselben Stand sehen, ohne zweimal zu fragen.
  */
-export function useReferenzstand(postId: string, start: Referenzstand): Referenzstand {
+export function useDownloadstand(postId: string, start: Downloadstand): Downloadstand {
   const router = useRouter()
   const [stand, setStand] = useState(start)
 
   // Kommt der Server mit neuen Daten, gewinnt er.
-  useEffect(() => setStand(start), [start.stand, start.fortschritt, start.mediumUrl])
+  useEffect(() => setStand(start), [start.stand, start.fortschritt])
 
   useEffect(() => {
     if (stand.stand !== 'LAEUFT') return
@@ -30,13 +29,13 @@ export function useReferenzstand(postId: string, start: Referenzstand): Referenz
     let abgemeldet = false
     const takt = setInterval(async () => {
       try {
-        const antwort = await fetch(`/api/posts/${postId}/referenz`, { cache: 'no-store' })
+        const antwort = await fetch(`/api/posts/${postId}/video-download`, { cache: 'no-store' })
         if (!antwort.ok || abgemeldet) return
-        const neu = (await antwort.json()) as Referenzstand
+        const neu = (await antwort.json()) as Downloadstand
         setStand(neu)
 
-        // Fertig oder gescheitert: einmal die Seite nachladen, damit Video
-        // und Meldungen überall stimmen.
+        // Fertig oder gescheitert: einmal die Seite nachladen — das Video
+        // hängt dann als MEDIUM am Post und steht überall.
         if (neu.stand !== 'LAEUFT') router.refresh()
       } catch {
         // Ein verpasster Takt ist kein Fehler — beim nächsten klappt es.
@@ -55,9 +54,9 @@ export function useReferenzstand(postId: string, start: Referenzstand): Referenz
 /** Schmaler Balken mit Prozentzahl — dieselbe Optik im Dialog und im Editor. */
 export function Fortschrittsbalken({
   stand,
-  titel = 'Referenzvideo wird geladen',
+  titel = 'Video wird geladen',
 }: {
-  stand: Referenzstand
+  stand: Downloadstand
   titel?: string
 }) {
   if (stand.stand !== 'LAEUFT') return null

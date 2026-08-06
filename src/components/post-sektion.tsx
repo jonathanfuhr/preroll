@@ -150,9 +150,6 @@ export function PostSektion({
   mitFreigaben = true,
   istVideo,
   szenen,
-  referenzVideoUrl,
-  referenzVideoTitel,
-  klappeVideoUrl,
   kommentare,
 }: {
   post: {
@@ -178,9 +175,6 @@ export function PostSektion({
   thumbnail?: string | null
   istVideo: boolean
   szenen: SzenenZeile[]
-  referenzVideoUrl: string | null
-  referenzVideoTitel: string | null
-  klappeVideoUrl: string | null
   kommentare: ReactNode
 }) {
   const { text, hashtags } = teileCaption(post.caption)
@@ -304,51 +298,6 @@ export function PostSektion({
             )
           )}
 
-          {(referenzVideoUrl || klappeVideoUrl) && (
-            <div className="mt-6 grid gap-3">
-              {klappeVideoUrl && (
-                <div>
-                  <div className="mb-2 text-[10.5px] uppercase tracking-[0.14em] text-still">
-                    Finales Reel
-                  </div>
-                  <video
-                    src={klappeVideoUrl}
-                    controls
-                    playsInline
-                    className="w-full max-w-[420px] rounded-lg bg-black"
-                  />
-                </div>
-              )}
-
-              {referenzVideoUrl && (
-                <div>
-                  <div className="mb-2 text-[10.5px] uppercase tracking-[0.14em] text-still">
-                    Referenz
-                  </div>
-                  {referenzVideoUrl.startsWith('/api/') ? (
-                    <video
-                      src={referenzVideoUrl}
-                      controls
-                      playsInline
-                      className="w-full max-w-[420px] rounded-lg bg-black"
-                    />
-                  ) : (
-                    <a
-                      href={referenzVideoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[13px] text-akzent hover:text-akzent-dunkel"
-                    >
-                      {referenzVideoTitel ?? referenzVideoUrl}
-                    </a>
-                  )}
-                  {referenzVideoTitel && referenzVideoUrl.startsWith('/api/') && (
-                    <p className="mt-1.5 text-[11.5px] text-stiller">{referenzVideoTitel}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="min-w-0">{kommentare}</div>

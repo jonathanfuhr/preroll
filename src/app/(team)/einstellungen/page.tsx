@@ -1,6 +1,6 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
-import { referenzvideoSpeichern, workspaceSpeichern } from './aktionen'
+import { instagramSitzungSpeichern, workspaceSpeichern } from './aktionen'
 
 export const metadata = { title: 'Workspace — Preroll' }
 
@@ -68,7 +68,7 @@ export default async function WorkspaceSeite({
       </Abschnitt>
 
       <Abschnitt
-        titel="Referenzvideos von Instagram"
+        titel="Videos von Instagram"
         hinweis="Nur für Instagram nötig. YouTube, TikTok und Vimeo laden ohne alles."
       >
         <Karte className="p-5">
@@ -106,7 +106,7 @@ export default async function WorkspaceSeite({
             )}
           </div>
 
-          <form action={referenzvideoSpeichern} className="grid gap-4">
+          <form action={instagramSitzungSpeichern} className="grid gap-4">
             <Feld beschriftung="Instagram-Sitzung">
               <Textfeld
                 name="instagramCookies"

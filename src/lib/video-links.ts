@@ -5,13 +5,13 @@ import { promisify } from 'node:util'
 const ausfuehren = promisify(execFile)
 
 /**
- * Referenzvideos werden lokal abgelegt statt per iframe eingebettet:
+ * Videos von einem Link werden lokal abgelegt statt per iframe eingebettet:
  * Instagram und YouTube sperren Einbettungen unvorhersehbar, und ein Video,
  * das in der Kundenvorschau nicht läuft, ist schlimmer als keines.
  *
  * Geladen wird mit `yt-dlp` — auch direkte Links. Ein zweiter Weg wäre nur
  * eine zweite Fehlerquelle. Der Download selbst läuft im Hintergrund, siehe
- * `referenz-auftrag.ts`; hier steht nur, was beide Seiten wissen müssen.
+ * `video-download.ts`; hier steht nur, was beide Seiten wissen müssen.
  */
 
 export function istPlattformLink(url: string): boolean {

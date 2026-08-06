@@ -133,8 +133,7 @@ async function main() {
         stil: 'nahbar, direkt',
         verantwortlichId: helena.id,
         szenenplanAktiv: true,
-        referenzVideoUrl: 'https://www.instagram.com/reel/CxK2f8pM1qA/',
-        referenzVideoTitel: 'Referenz-Reel eines anderen Betriebs',
+        videoDownloadUrl: 'https://www.instagram.com/reel/CxK2f8pM1qA/',
         szenen: {
           create: [
             {

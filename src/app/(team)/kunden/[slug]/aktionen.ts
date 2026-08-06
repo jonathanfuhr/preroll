@@ -149,14 +149,6 @@ export async function postSpeichern(postId: string, formular: FormData) {
       stil: text(formular, 'stil'),
       inhalte: text(formular, 'inhalte'),
       szenenplanAktiv: formular.get('szenenplanAktiv') === 'on',
-      // Das Referenzvideo hängt am Medien-Dialog; steht sein Feld nicht im
-      // Formular, darf das Speichern den Link nicht stillschweigend löschen.
-      ...(formular.has('referenzVideoUrl')
-        ? {
-            referenzVideoUrl: text(formular, 'referenzVideoUrl'),
-            referenzVideoTitel: text(formular, 'referenzVideoTitel'),
-          }
-        : {}),
       // Leeres Datumsfeld heißt: der Post wird wieder ungeplant.
       postenAm: datum ? new Date(`${datum}T${uhrzeit}`) : null,
     },

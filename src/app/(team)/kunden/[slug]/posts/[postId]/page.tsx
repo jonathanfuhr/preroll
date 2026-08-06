@@ -5,6 +5,7 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
 import { klappeEingerichtet } from '@/lib/klappe'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
+import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { BrotkrumeSetzen } from '@/components/brotkrumen'
 import { PostEditor } from './editor'
@@ -14,10 +15,10 @@ export default async function PostSeite({
   searchParams,
 }: {
   params: Promise<{ slug: string; postId: string }>
-  searchParams: Promise<{ klappe?: string; referenz?: string; meldung?: string }>
+  searchParams: Promise<{ klappe?: string; meldung?: string }>
 }) {
   const { slug, postId } = await params
-  const { klappe: klappeZustand, referenz: referenzZustand, meldung } = await searchParams
+  const { klappe: klappeZustand, meldung } = await searchParams
   const post = await ladePost(postId)
 
   const [einstellungen, angebunden] = await Promise.all([
@@ -62,24 +63,9 @@ export default async function PostSeite({
   const mediumEintrag = post.medien.find((m) => m.rolle === 'MEDIUM')
   const istVideo = mediumEintrag?.medium.mimeTyp.startsWith('video/') ?? false
 
-  /*
-    Die Video-Spalte im Dialog soll zeigen, was tatsächlich am Post hängt —
-    egal, auf welchem der drei Wege es dorthin kam. Das hochgeladene Reel
-    schlägt die Klappe-Fassung, die schlägt das Referenzvideo: In dieser
-    Reihenfolge wird aus dem Vorbild das Fertige.
-
-    Die Klappe-Fassung wird durchgereicht, nicht kopiert — `/api/klappe`
-    streamt sie mitsamt Range-Anfragen vom Klappe-Server. Zweimal derselbe
-    Schnitt auf zwei Platten wäre Verschwendung.
-  */
-  const videoQuelle: { url: string; herkunft: 'UPLOAD' | 'KLAPPE' | 'REFERENZ' } | null =
-    istVideo && medium[0]
-      ? { url: medienUrl(medium[0])!, herkunft: 'UPLOAD' }
-      : post.klappeVersionId
-        ? { url: `/api/klappe/${post.klappeVersionId}`, herkunft: 'KLAPPE' }
-        : post.referenzVideoMediumId
-          ? { url: medienUrl(post.referenzVideoMediumId)!, herkunft: 'REFERENZ' }
-          : null
+  // Der eine Video-Platz — Upload, Link-Download und Klappe füllen ihn alle
+  // drei. Was gerade dort steht, entscheidet `reelVideoQuelle`.
+  const videoQuelle = post.typ === 'REEL' ? reelVideoQuelle(post) : null
 
   return (
     <>
@@ -105,8 +91,7 @@ export default async function PostSeite({
           stil: post.stil,
           inhalte: post.inhalte,
           szenenplanAktiv: post.szenenplanAktiv,
-          referenzVideoUrl: post.referenzVideoUrl,
-          referenzVideoTitel: post.referenzVideoTitel,
+          videoDownloadUrl: post.videoDownloadUrl,
         }}
         szenen={post.szenen.map((s) => ({
           id: s.id,
@@ -155,15 +140,10 @@ export default async function PostSeite({
           exportId: k.exportId,
         }))}
         kundeSlug={slug}
-        referenz={{
-          mediumUrl: medienUrl(post.referenzVideoMediumId),
-          geladen: Boolean(post.referenzVideoMediumId),
-          stand: {
-            stand: post.referenzVideoStand,
-            fortschritt: post.referenzVideoFortschritt,
-            meldung: post.referenzVideoMeldung,
-            mediumUrl: medienUrl(post.referenzVideoMediumId),
-          },
+        downloadStand={{
+          stand: post.videoDownloadStand,
+          fortschritt: post.videoDownloadFortschritt,
+          meldung: post.videoDownloadMeldung,
         }}
         klappe={{
           eingerichtet: angebunden,
@@ -208,12 +188,6 @@ export default async function PostSeite({
               ? 'Diesem Kunden ist noch kein Klappe-Projekt zugeordnet.'
               : klappeZustand === 'fehler' || klappeZustand === 'hinweis'
                 ? meldung
-                : undefined,
-          referenz:
-            referenzZustand === 'fehler'
-              ? meldung
-              : referenzZustand === 'kein-link'
-                ? 'Bitte zuerst einen Link hinterlegen und speichern.'
                 : undefined,
         }}
       />

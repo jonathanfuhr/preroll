@@ -7,16 +7,16 @@ import { MedienDialog } from '@/components/medien-dialog'
 import { KommentarListe, type Kommentareintrag } from '@/components/kommentar-liste'
 import {
   Fortschrittsbalken,
-  useReferenzstand,
-  type Referenzstand,
-} from '@/components/referenz-fortschritt'
+  useDownloadstand,
+  type Downloadstand,
+} from '@/components/download-fortschritt'
 import { kalenderwoche } from '@/lib/format'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
 import type { Zielreel } from './uebertragen'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
-import { referenzvideoEntfernen, referenzvideoSetzen } from '../../referenz-aktionen'
+import { videoVonLinkLaden } from '../../video-download-aktionen'
 import {
   Abschnitt,
   Eingabe,
@@ -51,8 +51,8 @@ type PostDaten = {
   stil: string | null
   inhalte: string | null
   szenenplanAktiv: boolean
-  referenzVideoUrl: string | null
-  referenzVideoTitel: string | null
+  videoDownloadUrl: string | null
+
 }
 
 type CustomFeld = { id: string; name: string; typ: CustomFeldTyp; wert: string | null }
@@ -98,7 +98,7 @@ export function PostEditor({
   kommentare,
   andereReels,
   freigabenNoetig,
-  referenz,
+  downloadStand,
   klappe,
   kundeSlug,
   meldungen,
@@ -115,8 +115,8 @@ export function PostEditor({
   /** Aus dem Video gezogen statt hochgeladen. */
   thumbnailAutomatisch: boolean
   istVideo: boolean
-  /** Was im Dialog abgespielt wird — Upload, Klappe-Fassung oder Referenz. */
-  videoQuelle: { url: string; herkunft: 'UPLOAD' | 'KLAPPE' | 'REFERENZ' } | null
+  /** Der eine Video-Platz — eigenes MEDIUM oder eingebettete Klappe-Fassung. */
+  videoQuelle: { url: string; herkunft: 'MEDIUM' | 'KLAPPE' } | null
   vorschau: { kunde: string; logo: string | null }
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
   standardUhrzeit: string
@@ -125,11 +125,7 @@ export function PostEditor({
   freigabenNoetig: boolean
   /** Andere Reels desselben Kunden — Ziele fürs Übertragen des Ablaufs. */
   andereReels: Zielreel[]
-  referenz: {
-    mediumUrl: string | null
-    geladen: boolean
-    stand: Referenzstand
-  }
+  downloadStand: Downloadstand
   klappe: {
     eingerichtet: boolean
     projektName: string | null
@@ -146,7 +142,7 @@ export function PostEditor({
     } | null
   }
   kundeSlug: string
-  meldungen: { klappe?: string; referenz?: string }
+  meldungen: { klappe?: string }
   freigabe: {
     offen: import('@prisma/client').Freigabestufe | null
     erledigt: boolean
@@ -157,13 +153,24 @@ export function PostEditor({
   const [dialogOffen, setDialogOffen] = useState(false)
   // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
   // im Dialog und über den Eckdaten.
-  const referenzstand = useReferenzstand(post.id, referenz.stand)
+  const downloadstand = useDownloadstand(post.id, downloadStand)
   const [szenenplan, setSzenenplan] = useState(post.szenenplanAktiv)
   // Die Caption steht im Zustand, damit die Vorschau beim Tippen mitläuft.
   const [caption, setCaption] = useState(post.caption)
 
+  // Beim Reel zeigt der Rahmen den einen Video-Platz — egal, ob das Video
+  // hochgeladen, geladen oder aus Klappe eingebettet ist.
   const vorschauMedien =
-    post.typ === 'KARUSSELL' ? slideUrls : mediumUrl ? [mediumUrl] : []
+    post.typ === 'KARUSSELL'
+      ? slideUrls
+      : post.typ === 'REEL'
+        ? videoQuelle
+          ? [videoQuelle.url]
+          : []
+        : mediumUrl
+          ? [mediumUrl]
+          : []
+  const vorschauIstVideo = post.typ === 'REEL' ? Boolean(videoQuelle) : istVideo
 
   const datum = post.postenAm?.slice(0, 10) ?? ''
   const uhrzeit = post.postenAm
@@ -253,16 +260,16 @@ export function PostEditor({
           </div>
         </div>
 
-      {referenzstand.stand === 'LAEUFT' && <Fortschrittsbalken stand={referenzstand} />}
+      {downloadstand.stand === 'LAEUFT' && <Fortschrittsbalken stand={downloadstand} />}
 
       {/*
         Ein gescheiterter Download stand bislang nur im Medien-Dialog — also
         genau dort, wo niemand nachschaut, der ihn schon geschlossen hat.
       */}
-      {referenzstand.stand === 'FEHLER' && referenzstand.meldung && (
+      {downloadstand.stand === 'FEHLER' && downloadstand.meldung && (
         <Fehler>
-          <strong className="font-semibold">Referenzvideo nicht geladen.</strong>{' '}
-          {referenzstand.meldung}{' '}
+          <strong className="font-semibold">Video nicht geladen.</strong>{' '}
+          {downloadstand.meldung}{' '}
           <button
             type="button"
             onClick={() => setDialogOffen(true)}
@@ -433,7 +440,7 @@ export function PostEditor({
           logo={vorschau.logo}
           medien={vorschauMedien}
           caption={caption}
-          istVideo={istVideo}
+          istVideo={vorschauIstVideo}
           thumbnail={thumbnailUrl}
           aufUpload={() => setDialogOffen(true)}
         />
@@ -493,57 +500,37 @@ export function PostEditor({
                   unvorhersehbar sperren.
                 </p>
 
-                {(meldungen.referenz ?? referenzstand.meldung) && (
+                {downloadstand.stand === 'FEHLER' && downloadstand.meldung && (
                   <div className="mb-3">
-                    <Warnung>{meldungen.referenz ?? referenzstand.meldung}</Warnung>
+                    <Warnung>{downloadstand.meldung}</Warnung>
                   </div>
                 )}
 
-                {referenzstand.stand === 'LAEUFT' && (
+                {downloadstand.stand === 'LAEUFT' && (
                   <div className="mb-3">
-                    <Fortschrittsbalken stand={referenzstand} />
+                    <Fortschrittsbalken stand={downloadstand} />
                   </div>
                 )}
 
-                <form action={referenzvideoSetzen.bind(null, post.id)} className="grid gap-3">
+                <form action={videoVonLinkLaden.bind(null, post.id)} className="grid gap-3">
                   <Eingabe
-                    name="referenzVideoUrl"
+                    name="videoDownloadUrl"
                     type="url"
-                    defaultValue={post.referenzVideoUrl ?? ''}
+                    defaultValue={post.videoDownloadUrl ?? ''}
                     placeholder="https://www.instagram.com/reel/…"
-                  />
-                  <Eingabe
-                    name="referenzVideoTitel"
-                    defaultValue={post.referenzVideoTitel ?? ''}
-                    placeholder={'Beschriftung, z. B. „Handwerk sucht dich“'}
                   />
                   <div>
                     <Knopf
                       klein
                       art="primaer"
                       type="submit"
-                      disabled={referenzstand.stand === 'LAEUFT'}
+                      disabled={downloadstand.stand === 'LAEUFT'}
                     >
-                      {referenzstand.stand === 'LAEUFT' ? 'Läuft …' : 'Laden und einsetzen'}
+                      {downloadstand.stand === 'LAEUFT' ? 'Läuft …' : 'Laden und einsetzen'}
                     </Knopf>
                   </div>
                 </form>
 
-                {referenz.geladen && referenzstand.stand !== 'LAEUFT' && (
-                  <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-rahmen bg-flaeche-leise px-3 py-2.5">
-                    <p className="text-[11.5px] text-leiser">
-                      Kopie liegt vor und steht im Geräterahmen.
-                    </p>
-                    <form action={referenzvideoEntfernen.bind(null, post.id)}>
-                      <button
-                        type="submit"
-                        className="text-[11.5px] text-stiller hover:text-akzent"
-                      >
-                        Entfernen
-                      </button>
-                    </form>
-                  </div>
-                )}
               </div>
             </>
           ) : null

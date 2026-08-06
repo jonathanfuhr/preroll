@@ -171,17 +171,20 @@ npm run check   # Typecheck + Tests
   Termin in der Vergangenheit ergibt „Gepostet" (`abgeleiteteStufe`). Ein
   fünfter Wert müsste nachgezogen werden und könnte falsch stehen. Bei Kunden
   ohne Freigabepflicht fällt in den Erklärungen der Satz zur Freigabe weg.
-- **Reel-Video und Referenzvideo sind derselbe Platz.** Sie stehen nur zu
-  verschiedenen Zeitpunkten dort und ersetzen einander: erst das Vorbild aus
-  dem Netz, später das fertige Reel. Der Dialog bietet dafür drei
-  gleichberechtigte Quellen — hochladen, aus Klappe holen, von einem Link
-  laden. Im Geräterahmen stehen zwei Knöpfe: **Reel hochladen** und
-  **Thumbnail hochladen**.
+- **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
+  beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
+  „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim
+  Kunden. Upload und Download hängen die Datei als `MEDIUM` an und ersetzen,
+  was dort lag; Klappe wird **nicht kopiert**, sondern über `/api/klappe`
+  gestreamt, und die Fassungswahl räumt dafür das `MEDIUM` weg
+  (`holeFassung`). Was gerade gilt, sagt `reelVideoQuelle`: eigenes `MEDIUM`
+  vor Klappe-Fassung — so gewinnt immer die zuletzt getroffene Wahl.
 - **Medien-Upload läuft über den Geräterahmen.** Kein eigener Ablagebereich im
   Formular: Die leere Fläche im iPhone-Mockup ist der Knopf, ein Klick öffnet
   `MedienDialog` — und der zeigt je Post-Typ etwas anderes (Beitrag: eine
   Ablage; Karussell: Einzelslides oder Gesamtbild mit erkannter Slide-Zahl;
-  Reel: Video, Thumbnail, Referenzvideo-Link und das finale Video aus Klappe).
+  Reel: zwei Spalten — links das Video mit seinen drei Quellen, rechts das
+  Thumbnail).
   Die Slide-Zahl wird schon im Browser aus den Bildmaßen ermittelt, damit sie
   vor dem Upload dasteht.
 - **Instagram gibt Reels nur an eine angemeldete Sitzung heraus** — auch die,
@@ -200,20 +203,19 @@ npm run check   # Typecheck + Tests
   einem hinterlegten Reel-Link (`wacheUeberSitzung`, angestoßen vom
   Team-Layout — Preroll hat keinen Zeitplaner) und meldet den Ablauf **einmal**
   an die Administration. YouTube, TikTok und Vimeo brauchen nichts davon.
-- **Referenzvideo lädt im Hintergrund.** `yt-dlp` und `ffmpeg` stecken im
-  Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand liegt am
-  Post (`referenzVideoStand`, `-Fortschritt`, `-Meldung`) — nur so überlebt er
-  das Schließen des Dialogs. Der Editor fragt über `/api/posts/<id>/referenz`
-  nach. Bewusst **kein** Worker: siehe `src/lib/referenz-auftrag.ts`. Ein
-  Neustart des Containers verliert einen laufenden Download; er steht dann auf
-  `LAEUFT` und wird neu angestoßen.
+- **Der Link-Download läuft im Hintergrund.** `yt-dlp` und `ffmpeg` stecken
+  im Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand
+  liegt am Post (`videoDownloadStand`, `-Fortschritt`, `-Meldung`) — nur so
+  überlebt er das Schließen des Dialogs. Der Editor fragt über
+  `/api/posts/<id>/video-download` nach. Bewusst **kein** Worker: siehe
+  `src/lib/video-download.ts`. Ein Neustart des Containers verliert einen
+  laufenden Download; er steht dann auf `LAEUFT` und wird neu angestoßen.
 - **Reel ohne Thumbnail bekommt ein Standbild.** Beim Video-Upload zieht
   `ffmpeg` ein Bild bei Sekunde 1 — Sekunde 0 ist oft schwarz. Nur wenn noch
   keins hinterlegt ist.
-- **Referenzvideo und Länge nur beim Reel.** Beides ergibt bei Standbildern
-  keinen Sinn. Der Referenz-Link lebt im Medien-Dialog, nicht im Hauptformular —
-  `postSpeichern` darf ihn deshalb nur schreiben, wenn das Feld auch mitkommt
-  (`formular.has('referenzVideoUrl')`), sonst löscht ein Speichern ihn still.
+- **Link-Download und Länge nur beim Reel.** Beides ergibt bei Standbildern
+  keinen Sinn. Das Link-Feld lebt im Medien-Dialog mit eigener Aktion
+  (`videoVonLinkLaden`) — `postSpeichern` fasst es nie an.
 
 ## Design
 

@@ -55,7 +55,7 @@ export async function workspaceSpeichern(formular: FormData) {
  * yt-dlp dokumentierte Weg dagegen ist eine cookies.txt — sie liegt hier wie
  * ein Geheimnis und wird nie im Klartext zurückgezeigt.
  */
-export async function referenzvideoSpeichern(formular: FormData) {
+export async function instagramSitzungSpeichern(formular: FormData) {
   await adminOderRaus()
 
   if (formular.get('cookiesLoeschen') === 'on') {
