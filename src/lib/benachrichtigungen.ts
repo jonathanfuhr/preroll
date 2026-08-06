@@ -2,10 +2,16 @@ import 'server-only'
 import type { BenachrichtigungArt } from '@prisma/client'
 import { formatiereTag } from './datum'
 import { prisma } from './db'
+import { alsKlartext, erwaehnungenAus } from './kommentar-text'
 import { env } from './env'
 import { STUFE_TEXT } from './freigabe'
 import { sendeMail, type Mail } from './mail'
-import { vorlageEinladung, vorlageFreigabe, vorlageNeuerKommentar } from './mail/vorlagen'
+import {
+  vorlageEinladung,
+  vorlageErwaehnung,
+  vorlageFreigabe,
+  vorlageNeuerKommentar,
+} from './mail/vorlagen'
 import { sendePush } from './push'
 import { empfaenger } from './rollen'
 
@@ -113,12 +119,21 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
   const kunde = post.kunde
   const url = `${env.appUrl}/kunden/${kunde.slug}/posts/${kommentar.postId}`
 
+  // Mail, Push und Glocke zeigen keine Chips — dort stehen die Erwähnungen
+  // als schlichtes „@Name".
+  const lesbar = alsKlartext(kommentar.text)
+
+  // Erwähnte zuerst: Sie bekommen eine eigene, an sie gerichtete Meldung und
+  // sind danach vom allgemeinen Verteiler ausgenommen — zwei Mails zum
+  // selben Kommentar liest niemand gern.
+  const erwaehnt = await meldeErwaehnungen(kommentar, post.titel, kunde, url, lesbar)
+
   // Kommentare vom Team gehen an die Gäste des Links, nicht ins eigene Haus.
   if (kommentar.nutzerId) {
     if (!kommentar.exportId) return
 
     const beteiligungen = await prisma.exportGast.findMany({
-      where: { exportId: kommentar.exportId },
+      where: { exportId: kommentar.exportId, gastId: { notIn: erwaehnt.gastIds } },
       include: { gast: true, export: true },
     })
 
@@ -132,7 +147,7 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
               kommentar.autorName,
               kunde.name,
               post.titel,
-              kommentar.text,
+              lesbar,
               gastUrl,
             ),
           ),
@@ -145,7 +160,7 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
             { gastId: gast.id },
             {
               titel: `Neuer Kommentar — ${post.titel}`,
-              text: `${kommentar.autorName}: ${kommentar.text.slice(0, 120)}`,
+              text: `${kommentar.autorName}: ${lesbar.slice(0, 120)}`,
               url: gastUrl,
             },
           ),
@@ -156,19 +171,97 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
     return
   }
 
-  const ziele = await empfaengerFuerKunden(kunde.id, kommentar.exportId)
+  const ziele = (await empfaengerFuerKunden(kunde.id, kommentar.exportId)).filter(
+    (n) => !erwaehnt.nutzerIds.includes(n.id),
+  )
   await verteile(
     ziele,
     {
       art: 'KOMMENTAR',
       titel: `Neuer Kommentar — ${post.titel}`,
-      text: `${kommentar.autorName}: ${kommentar.text.slice(0, 160)}`,
+      text: `${kommentar.autorName}: ${lesbar.slice(0, 160)}`,
       url,
       kundeId: kunde.id,
       postId: kommentar.postId,
     },
-    (an) => vorlageNeuerKommentar(an, kommentar.autorName, kunde.name, post.titel, kommentar.text, url),
+    (an) => vorlageNeuerKommentar(an, kommentar.autorName, kunde.name, post.titel, lesbar, url),
   )
+}
+
+/**
+ * Erwähnte benachrichtigen — und zwar nur die, die ohnehin Zutritt haben:
+ * aktive Teamkonten und Gäste **dieses** Freigabe-Links. Der Text ist die
+ * einzige Quelle dafür, wer erwähnt wurde, und er kommt aus einem Formular;
+ * ohne diesen Abgleich ließe sich mit einer untergeschobenen Kennung jemand
+ * anschreiben, der mit dem Kunden nichts zu tun hat.
+ */
+async function meldeErwaehnungen(
+  kommentar: { autorName: string; exportId: string | null; postId: string | null; text: string },
+  postTitel: string,
+  kunde: { id: string; name: string },
+  teamUrl: string,
+  lesbar: string,
+): Promise<{ nutzerIds: string[]; gastIds: string[] }> {
+  const erwaehnungen = erwaehnungenAus(kommentar.text)
+  if (erwaehnungen.length === 0) return { nutzerIds: [], gastIds: [] }
+
+  const nutzerIds = erwaehnungen.filter((e) => e.art === 'nutzer').map((e) => e.id)
+  const gastIds = erwaehnungen.filter((e) => e.art === 'gast').map((e) => e.id)
+
+  const [nutzer, beteiligungen] = await Promise.all([
+    nutzerIds.length > 0
+      ? prisma.nutzer.findMany({ where: { id: { in: nutzerIds }, aktiv: true } })
+      : [],
+    gastIds.length > 0 && kommentar.exportId
+      ? prisma.exportGast.findMany({
+          where: { exportId: kommentar.exportId, gastId: { in: gastIds } },
+          include: { gast: true, export: true },
+        })
+      : [],
+  ])
+
+  await verteile(
+    nutzer,
+    {
+      art: 'KOMMENTAR',
+      titel: `${kommentar.autorName} hat Sie erwähnt`,
+      text: `${postTitel}: ${lesbar.slice(0, 140)}`,
+      url: teamUrl,
+      kundeId: kunde.id,
+      postId: kommentar.postId,
+    },
+    (an) => vorlageErwaehnung(an, kommentar.autorName, kunde.name, postTitel, lesbar, teamUrl),
+  )
+
+  for (const { gast, export: exp } of beteiligungen) {
+    const gastUrl = `${env.appUrl}/f/${exp.token}`
+    if (gast.mailBenachrichtigungen) {
+      await stilleZustellung(
+        sendeMail(
+          vorlageErwaehnung(gast.email, kommentar.autorName, kunde.name, postTitel, lesbar, gastUrl),
+        ),
+        `Erwähnung an ${gast.email}`,
+      )
+    }
+    if (gast.pushBenachrichtigungen) {
+      await stilleZustellung(
+        sendePush(
+          { gastId: gast.id },
+          {
+            titel: `${kommentar.autorName} hat Sie erwähnt`,
+            text: `${postTitel}: ${lesbar.slice(0, 120)}`,
+            url: gastUrl,
+          },
+        ),
+        `Push an ${gast.email}`,
+      )
+    }
+  }
+
+  return {
+    nutzerIds: nutzer.map((n) => n.id),
+    gastIds: beteiligungen.map((b) => b.gastId),
+  }
 }
 
 // -------------------------------------------------------------- Freigaben

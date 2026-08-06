@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode, type TouchEvent } from 'react'
 
 /**
  * Bildfläche und Punktreihe eines Karussells — der Teil, durch den geblättert
@@ -10,6 +10,10 @@ import { useState, type ReactNode } from 'react'
  * die beim Überfahren erscheinen, plus die Punktreihe zum Springen: Ein Klick
  * mitten aufs Bild ist eine Geste ohne sichtbare Ursache — man sieht ihr
  * nicht an, dass sie etwas tut, und rückwärts kommt man damit gar nicht.
+ *
+ * Am Telefon gibt es kein Überfahren, dafür das Wischen — dort ist es die
+ * Geste, die man von Instagram kennt. Beides liegt nebeneinander; der Kunde
+ * öffnet den Link oft mobil.
  */
 export function KarussellFlaeche({
   slides,
@@ -24,9 +28,30 @@ export function KarussellFlaeche({
   const anzahl = Math.max(slides.length, 1)
   const bild = slides[Math.min(aktiv, slides.length - 1)]
 
+  const start = useRef<{ x: number; y: number } | null>(null)
+
+  function wischEnde(e: TouchEvent) {
+    if (!start.current) return
+    const dx = e.changedTouches[0].clientX - start.current.x
+    const dy = e.changedTouches[0].clientY - start.current.y
+    start.current = null
+
+    // Nur waagerechte Gesten zählen — sonst blättert jedes Scrollen weiter.
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return
+    setAktiv((i) =>
+      dx < 0 ? Math.min(slides.length - 1, i + 1) : Math.max(0, i - 1),
+    )
+  }
+
   return (
     <>
-      <div className="group relative h-[400px] w-[320px] shrink-0 border-y border-grund">
+      <div
+        className="group relative h-[400px] w-[320px] shrink-0 touch-pan-y border-y border-grund"
+        onTouchStart={(e) => {
+          start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+        }}
+        onTouchEnd={wischEnde}
+      >
         {bild ? (
           <>
             {ersetzenKnopf}

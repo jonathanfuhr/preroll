@@ -1,5 +1,9 @@
 import Link from 'next/link'
+import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
+import { darfBearbeiten } from '@/lib/kommentar-rechte'
+import { KommentarInhalt } from '@/components/kommentar-inhalt'
 import { Karte, Leerzustand, TypBadge } from '@/components/ui'
 import { KommentarZeile } from './zeile'
 
@@ -20,6 +24,18 @@ export default async function KommentareSeite({
     take: 200,
     include: { post: { include: { kunde: true } }, nutzer: true, gast: true },
   })
+
+  const ich = await aktuellerNutzer()
+  const betrachter = { art: 'nutzer' as const, id: ich?.id ?? '', rolle: ich?.rolle ?? 'EDITOR' }
+
+  // Über alle Kunden hinweg: Erwähnbar ist hier, wer beim Kunden des jeweils
+  // kommentierten Beitrags erwähnbar wäre. Die Liste je Kunde einmal holen.
+  const kundenIds = [...new Set(kommentare.map((k) => k.post?.kundeId).filter(Boolean))] as string[]
+  const listen = new Map(
+    await Promise.all(
+      kundenIds.map(async (id) => [id, await erwaehnbarePersonen(id)] as const),
+    ),
+  )
 
   return (
     <div className="max-w-[880px]">
@@ -78,18 +94,21 @@ export default async function KommentareSeite({
                     dateStyle: 'short',
                     timeStyle: 'short',
                   }).format(kommentar.erstelltAm)}
+                  {kommentar.bearbeitetAm && ' · bearbeitet'}
                 </span>
               </div>
 
-              <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-tinte-3">
-                {kommentar.text}
-              </p>
+              <KommentarInhalt text={kommentar.text} />
 
               <KommentarZeile
                 kommentarId={kommentar.id}
                 status={kommentar.status}
                 postId={kommentar.postId}
                 exportId={kommentar.exportId}
+                text={kommentar.text}
+                erwaehnbar={listen.get(kommentar.post?.kundeId ?? '') ?? []}
+                darfAendern={darfBearbeiten(kommentar, betrachter)}
+                istAntwort={Boolean(kommentar.antwortAufId)}
               />
             </Karte>
           ))}

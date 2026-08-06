@@ -549,6 +549,9 @@ model Kommentar {
 
   text   String
   status KommentarStatus @default(OFFEN)
+  // Gesetzt, sobald jemand den Text nachträglich ändert. `aktualisiertAm`
+  // taugt dafür nicht — das springt auch beim Erledigen.
+  bearbeitetAm DateTime?
 
   antwortAufId String?
   antwortAuf   Kommentar?  @relation("Antworten", fields: [antwortAufId], references: [id], onDelete: Cascade)

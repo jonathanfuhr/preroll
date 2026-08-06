@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { ladeKunde } from '@/lib/abfragen'
+import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
+import { darfBearbeiten } from '@/lib/kommentar-rechte'
+import { KommentarInhalt } from '@/components/kommentar-inhalt'
 import { Karte, Leerzustand, TypBadge } from '@/components/ui'
 import { KommentarZeile } from '../../../kommentare/zeile'
 
@@ -21,6 +25,10 @@ export default async function KundenKommentareSeite({
   })
 
   const offene = kommentare.filter((k) => k.status === 'OFFEN').length
+
+  const ich = await aktuellerNutzer()
+  const betrachter = { art: 'nutzer' as const, id: ich?.id ?? '', rolle: ich?.rolle ?? 'EDITOR' }
+  const erwaehnbar = await erwaehnbarePersonen(kunde.id)
 
   return (
     <div className="max-w-[800px]">
@@ -58,18 +66,21 @@ export default async function KundenKommentareSeite({
                 )}
                 <span className="ml-auto text-[11px] text-stiller">
                   {ZEIT.format(kommentar.erstelltAm)}
+                  {kommentar.bearbeitetAm && ' · bearbeitet'}
                 </span>
               </div>
 
-              <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-tinte-3">
-                {kommentar.text}
-              </p>
+              <KommentarInhalt text={kommentar.text} />
 
               <KommentarZeile
                 kommentarId={kommentar.id}
                 status={kommentar.status}
                 postId={kommentar.postId}
                 exportId={kommentar.exportId}
+                text={kommentar.text}
+                erwaehnbar={erwaehnbar}
+                darfAendern={darfBearbeiten(kommentar, betrachter)}
+                istAntwort={Boolean(kommentar.antwortAufId)}
               />
             </Karte>
           ))}

@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
 import { STUFEN, STUFE_TEXT, stufenErklaerung, type Stufe } from '@/lib/status'
 
 /**
@@ -8,8 +11,10 @@ import { STUFEN, STUFE_TEXT, stufenErklaerung, type Stufe } from '@/lib/status'
  * kommt. Beim Kunden ist genau das die Frage: Bin ich dran, oder wartet der
  * Beitrag auf uns?
  *
- * Bewusst ohne JavaScript: Die Erklärungsbox hängt an `group-hover`, das
- * genügt und spart eine Client-Insel je Beitrag.
+ * Am Zeigegerät genügt das Überfahren. Am Telefon gibt es das nicht — dort
+ * öffnet ein Tipp auf den Punkt die Erklärung, ein Tipp daneben schließt sie.
+ * Dafür ist die Leiste eine Client-Insel; ohne sie bliebe die Erklärung mobil
+ * unerreichbar.
  */
 
 const FARBE: Record<Stufe, string> = {
@@ -28,9 +33,24 @@ export function StatusLeiste({
   mitFreigaben: boolean
 }) {
   const erreicht = STUFEN.indexOf(stufe)
+  const [getippt, setGetippt] = useState<Stufe | null>(null)
+  const leiste = useRef<HTMLDivElement>(null)
+
+  // Ein Tipp irgendwo sonst schließt die Erklärung wieder.
+  useEffect(() => {
+    if (!getippt) return
+    const zu = (e: PointerEvent) => {
+      if (!leiste.current?.contains(e.target as Node)) setGetippt(null)
+    }
+    document.addEventListener('pointerdown', zu)
+    return () => document.removeEventListener('pointerdown', zu)
+  }, [getippt])
 
   return (
-    <div className="flex w-full max-w-[420px] items-start">
+    <div
+      ref={leiste}
+      className="mx-auto flex w-full max-w-[420px] items-start sm:mx-0"
+    >
       {STUFEN.map((s, i) => {
         const vorbei = i < erreicht
         const hier = i === erreicht
@@ -49,30 +69,41 @@ export function StatusLeiste({
               )}
 
               <span className="group relative flex shrink-0 flex-col items-center">
-                <span
-                  className="block size-[11px] rounded-full transition-colors"
-                  style={
-                    hier
-                      ? {
-                          background: s === 'FINAL' ? 'transparent' : farbe,
-                          border: `2px solid ${farbe}`,
-                          // Der aktive Punkt leuchtet — sonst sucht man ihn.
-                          boxShadow: `0 0 0 4px color-mix(in srgb, ${farbe} 22%, transparent)`,
-                        }
-                      : vorbei
-                        ? { background: farbe }
-                        : {
-                            background: 'var(--color-flaeche)',
-                            border: '1.5px solid var(--color-rahmen-3)',
+                {/* Die Trefferfläche ist größer als der Punkt — 11 px trifft
+                    am Telefon niemand zuverlässig. */}
+                <button
+                  type="button"
+                  aria-label={STUFE_TEXT[s]}
+                  onClick={() => setGetippt((v) => (v === s ? null : s))}
+                  className="flex cursor-default items-center justify-center p-2"
+                >
+                  <span
+                    className="block size-[11px] rounded-full transition-colors"
+                    style={
+                      hier
+                        ? {
+                            background: s === 'FINAL' ? 'transparent' : farbe,
+                            border: `2px solid ${farbe}`,
+                            // Der aktive Punkt leuchtet — sonst sucht man ihn.
+                            boxShadow: `0 0 0 4px color-mix(in srgb, ${farbe} 22%, transparent)`,
                           }
-                  }
-                />
+                        : vorbei
+                          ? { background: farbe }
+                          : {
+                              background: 'var(--color-flaeche)',
+                              border: '1.5px solid var(--color-rahmen-3)',
+                            }
+                    }
+                  />
+                </button>
 
-                {/* Erklärungsbox. Der letzte Punkt zieht sie nach links, damit
-                    sie nicht aus dem Bild läuft. */}
+                {/* Erklärungsbox. Der äußerste Punkt zieht sie nach innen,
+                    damit sie nicht aus dem Bild läuft. */}
                 <span
                   role="tooltip"
-                  className={`pointer-events-none absolute bottom-[22px] z-30 w-[230px] rounded-md border border-rahmen bg-flaeche px-3 py-2.5 text-[11.5px] leading-relaxed text-leise opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100 ${
+                  className={`pointer-events-none absolute bottom-[30px] z-30 w-[230px] rounded-md border border-rahmen bg-flaeche px-3 py-2.5 text-[11.5px] leading-relaxed text-leise shadow-lg transition-opacity duration-200 group-hover:opacity-100 ${
+                    getippt === s ? 'opacity-100' : 'opacity-0'
+                  } ${
                     i === STUFEN.length - 1
                       ? 'right-0'
                       : i === 0
@@ -98,7 +129,7 @@ export function StatusLeiste({
             </div>
 
             <span
-              className={`mt-1.5 whitespace-nowrap text-[10.5px] ${hier ? 'font-semibold' : 'text-still'}`}
+              className={`whitespace-nowrap text-[10.5px] ${hier ? 'font-semibold' : 'text-still'}`}
               style={hier ? { color: farbe } : undefined}
             >
               {STUFE_TEXT[s]}

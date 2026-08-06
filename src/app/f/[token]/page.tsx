@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
 import { POST_MEDIEN, rasterMedium } from '@/lib/abfragen'
 import { aktuellerGast, aktuellerNutzer } from '@/lib/auth'
+import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
+import { darfBearbeiten, type Betrachter } from '@/lib/kommentar-rechte'
 import { zeitraumText } from '@/lib/benachrichtigungen'
 import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
@@ -68,7 +70,18 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   const anzeigename = angemeldeterGast?.name ?? nutzer!.name
   const alsTeam = !angemeldeterGast
 
+  // Wer hier sitzt, entscheidet über Bearbeiten und Löschen. Sieht das Team
+  // die Seite in der Vorschau, gelten seine eigenen Rechte — inklusive der
+  // Ausnahme für die Administration.
+  const betrachter: Betrachter | null = angemeldeterGast
+    ? { art: 'gast', id: angemeldeterGast.id }
+    : nutzer
+      ? { art: 'nutzer', id: nutzer.id, rolle: nutzer.rolle }
+      : null
+
   const einstellungen = await ladeEinstellungen()
+
+  const erwaehnbar = await erwaehnbarePersonen(exp.kundeId)
 
   // Live-Sicht: bei jedem Aufruf frisch aus der Datenbank, kein Schnappschuss.
   const alle = await prisma.post.findMany({
@@ -292,7 +305,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                   token={token}
                   postId={post.id}
                   erlaubt={exp.kommentareErlaubt}
-                  gastName={anzeigename}
+                  erwaehnbar={erwaehnbar}
                   kommentare={exp.kommentare
                     .filter((k) => k.postId === post.id)
                     .map((k) => ({
@@ -300,7 +313,10 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                       autorName: k.autorName,
                       text: k.text,
                       am: k.erstelltAm.toISOString(),
+                      bearbeitet: Boolean(k.bearbeitetAm),
                       vomTeam: Boolean(k.nutzerId),
+                      antwortAufId: k.antwortAufId,
+                      darfAendern: betrachter ? darfBearbeiten(k, betrachter) : false,
                     }))}
                   />
                 </>

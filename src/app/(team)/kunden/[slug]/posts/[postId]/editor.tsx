@@ -4,6 +4,7 @@ import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
 import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
 import { MedienDialog } from '@/components/medien-dialog'
+import type { Erwaehnbar } from '@/components/kommentar-feld'
 import { KommentarListe, type Kommentareintrag } from '@/components/kommentar-liste'
 import {
   Fortschrittsbalken,
@@ -96,6 +97,7 @@ export function PostEditor({
   vorschau,
   standardUhrzeit,
   kommentare,
+  erwaehnbar,
   andereReels,
   freigabenNoetig,
   downloadStand,
@@ -121,6 +123,8 @@ export function PostEditor({
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
   standardUhrzeit: string
   kommentare: Kommentareintrag[]
+  /** Team und Kundenkontakte — die Auswahl hinter dem @ im Kommentarfeld. */
+  erwaehnbar: Erwaehnbar[]
   /** Aus. bei eigenen Kanälen — dann entfällt der Freigabeschritt ganz. */
   freigabenNoetig: boolean
   /** Andere Reels desselben Kunden — Ziele fürs Übertragen des Ablaufs. */
@@ -408,7 +412,7 @@ export function PostEditor({
         }
         hinweis="Was der Kunde im Freigabe-Link schreibt. Antworten erscheinen dort sofort."
       >
-        <KommentarListe postId={post.id} kommentare={kommentare} />
+        <KommentarListe postId={post.id} kommentare={kommentare} erwaehnbar={erwaehnbar} />
       </Abschnitt>
 
       {/* ----------------------------------------------------------- Freigaben */}

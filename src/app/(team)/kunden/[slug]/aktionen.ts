@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
+import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
 import { slugify } from '@/lib/slug'
@@ -441,6 +442,10 @@ export async function kommentarVomTeam(postId: string, exportId: string | null, 
   const inhalt = String(formular.get('text') ?? '').trim()
   if (!inhalt) return
 
+  // Eine Antwort hängt am Kommentar, auf den sie sich bezieht — sonst steht
+  // sie als eigenständige Rückmeldung daneben und niemand sieht den Bezug.
+  const antwortAufId = text(formular, 'antwortAufId')
+
   const kommentar = await prisma.kommentar.create({
     data: {
       postId,
@@ -450,23 +455,67 @@ export async function kommentarVomTeam(postId: string, exportId: string | null, 
       autorEmail: nutzer.email,
       nutzerId: nutzer.id,
       text: inhalt,
+      antwortAufId,
     },
   })
 
   await meldeNeuenKommentar(kommentar.id)
   revalidatePath('/kunden', 'layout')
+  revalidatePath('/kommentare')
 }
 
 export async function kommentarStatusSetzen(kommentarId: string, status: 'OFFEN' | 'ERLEDIGT') {
   await nutzerOderRaus()
-  await prisma.kommentar.update({ where: { id: kommentarId }, data: { status } })
+
+  // Der Stand gilt für den ganzen Strang: Eine erledigte Rückmeldung, deren
+  // Antworten weiter als offen gezählt werden, bliebe ewig in der Liste.
+  await prisma.kommentar.updateMany({
+    where: { OR: [{ id: kommentarId }, { antwortAufId: kommentarId }] },
+    data: { status },
+  })
+
+  revalidatePath('/kunden', 'layout')
+  revalidatePath('/kommentare')
+}
+
+/**
+ * Ändern und Löschen kann jede Person nur bei sich selbst — und die
+ * Administration überall. Geprüft wird hier am Server: Die Knöpfe in der
+ * Oberfläche sind eine Bequemlichkeit, keine Sperre.
+ */
+export async function kommentarBearbeiten(kommentarId: string, formular: FormData) {
+  const nutzer = await nutzerOderRaus()
+
+  const inhalt = String(formular.get('text') ?? '').trim()
+  if (!inhalt) return
+
+  const kommentar = await prisma.kommentar.findUniqueOrThrow({
+    where: { id: kommentarId },
+    select: { nutzerId: true, gastId: true },
+  })
+  if (!darfBearbeiten(kommentar, { art: 'nutzer', id: nutzer.id, rolle: nutzer.rolle })) return
+
+  await prisma.kommentar.update({
+    where: { id: kommentarId },
+    data: { text: inhalt, bearbeitetAm: new Date() },
+  })
+
   revalidatePath('/kunden', 'layout')
   revalidatePath('/kommentare')
 }
 
 export async function kommentarLoeschen(kommentarId: string) {
-  await nutzerOderRaus()
+  const nutzer = await nutzerOderRaus()
+
+  const kommentar = await prisma.kommentar.findUniqueOrThrow({
+    where: { id: kommentarId },
+    select: { nutzerId: true, gastId: true },
+  })
+  if (!darfLoeschen(kommentar, { art: 'nutzer', id: nutzer.id, rolle: nutzer.rolle })) return
+
+  // Antworten hängen per `onDelete: Cascade` am Kommentar und gehen mit.
   await prisma.kommentar.delete({ where: { id: kommentarId } })
+
   revalidatePath('/kunden', 'layout')
   revalidatePath('/kommentare')
 }

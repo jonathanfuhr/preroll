@@ -1,5 +1,8 @@
 import Link from 'next/link'
 import { ersteMedien, ladePost } from '@/lib/abfragen'
+import { aktuellerNutzer } from '@/lib/auth'
+import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
+import { darfBearbeiten } from '@/lib/kommentar-rechte'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
@@ -20,6 +23,12 @@ export default async function PostSeite({
   const { slug, postId } = await params
   const { klappe: klappeZustand, meldung } = await searchParams
   const post = await ladePost(postId)
+
+  // Ändern und Löschen entscheidet der Server; die Oberfläche zeigt nur an,
+  // was er ohnehin zulassen würde.
+  const ich = await aktuellerNutzer()
+  const betrachter = { art: 'nutzer' as const, id: ich?.id ?? '', rolle: ich?.rolle ?? 'EDITOR' }
+  const erwaehnbar = await erwaehnbarePersonen(post.kundeId)
 
   const [einstellungen, angebunden] = await Promise.all([
     ladeEinstellungen(),
@@ -135,10 +144,14 @@ export default async function PostSeite({
           autorName: k.autorName,
           text: k.text,
           am: k.erstelltAm,
+          bearbeitetAm: k.bearbeitetAm,
           status: k.status,
           vomTeam: Boolean(k.nutzerId),
           exportId: k.exportId,
+          antwortAufId: k.antwortAufId,
+          darfAendern: darfBearbeiten(k, betrachter),
         }))}
+        erwaehnbar={erwaehnbar}
         kundeSlug={slug}
         downloadStand={{
           stand: post.videoDownloadStand,

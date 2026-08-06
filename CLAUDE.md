@@ -148,6 +148,22 @@ npm run check   # Typecheck + Tests
 - **Klappe-Videos sind immer projektbezogen.** Die Auswahl zeigt nur Videos aus
   dem Klappe-Projekt des Kunden; ohne Zuordnung in den Stammdaten bleibt sie
   leer. Beim Anlegen eines Reels entsteht dort automatisch das Video.
+- **Kommentare: erledigen, antworten, ändern, erwähnen.** „Erledigt" schließt
+  den ganzen Strang (Antworten zählen mit) und nimmt ihn aus der
+  Benachrichtigungsseite — das macht **nur das Team**, denn es entscheidet,
+  wann eine Anmerkung umgesetzt ist. **Ändern und löschen darf jede Person
+  nur bei sich selbst, die Administration überall** (`kommentar-rechte.ts`);
+  geprüft wird am Server, die Knöpfe sind Bequemlichkeit. Ein Strang ist
+  flach: Auf eine Antwort wird nicht noch einmal geantwortet.
+- **@-Erwähnungen stehen im Text.** Format `@[Name](n:<id>)` für Team,
+  `(g:<id>)` für Gäste — der Name liegt mit im Text, damit ein Kommentar auch
+  nach einer Umbenennung lesbar bleibt. Der Text ist die **einzige** Quelle
+  dafür, wer erwähnt wurde; eine zweite Tabelle könnte auseinanderlaufen.
+  Wer benachrichtigt wird, entscheidet trotzdem nicht der Text:
+  `meldeNeuenKommentar` gleicht die Kennungen gegen den Kreis ab, der ohnehin
+  Zutritt hat. Erwähnte bekommen eine eigene Meldung und sind vom allgemeinen
+  Verteiler ausgenommen — zwei Mails zum selben Kommentar liest niemand gern.
+  In Mail, Push und PDF steht schlichtes `@Name` (`alsKlartext`).
 - **Export ist eine Live-Sicht, kein Schnappschuss.** Änderungen an Posts
   erscheinen sofort im Freigabe-Link.
 - **Feed-Vorschau extern vs. intern.** Der Kunde sieht ältere/veröffentlichte
@@ -243,6 +259,13 @@ Die **Arbeitsfläche des Backends ist weiß**, die Seitenleiste leicht getönt
 (`flaeche-leise`) — wie in den Mockups. Karten tragen ihren Rahmen, nicht den
 Kontrast zum Hintergrund. Umgekehrt (graue Fläche, weiße Karten) wirkt
 schwerer und war nie so gezeichnet.
+
+Die Kundenseite wird oft am Telefon geöffnet. Was dort anders läuft:
+Karussells lassen sich **wischen** (nur waagerecht, sonst blättert jedes
+Scrollen), die Statusleiste steht **mittig** und öffnet ihre Erklärung per
+**Tipp** statt Überfahren, und das Portrait im Kontakt-Fuß steht **rechts an
+der Kante** — sein Namensschild ragt nach links heraus und liefe links
+angeschlagen aus dem Bild.
 
 Optik: hell, zurückhaltend, white-label-nah — die **Kundenmarke** steht im
 Vordergrund, nicht das Werkzeug. Eine dezente Akzentfarbe (`#b00900`), Poppins

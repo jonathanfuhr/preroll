@@ -214,7 +214,12 @@ export function KontaktFuss({
           )}
         </div>
 
-        <div className="relative w-[240px] justify-self-start md:w-[300px]">
+        {/*
+          Mobil steht das Portrait rechts an der Kante: Das Namensschild
+          ragt nach links heraus und braucht dort Platz — links angeschlagen
+          liefe es aus dem Bild. Auf dem Desktop hat es seine eigene Spalte.
+        */}
+        <div className="relative w-[240px] justify-self-end md:w-[300px] md:justify-self-start">
           {erster.foto ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

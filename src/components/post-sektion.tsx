@@ -209,7 +209,10 @@ export function PostSektion({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+        {/* Mobil nimmt die Zeile die volle Breite, damit die Statusleiste
+            darunter mittig stehen kann — im Umbruch säße sie sonst links
+            neben ihrem eigenen Leerraum. */}
+        <div className="flex w-full flex-wrap items-end gap-x-6 gap-y-4 sm:w-auto">
           <span className="text-[12.5px] text-[#77746f] sm:text-[13px]">
             {DATUM.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)}
           </span>

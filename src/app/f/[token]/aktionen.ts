@@ -11,6 +11,7 @@ import {
   starteGastSession,
 } from '@/lib/auth'
 import { meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
+import { darfBearbeiten, darfLoeschen, type Betrachter } from '@/lib/kommentar-rechte'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { offeneStufe } from '@/lib/freigabe'
@@ -136,6 +137,7 @@ export async function kommentarVomKunden(token: string, formular: FormData) {
   if (!gast?.name.trim() && !nutzer) redirect(`/f/${token}/anmelden`)
 
   const postId = String(formular.get('postId') ?? '') || null
+  const antwortAufId = String(formular.get('antwortAufId') ?? '') || null
 
   const kommentar = await prisma.kommentar.create({
     data: {
@@ -147,10 +149,66 @@ export async function kommentarVomKunden(token: string, formular: FormData) {
       gastId: nutzer ? null : gast!.id,
       nutzerId: nutzer?.id ?? null,
       text,
+      antwortAufId,
     },
   })
 
   await meldeNeuenKommentar(kommentar.id)
+  revalidatePath(`/f/${token}`)
+}
+
+/**
+ * Wer auf der Freigabe-Seite sitzt, darf **die eigenen** Kommentare ändern
+ * und löschen — ein Tippfehler soll nicht bis zum Anruf bei der Agentur
+ * stehen bleiben. „Erledigt" bleibt dem Team vorbehalten: Es entscheidet,
+ * wann eine Anmerkung umgesetzt ist.
+ *
+ * Sieht das Team die Seite in der Vorschau, gelten dort seine eigenen
+ * Rechte — inklusive der Ausnahme für die Administration.
+ */
+async function werDaSchreibt(): Promise<Betrachter | null> {
+  const gast = await aktuellerGast()
+  if (gast?.name.trim()) return { art: 'gast', id: gast.id }
+
+  const nutzer = await aktuellerNutzer()
+  return nutzer ? { art: 'nutzer', id: nutzer.id, rolle: nutzer.rolle } : null
+}
+
+export async function gastKommentarBearbeiten(token: string, kommentarId: string, formular: FormData) {
+  const wer = await werDaSchreibt()
+  if (!wer) return
+
+  const inhalt = String(formular.get('text') ?? '').trim()
+  if (!inhalt) return
+
+  const kommentar = await prisma.kommentar.findUniqueOrThrow({
+    where: { id: kommentarId },
+    select: { nutzerId: true, gastId: true, export: { select: { token: true } } },
+  })
+  // Der Kommentar muss zu diesem Link gehören — sonst ließe sich mit einer
+  // fremden Kennung an einem anderen Export herumschreiben.
+  if (kommentar.export?.token !== token) return
+  if (!darfBearbeiten(kommentar, wer)) return
+
+  await prisma.kommentar.update({
+    where: { id: kommentarId },
+    data: { text: inhalt, bearbeitetAm: new Date() },
+  })
+  revalidatePath(`/f/${token}`)
+}
+
+export async function gastKommentarLoeschen(token: string, kommentarId: string) {
+  const wer = await werDaSchreibt()
+  if (!wer) return
+
+  const kommentar = await prisma.kommentar.findUniqueOrThrow({
+    where: { id: kommentarId },
+    select: { nutzerId: true, gastId: true, export: { select: { token: true } } },
+  })
+  if (kommentar.export?.token !== token) return
+  if (!darfLoeschen(kommentar, wer)) return
+
+  await prisma.kommentar.delete({ where: { id: kommentarId } })
   revalidatePath(`/f/${token}`)
 }
 

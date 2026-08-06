@@ -3,8 +3,15 @@
 import type { Freigabestufe } from '@prisma/client'
 import { useState } from 'react'
 import { freigabeBeschriftung, STUFE_TEXT } from '@/lib/freigabe'
+import { KommentarFeld, type Erwaehnbar } from '@/components/kommentar-feld'
+import { KommentarInhalt } from '@/components/kommentar-inhalt'
 import { Knopf, Textfeld } from '@/components/ui'
-import { freigabeErteilen, kommentarVomKunden } from './aktionen'
+import {
+  freigabeErteilen,
+  gastKommentarBearbeiten,
+  gastKommentarLoeschen,
+  kommentarVomKunden,
+} from './aktionen'
 
 const ZEIT = new Intl.DateTimeFormat('de-DE', {
   day: '2-digit',
@@ -26,7 +33,11 @@ type Kommentar = {
   autorName: string
   text: string
   am: string
+  bearbeitet: boolean
   vomTeam: boolean
+  antwortAufId: string | null
+  /** Ergebnis der Rechteprüfung am Server — hier wird nur angezeigt. */
+  darfAendern: boolean
 }
 
 /**
@@ -37,18 +48,20 @@ export function KommentarBereich({
   token,
   postId,
   erlaubt,
-  gastName,
   kommentare,
+  erwaehnbar,
 }: {
   token: string
   postId: string
   erlaubt: boolean
-  gastName: string
   kommentare: Kommentar[]
+  erwaehnbar: Erwaehnbar[]
 }) {
   const [offen, setOffen] = useState(false)
 
   if (!erlaubt && kommentare.length === 0) return null
+
+  const straenge = kommentare.filter((k) => !k.antwortAufId)
 
   return (
     <div className="border-l-2 border-rahmen pl-4">
@@ -67,43 +80,169 @@ export function KommentarBereich({
         )}
       </div>
 
-      {kommentare.length > 0 && (
+      {straenge.length > 0 && (
         <ul className="mb-3 grid gap-3">
-          {kommentare.map((kommentar) => (
-            <li
-              key={kommentar.id}
-              className={`rounded-[5px] border px-3.5 py-2.5 ${
-                kommentar.vomTeam
-                  ? 'border-rahmen bg-flaeche-leise'
-                  : 'border-[#eee0dd] bg-akzent-zart'
-              }`}
-            >
-              <div className="mb-1 flex items-baseline gap-2">
-                <span className="text-[12px] font-semibold text-tinte">{kommentar.autorName}</span>
-                {kommentar.vomTeam && (
-                  <span className="text-[10px] uppercase tracking-[0.08em] text-still">Agentur</span>
-                )}
-                <span className="text-[10.5px] text-stiller">
-                  {ZEIT.format(new Date(kommentar.am))}
-                </span>
-              </div>
-              <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-tinte-3">
-                {kommentar.text}
-              </p>
+          {straenge.map((kommentar) => (
+            <li key={kommentar.id}>
+              <Eintrag
+                token={token}
+                postId={postId}
+                kommentar={kommentar}
+                erwaehnbar={erwaehnbar}
+                antwortenErlaubt={erlaubt}
+              />
+
+              {kommentare
+                .filter((k) => k.antwortAufId === kommentar.id)
+                .map((antwort) => (
+                  <div key={antwort.id} className="mt-2 pl-5">
+                    <Eintrag
+                      token={token}
+                      postId={postId}
+                      kommentar={antwort}
+                      erwaehnbar={erwaehnbar}
+                      antwortenErlaubt={false}
+                    />
+                  </div>
+                ))}
             </li>
           ))}
         </ul>
       )}
 
       {offen && erlaubt && (
-        <form action={kommentarVomKunden.bind(null, token)} className="grid gap-2.5">
+        <form
+          action={kommentarVomKunden.bind(null, token)}
+          onSubmit={() => setOffen(false)}
+          className="grid gap-2.5"
+        >
           <input type="hidden" name="postId" value={postId} />
           <input type="hidden" name="abschnitt" value="allgemein" />
 
-          <Textfeld name="text" required rows={3} placeholder="Was soll geändert werden?" />
+          <KommentarFeld
+            erwaehnbar={erwaehnbar}
+            platzhalter="Was soll geändert werden? Mit @ jemanden ansprechen"
+          />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">
               Kommentar senden
+            </Knopf>
+          </div>
+        </form>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Ein Kommentar auf der Freigabe-Seite. Antworten darf jede angemeldete
+ * Person; ändern und löschen nur die eigenen — „erledigt" bleibt dem Team
+ * vorbehalten, denn es entscheidet, wann eine Anmerkung umgesetzt ist.
+ */
+function Eintrag({
+  token,
+  postId,
+  kommentar,
+  erwaehnbar,
+  antwortenErlaubt,
+}: {
+  token: string
+  postId: string
+  kommentar: Kommentar
+  erwaehnbar: Erwaehnbar[]
+  antwortenErlaubt: boolean
+}) {
+  const [antworten, setAntworten] = useState(false)
+  const [bearbeiten, setBearbeiten] = useState(false)
+
+  return (
+    <div
+      className={`rounded-[5px] border px-3.5 py-2.5 ${
+        kommentar.vomTeam ? 'border-rahmen bg-flaeche-leise' : 'border-[#eee0dd] bg-akzent-zart'
+      }`}
+    >
+      <div className="mb-1 flex flex-wrap items-baseline gap-2">
+        <span className="text-[12px] font-semibold text-tinte">{kommentar.autorName}</span>
+        {kommentar.vomTeam && (
+          <span className="text-[10px] uppercase tracking-[0.08em] text-still">Agentur</span>
+        )}
+        <span className="text-[10.5px] text-stiller">
+          {ZEIT.format(new Date(kommentar.am))}
+          {kommentar.bearbeitet && ' · bearbeitet'}
+        </span>
+      </div>
+
+      {bearbeiten ? (
+        <form
+          action={gastKommentarBearbeiten.bind(null, token, kommentar.id)}
+          onSubmit={() => setBearbeiten(false)}
+          className="grid gap-2"
+        >
+          <KommentarFeld erwaehnbar={erwaehnbar} standardwert={kommentar.text} autoFokus />
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setBearbeiten(false)}
+              className="text-[11px] text-stiller hover:text-tinte"
+            >
+              abbrechen
+            </button>
+            <Knopf art="primaer" klein type="submit">
+              Speichern
+            </Knopf>
+          </div>
+        </form>
+      ) : (
+        <KommentarInhalt text={kommentar.text} klein />
+      )}
+
+      {!bearbeiten && (antwortenErlaubt || kommentar.darfAendern) && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          {antwortenErlaubt && (
+            <button
+              type="button"
+              onClick={() => setAntworten((v) => !v)}
+              className="text-[11px] text-leise hover:text-tinte"
+            >
+              {antworten ? 'abbrechen' : 'Antworten'}
+            </button>
+          )}
+
+          {kommentar.darfAendern && (
+            <>
+              <button
+                type="button"
+                onClick={() => setBearbeiten(true)}
+                className="text-[11px] text-leise hover:text-tinte"
+              >
+                Bearbeiten
+              </button>
+              <form
+                action={gastKommentarLoeschen.bind(null, token, kommentar.id)}
+                className="ml-auto"
+              >
+                <button type="submit" className="text-[11px] text-stiller hover:text-akzent">
+                  Löschen
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      )}
+
+      {antworten && (
+        <form
+          action={kommentarVomKunden.bind(null, token)}
+          onSubmit={() => setAntworten(false)}
+          className="mt-2.5 grid gap-2"
+        >
+          <input type="hidden" name="postId" value={postId} />
+          <input type="hidden" name="abschnitt" value="allgemein" />
+          <input type="hidden" name="antwortAufId" value={kommentar.id} />
+          <KommentarFeld erwaehnbar={erwaehnbar} platzhalter="Antwort …" autoFokus />
+          <div className="flex justify-end">
+            <Knopf art="primaer" klein type="submit">
+              Antwort senden
             </Knopf>
           </div>
         </form>

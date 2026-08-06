@@ -81,6 +81,33 @@ export function vorlageNeuerKommentar(
   }
 }
 
+/**
+ * Eine Erwähnung ist etwas anderes als ein neuer Kommentar: Sie ist an eine
+ * Person gerichtet. Das gehört in den Betreff, sonst geht sie im Strom der
+ * übrigen Kommentar-Mails unter.
+ */
+export function vorlageErwaehnung(
+  an: string,
+  autor: string,
+  kunde: string,
+  postTitel: string,
+  text: string,
+  url: string,
+): Mail {
+  const gekuerzt = text.length > 400 ? `${text.slice(0, 400)} …` : text
+  return {
+    an,
+    betreff: `${autor} hat Sie erwähnt — ${postTitel}`,
+    text: `${autor} hat Sie in einem Kommentar zu „${postTitel}" (${kunde}) erwähnt:\n\n${gekuerzt}\n\n${url}`,
+    html: huelle(
+      'Sie wurden erwähnt',
+      `<p style="margin:0 0 14px;"><strong>${autor}</strong> hat Sie in einem Kommentar zu <strong>${postTitel}</strong> (${kunde}) erwähnt:</p>
+       <blockquote style="margin:0;padding:12px 16px;border-left:3px solid #e6e3df;background:#faf9f7;color:#3a3733;">${gekuerzt.replace(/\n/g, '<br>')}</blockquote>
+       ${knopf(url, 'Kommentar öffnen')}`,
+    ),
+  }
+}
+
 export function vorlageFreigabe(
   an: string,
   autor: string,
