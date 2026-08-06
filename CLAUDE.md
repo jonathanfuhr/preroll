@@ -68,6 +68,7 @@ klein genug für einen Einzeiler im Baufortschritt.
 | Mail | SMTP · Microsoft Graph · Gmail API — umschaltbar |
 | Push | Web Push (VAPID), Schlüssel werden selbst erzeugt |
 | Betrieb | Docker (`docker-compose.yml`), analog zu Klappe |
+| Medien | Bind-Mount auf einen Host-Pfad (`MEDIEN_PFAD`), kein Volume |
 
 Bewusst **kein** getrennter API-Service, kein Redis, kein Worker: Preroll
 verarbeitet Bilder, keine Videos. Die Bildoperationen laufen schnell genug
@@ -113,6 +114,11 @@ npm run check   # Typecheck + Tests
 - **Transparente Pixel** in Post-Grafiken sind praktisch immer ein Versehen und
   werden gewarnt. Geprüft wird mit `stats().isOpaque`, nicht mit `hasAlpha` —
   viele PNGs tragen einen deckenden Alphakanal.
+- **Freigaben hängen am einzelnen Post, nicht am Link** — und es sind zwei:
+  Konzept vor dem Dreh, Vorschau danach. Welche ansteht, ergibt sich aus dem
+  Status (`src/lib/freigabe.ts`), nie aus dem Formular. Das Team kann eine
+  Freigabe stellvertretend eintragen; solche Einträge lösen keine
+  Benachrichtigung aus.
 - **Freigabe-Links öffnen sich nie ohne Anmeldung.** Dreistufig wie in Klappe:
   E-Mail → Code → Name. Die Gast-Sitzung gilt 40 Tage. Ein Gast mit leerem
   Namen bedeutet „Anmeldung noch nicht abgeschlossen".
