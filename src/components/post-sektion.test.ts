@@ -17,8 +17,8 @@ describe('teileCaption', () => {
   })
 
   it('lässt Hashtags mitten im Text stehen', () => {
-    const { text, hashtags } = teileCaption('Heute bei #Beispiel war einiges los.')
-    expect(text).toBe('Heute bei #Beispiel war einiges los.')
+    const { text, hashtags } = teileCaption('Heute bei #Werkstatt war einiges los.')
+    expect(text).toBe('Heute bei #Werkstatt war einiges los.')
     expect(hashtags).toBe('')
   })
 

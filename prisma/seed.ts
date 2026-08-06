@@ -67,7 +67,7 @@ async function main() {
       name: 'Beispiel Handwerk GmbH',
       slug: 'beispiel-handwerk',
       handle: 'beispiel.handwerk',
-      bio: 'Garten- & Landschaftsbau · Facility Management · Wendlingen',
+      bio: 'Beispielbranche · Musterstadt',
       website: 'www.beispiel-handwerk.de',
       follower: 2847,
       gefolgt: 312,
@@ -86,7 +86,7 @@ async function main() {
       rolle: 'Ansprechpartnerin · THD Video',
       telefon: '07024 4699830',
       email: 'helena@thdvideo.de',
-      adresse: 'Stuttgarter Str. 1, 73240 Wendlingen',
+      adresse: 'Musterstraße 1, 12345 Musterstadt',
       website: 'www.thdvideo.de',
       standard: true,
     },
@@ -121,51 +121,51 @@ async function main() {
           'Wir suchen Verstärkung! 🌿 Bei Beispiel arbeitest du draußen, im Team — und siehst abends, ' +
           'was du geschafft hast. Moderne Maschinen, feste Teams, klare Aufgaben.\n\n' +
           'Jetzt bewerben über den Link in der Bio.\n\n' +
-          '#galabau #handwerk #ausbildung #jobs #wendlingen #gartenundlandschaftsbau',
+          '#beispiel #handwerk #ausbildung #jobs',
         laenge: 'ca. 30–35 Sek.',
         ziel: 'Recruiting',
         stil: 'nahbar, direkt',
         verantwortlichId: helena.id,
         szenenplanAktiv: true,
         referenzVideoUrl: 'https://www.instagram.com/reel/CxK2f8pM1qA/',
-        referenzVideoTitel: 'Referenz: „Handwerk sucht dich" — @gruen.kollektiv',
+        referenzVideoTitel: 'Referenz-Reel eines anderen Betriebs',
         szenen: {
           create: [
             {
               position: 0,
               abschnitt: 'Hook',
               bildSzene:
-                'Drei Mitarbeiter stehen vor dem Firmengelände, einer dreht sich in die Kamera.',
+                'Drei Mitarbeitende stehen vor dem Firmengebäude, eine Person dreht sich in die Kamera.',
               sprechertext: '„Wir suchen Verstärkung — und zwar dich."',
-              texteinblendung: 'GARTEN- & LANDSCHAFTSBAUER GESUCHT!',
+              texteinblendung: 'VERSTÄRKUNG GESUCHT!',
             },
             {
               position: 1,
               abschnitt: 'Intro',
-              bildSzene: 'Schwenk über die Baustelle, Team beim Setzen der Randsteine.',
+              bildSzene: 'Schwenk über den Arbeitsplatz, Team bei der Arbeit.',
               sprechertext:
-                '„Bei Beispiel arbeitest du draußen, im Team — und siehst abends, was du geschafft hast."',
+                '„Bei uns arbeitest du im Team — und siehst abends, was du geschafft hast."',
               texteinblendung: null,
             },
             {
               position: 2,
               abschnitt: 'Szene',
-              bildSzene: 'Nahaufnahmen: Heckenschere, Radlader, Pflanzarbeiten — schneller Schnitt.',
+              bildSzene: 'Nahaufnahmen aus dem Arbeitsalltag — schneller Schnitt.',
               sprechertext: '„Moderne Maschinen, feste Teams, klare Aufgaben."',
-              texteinblendung: 'Grünflächen · Maschinen · Team',
+              texteinblendung: 'Maschinen · Team · Alltag',
             },
             {
               position: 3,
               abschnitt: 'Szene',
-              bildSzene: 'Mitarbeiter im Gespräch, lachen, Wasserflasche in der Pause.',
+              bildSzene: 'Mitarbeitende im Gespräch, kurze Pause.',
               sprechertext: '„Lasst uns endlich anfangen."',
               texteinblendung: 'LASST UNS ENDLICH …',
             },
             {
               position: 4,
               abschnitt: 'Abbinder',
-              bildSzene: 'Logo-Animation auf grünem Grund, Bewerbungs-Hinweis.',
-              sprechertext: '„Bewirb dich jetzt bei Beispiel."',
+              bildSzene: 'Logo-Animation, Bewerbungs-Hinweis.',
+              sprechertext: '„Bewirb dich jetzt bei uns."',
               texteinblendung: 'JETZT BEWERBEN',
             },
           ],
@@ -179,11 +179,11 @@ async function main() {
         typ: 'KARUSSELL',
         status: 'VORSCHAU',
         postenAm: new Date(2026, 7, 11, 10, 0),
-        titel: 'Deine Aufgaben bei Beispiel',
-        kurzbeschreibung: 'Leistungs-Karussell mit den vier Tätigkeitsfeldern.',
+        titel: 'Deine Aufgaben bei uns',
+        kurzbeschreibung: 'Leistungs-Karussell mit vier Tätigkeitsfeldern.',
         caption:
-          'Was dich bei uns erwartet — von der Pflanzung bis zur Pflege. Swipe dich durch. 🌱\n\n' +
-          '#galabau #jobs #teamwork #wendlingen',
+          'Was dich bei uns erwartet. Swipe dich durch.\n\n' +
+          '#beispiel #jobs #teamwork',
         ziel: 'Recruiting',
         stil: 'sachlich, klar',
         verantwortlichId: helena.id,
@@ -196,11 +196,11 @@ async function main() {
         typ: 'BEITRAG',
         status: 'KONZEPT',
         postenAm: new Date(2026, 7, 20, 17, 30),
-        titel: 'Vorher / Nachher: Innenhof Wendlingen',
-        kurzbeschreibung: 'Ein Projekt aus dem Juli, zweigeteiltes Bild.',
+        titel: 'Vorher / Nachher: Musterprojekt',
+        kurzbeschreibung: 'Ein abgeschlossenes Projekt, zweigeteiltes Bild.',
         caption:
-          'Aus grauem Beton wird ein Ort zum Bleiben. Innenhof in Wendlingen, fertiggestellt im Juli.\n\n' +
-          '#vorhernachher #galabau #referenz #wendlingen',
+          'Ein abgeschlossenes Projekt im Vorher-Nachher-Vergleich.\n\n' +
+          '#vorhernachher #referenz #beispiel',
         ziel: 'Referenz zeigen',
         stil: 'ruhig, bildstark',
         verantwortlichId: helena.id,
@@ -213,11 +213,11 @@ async function main() {
         typ: 'BEITRAG',
         status: 'KONZEPT',
         postenAm: new Date(2026, 7, 27, 9, 0),
-        titel: 'Facility Management — das zweite Standbein',
+        titel: 'Zweiter Leistungsbereich',
         kurzbeschreibung: 'Einzelbild mit kurzem Leistungsüberblick.',
         caption:
-          'Nicht nur draußen: Unser Facility-Team hält Gebäude und Außenanlagen das ganze Jahr in Schuss.\n\n' +
-          '#facilitymanagement #hausmeisterservice #wendlingen',
+          'Ein zweiter Leistungsbereich, kurz vorgestellt.\n\n' +
+          '#leistungen #beispiel',
         ziel: 'Leistungen zeigen',
         stil: 'sachlich',
         verantwortlichId: helena.id,

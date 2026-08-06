@@ -3,7 +3,7 @@ import { initialen, slugify } from './slug'
 
 describe('slugify', () => {
   it('macht aus einem Kundennamen einen Pfad', () => {
-    expect(slugify('Beispiel Handwerk GmbH')).toBe('beispiel-handwerk')
+    expect(slugify('Beispiel Handwerk GmbH')).toBe('beispiel-handwerk-gmbh')
   })
 
   it('schreibt Umlaute aus', () => {
