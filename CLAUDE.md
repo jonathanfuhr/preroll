@@ -106,6 +106,10 @@ npm run check   # Typecheck + Tests
   Hinweis nennt erkanntes und erwartetes Format.
 - **Reel-Thumbnails im Raster.** In allen Grid-/Feed-Ansichten wird vom
   9:16-Thumbnail der **mittige 4:5-Ausschnitt** gezeigt, wie bei Instagram.
+  Diesen Ausschnitt liefert `thumbUrl()` als fertige Datei. Überall dort, wo
+  das Thumbnail in voller Höhe steht — Geräterahmen, Medien-Dialog —, gehört
+  deshalb `medienUrl()` hin: Das 4:5-Bild in eine 9:16-Fläche gelegt wird ein
+  zweites Mal beschnitten, und übrig bleibt die Mitte der Mitte.
 - **Karussell-Auftrennung.** Geht die Breite nicht glatt im 4:5-Raster auf, gibt
   es **keine manuellen Schnittkanten**, sondern eine Fehlermeldung. Bewusst
   simpel: korrekt exportierte Canva-Dateien passen immer. Die Bedienelemente

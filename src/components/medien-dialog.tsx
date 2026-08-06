@@ -380,6 +380,7 @@ export function MedienDialog({
   typ,
   videoQuellen,
   videoUrl,
+  videoHerkunft,
   thumbnailUrl,
   thumbnailAutomatisch,
 }: {
@@ -394,6 +395,11 @@ export function MedienDialog({
    */
   videoQuellen?: ReactNode
   videoUrl?: string | null
+  /**
+   * Woher das gezeigte Video stammt. Ohne diese Zeile sähe ein Referenzvideo
+   * aus wie das fertige Reel — und niemand würde es je ersetzen.
+   */
+  videoHerkunft?: 'UPLOAD' | 'KLAPPE' | 'REFERENZ' | null
   thumbnailUrl?: string | null
   /**
    * Aus dem Video gezogen statt hochgeladen. Dann zeigt die rechte Spalte
@@ -492,9 +498,19 @@ export function MedienDialog({
                 <>
                   {/* 9:16 in voller Spaltenbreite wäre über 700 px hoch — dann
                       stünde „Ersetzen" unter dem sichtbaren Bereich. */}
+                  {/* Ohne Thumbnail davor: Hier wird geprüft, ob das richtige
+                      Video liegt — dafür muss man das Video sehen, nicht das
+                      Standbild. Im Geräterahmen liegt es später wieder oben. */}
                   <div className="mx-auto w-full max-w-[190px]">
-                    <EinfacherPlayer quelle={videoUrl} thumbnail={thumbnailUrl ?? null} />
+                    <EinfacherPlayer quelle={videoUrl} thumbnail={null} />
                   </div>
+                  {videoHerkunft && videoHerkunft !== 'UPLOAD' && (
+                    <p className="text-[11.5px] leading-snug text-leiser">
+                      {videoHerkunft === 'KLAPPE'
+                        ? 'Fassung aus Klappe. Sie liegt dort und wird von dort abgespielt — Preroll hält keine zweite Kopie.'
+                        : 'Von einem Link geladen. In der Konzeptphase das Vorbild — später ersetzt es das fertige Reel.'}
+                    </p>
+                  )}
                   <Knopf klein onClick={() => setVideoErsetzen(true)}>
                     Ersetzen
                   </Knopf>

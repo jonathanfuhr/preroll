@@ -92,6 +92,7 @@ export function PostEditor({
   thumbnailUrl,
   thumbnailAutomatisch,
   istVideo,
+  videoQuelle,
   vorschau,
   standardUhrzeit,
   kommentare,
@@ -114,6 +115,8 @@ export function PostEditor({
   /** Aus dem Video gezogen statt hochgeladen. */
   thumbnailAutomatisch: boolean
   istVideo: boolean
+  /** Was im Dialog abgespielt wird — Upload, Klappe-Fassung oder Referenz. */
+  videoQuelle: { url: string; herkunft: 'UPLOAD' | 'KLAPPE' | 'REFERENZ' } | null
   vorschau: { kunde: string; logo: string | null }
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
   standardUhrzeit: string
@@ -205,6 +208,17 @@ export function PostEditor({
               aria-label="Titel"
               className="-ml-2 w-full rounded-[5px] border border-transparent bg-transparent px-2 py-1.5 text-[26px] font-semibold tracking-[-0.02em] text-tinte transition-colors hover:border-rahmen hover:bg-flaeche-leise focus:border-rahmen-3 focus:bg-flaeche focus:outline-none"
             />
+
+            {/*
+              Speichern gehört nach oben: Der Editor ist lang, und wer den Titel
+              oder die Eckdaten ändert, hat den Knopf am Seitenende nicht im
+              Blick. Er steht außerhalb des Formulars und findet es über `form`.
+            */}
+            <div className="mt-3">
+              <Knopf art="primaer" type="submit" form={FORMULAR}>
+                Speichern
+              </Knopf>
+            </div>
           </div>
 
           <div className="flex shrink-0 flex-col items-end gap-2.5">
@@ -376,11 +390,6 @@ export function PostEditor({
           </Abschnitt>
         )}
 
-        <div className="flex justify-end gap-2">
-          <Knopf art="primaer" type="submit">
-            Speichern
-          </Knopf>
-        </div>
       </form>
 
       {/* ---------------------------------------------------------- Kommentare */}
@@ -447,7 +456,8 @@ export function PostEditor({
         schliessen={() => setDialogOffen(false)}
         postId={post.id}
         typ={post.typ}
-        videoUrl={istVideo ? mediumUrl : null}
+        videoUrl={videoQuelle?.url ?? null}
+        videoHerkunft={videoQuelle?.herkunft ?? null}
         thumbnailUrl={thumbnailUrl}
         thumbnailAutomatisch={thumbnailAutomatisch}
         videoQuellen={
@@ -476,9 +486,6 @@ export function PostEditor({
 
               {/* --------------------------------------------- Von einem Link */}
               <div className="border-t border-rahmen pt-5">
-                <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">
-                  Von einem Link laden
-                </h4>
                 <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
                   Instagram, TikTok, YouTube, Vimeo — alles, was sich herunterladen lässt. In der
                   Konzeptphase steht hier das Vorbild, später ersetzt es das fertige Reel.

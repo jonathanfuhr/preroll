@@ -54,8 +54,32 @@ export default async function PostSeite({
     thumbEintrag && videoEintrag && thumbEintrag.medium.quelleId === videoEintrag.mediumId,
   )
 
+  // Das Original, nicht das Vorschaubild: Letzteres ist der mittige
+  // 4:5-Ausschnitt fürs Raster. In der 9:16-Fläche würde es ein zweites Mal
+  // beschnitten — vom Bild bliebe die Mitte der Mitte.
+  const thumbnailUrl = medienUrl(thumbnail[0])
+
   const mediumEintrag = post.medien.find((m) => m.rolle === 'MEDIUM')
   const istVideo = mediumEintrag?.medium.mimeTyp.startsWith('video/') ?? false
+
+  /*
+    Die Video-Spalte im Dialog soll zeigen, was tatsächlich am Post hängt —
+    egal, auf welchem der drei Wege es dorthin kam. Das hochgeladene Reel
+    schlägt die Klappe-Fassung, die schlägt das Referenzvideo: In dieser
+    Reihenfolge wird aus dem Vorbild das Fertige.
+
+    Die Klappe-Fassung wird durchgereicht, nicht kopiert — `/api/klappe`
+    streamt sie mitsamt Range-Anfragen vom Klappe-Server. Zweimal derselbe
+    Schnitt auf zwei Platten wäre Verschwendung.
+  */
+  const videoQuelle: { url: string; herkunft: 'UPLOAD' | 'KLAPPE' | 'REFERENZ' } | null =
+    istVideo && medium[0]
+      ? { url: medienUrl(medium[0])!, herkunft: 'UPLOAD' }
+      : post.klappeVersionId
+        ? { url: `/api/klappe/${post.klappeVersionId}`, herkunft: 'KLAPPE' }
+        : post.referenzVideoMediumId
+          ? { url: medienUrl(post.referenzVideoMediumId)!, herkunft: 'REFERENZ' }
+          : null
 
   return (
     <>
@@ -101,7 +125,8 @@ export default async function PostSeite({
         slides={slides.map((id) => ({ id, url: thumbUrl(id)! }))}
         slideUrls={slides.map((id) => medienUrl(id)!).filter(Boolean)}
         mediumUrl={medienUrl(medium[0])}
-        thumbnailUrl={thumbUrl(thumbnail[0])}
+        thumbnailUrl={thumbnailUrl}
+        videoQuelle={videoQuelle}
         thumbnailAutomatisch={thumbnailAutomatisch}
         istVideo={istVideo}
         vorschau={{ kunde: post.kunde.name, logo: thumbUrl(post.kunde.logoId) }}
