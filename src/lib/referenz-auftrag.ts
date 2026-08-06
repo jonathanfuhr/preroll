@@ -3,9 +3,8 @@ import { spawn } from 'node:child_process'
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { writeFile } from 'node:fs/promises'
 import { prisma } from './db'
-import { ladeEinstellungen } from './einstellungen'
+import { merkeAbgelaufen, schreibeCookiedatei } from './instagram'
 import { speichereMedium, loescheMedium } from './medien'
 import { istPlattformLink, ytDlpVerfuegbar } from './referenzvideo'
 
@@ -46,8 +45,8 @@ function verstaendlich(rohtext: string): string {
   if (text.includes('empty media response') || text.includes('login required')) {
     return (
       'Instagram gibt das Video ohne angemeldete Sitzung nicht heraus. Unter ' +
-      'Einstellungen → Workspace lässt sich eine cookies.txt hinterlegen; danach ' +
-      'klappt der Download. Ohne sie bleibt der Link gespeichert und wird in der ' +
+      'Einstellungen → Workspace lässt sich eine hinterlegen — ist dort schon eine, ' +
+      'ist sie abgelaufen. Ohne sie bleibt der Link gespeichert und wird in der ' +
       'Kundenvorschau verlinkt.'
     )
   }
@@ -138,14 +137,9 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
   let zuletztGemeldet = -1
 
   try {
-    // Die Cookies landen nur für die Dauer des Laufs auf der Platte, im
+    // Die Sitzung landet nur für die Dauer des Laufs auf der Platte, im
     // Temp-Ordner, der am Ende ohnehin gelöscht wird.
-    const einstellungen = await ladeEinstellungen()
-    let keksdatei: string | null = null
-    if (einstellungen.instagramCookies?.trim()) {
-      keksdatei = path.join(ordner, 'cookies.txt')
-      await writeFile(keksdatei, einstellungen.instagramCookies, { mode: 0o600 })
-    }
+    const keksdatei = await schreibeCookiedatei(ordner)
 
     await ladeMitFortschritt(
       url,
@@ -193,6 +187,11 @@ async function fuehreAus(postId: string, url: string, abbruch: AbortController):
     if (alt) await loescheMedium(alt).catch(() => {})
   } catch (fehler) {
     const text = fehler instanceof Error ? fehler.message : String(fehler)
+
+    // Eine abgelaufene Sitzung soll in den Einstellungen stehen, nicht nur an
+    // diesem einen Post.
+    if (text.toLowerCase().includes('empty media response')) await merkeAbgelaufen()
+
     await merkeStand(postId, { stand: 'FEHLER', fortschritt: 0, meldung: verstaendlich(text) })
   } finally {
     laufende.delete(postId)

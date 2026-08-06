@@ -165,9 +165,16 @@ npm run check   # Typecheck + Tests
 - **Instagram gibt Reels nur an eine angemeldete Sitzung heraus** — auch die,
   die im privaten Browserfenster laufen. Weder eine neuere yt-dlp-Fassung noch
   ein Browser-User-Agent ändern das. Der dokumentierte Weg ist eine
-  `cookies.txt`; sie liegt in den Einstellungen (`instagramCookies`) und wird
-  nur für die Dauer des Laufs in den Temp-Ordner geschrieben. YouTube, TikTok
-  und Vimeo brauchen sie nicht.
+  mitgebrachte Sitzung. **Ein Login-Fenster in Preroll ist unmöglich** — ein
+  Fenster auf `instagram.com` gehört einer fremden Herkunft, deren Cookies
+  Preroll nicht lesen darf, und `sessionid` ist zusätzlich `HttpOnly`. Wer
+  danach fragt, bekommt diese Begründung, keinen Versuch.
+  Hinterlegt wird entweder eine ganze `cookies.txt` oder nur der Wert von
+  `sessionid` (`alsCookiedatei` baut daraus die Datei). Sie liegt in den
+  Einstellungen und wird nur für die Dauer eines Laufs in den Temp-Ordner
+  geschrieben. Scheitert ein Download an der Anmeldung, steht das danach in
+  den Einstellungen — nicht nur an dem einen Post. YouTube, TikTok und Vimeo
+  brauchen nichts davon.
 - **Referenzvideo lädt im Hintergrund.** `yt-dlp` und `ffmpeg` stecken im
   Abbild. Der Download läuft außerhalb der Anfrage weiter, sein Stand liegt am
   Post (`referenzVideoStand`, `-Fortschritt`, `-Meldung`) — nur so überlebt er

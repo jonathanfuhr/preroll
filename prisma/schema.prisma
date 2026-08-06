@@ -622,7 +622,11 @@ model Einstellungen {
   // Instagram verlangt für viele Reels eine angemeldete Sitzung — ohne
   // Cookies antwortet es mit einer leeren Medienantwort, egal von welcher
   // Adresse. Inhalt einer cookies.txt im Netscape-Format.
-  instagramCookies String?
+  instagramCookies   String?
+  instagramCookiesAm DateTime?
+  instagramGeprueftAm DateTime?
+  /** Leer heißt: Die letzte Prüfung lief durch. */
+  instagramFehler    String?
 
   aworkAktiv     Boolean @default(false)
   aworkApiKey    String?

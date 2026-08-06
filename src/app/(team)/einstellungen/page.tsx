@@ -1,10 +1,17 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
-import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
+import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
 import { referenzvideoSpeichern, workspaceSpeichern } from './aktionen'
 
 export const metadata = { title: 'Workspace — Preroll' }
 
-export default async function WorkspaceSeite() {
+const DATUM = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
+
+export default async function WorkspaceSeite({
+  searchParams,
+}: {
+  searchParams: Promise<{ ig?: string; meldung?: string }>
+}) {
+  const { ig, meldung } = await searchParams
   const e = await ladeEinstellungen()
 
   return (
@@ -62,53 +69,88 @@ export default async function WorkspaceSeite() {
 
       <Abschnitt
         titel="Referenzvideos von Instagram"
-        hinweis="Nur nötig, wenn Instagram-Links nicht geladen werden können. YouTube, TikTok und Vimeo brauchen das nicht."
+        hinweis="Nur für Instagram nötig. YouTube, TikTok und Vimeo laden ohne alles."
       >
         <Karte className="p-5">
-          <form action={referenzvideoSpeichern} className="grid gap-4">
-            <Hinweis>
-              Instagram gibt viele Reels nur an eine <strong>angemeldete Sitzung</strong> heraus —
-              auch wenn sie im privaten Browserfenster zu sehen sind. Abhilfe schafft eine
-              <code className="mx-1 font-mono text-[11px]">cookies.txt</code> im Netscape-Format:
-              in einem Browser bei Instagram anmelden, mit einer Cookie-Export-Erweiterung sichern
-              und den Inhalt hier einfügen.
-            </Hinweis>
+          {ig === 'ok' && (
+            <div className="mb-4">
+              <Hinweis>
+                Die Sitzung wirkt: <strong>{meldung}</strong> wurde gefunden.
+              </Hinweis>
+            </div>
+          )}
+          {ig === 'fehler' && (
+            <div className="mb-4">
+              <Fehler>{meldung}</Fehler>
+            </div>
+          )}
 
+          {/* Der Stand auf einen Blick — sonst fällt eine abgelaufene Sitzung
+              erst auf, wenn jemand ein Video braucht. */}
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border border-rahmen bg-flaeche-leise px-3.5 py-2.5 text-[12.5px]">
+            {!e.instagramCookies ? (
+              <span className="text-leise">Keine Sitzung hinterlegt.</span>
+            ) : e.instagramFehler ? (
+              <>
+                <span className="font-medium text-akzent">Abgelaufen</span>
+                <span className="text-leiser">{e.instagramFehler}</span>
+              </>
+            ) : (
+              <>
+                <span className="font-medium text-final">Hinterlegt</span>
+                <span className="text-leiser">
+                  seit {e.instagramCookiesAm ? DATUM.format(e.instagramCookiesAm) : '—'}
+                  {e.instagramGeprueftAm && ` · geprüft ${DATUM.format(e.instagramGeprueftAm)}`}
+                </span>
+              </>
+            )}
+          </div>
+
+          <form action={referenzvideoSpeichern} className="grid gap-4">
             <Feld
-              beschriftung="cookies.txt"
-              hinweis={
-                e.instagramCookies
-                  ? 'Hinterlegt — nur ausfüllen, um sie zu ersetzen.'
-                  : 'Beginnt mit „# Netscape HTTP Cookie File".'
-              }
+              beschriftung="Instagram-Sitzung"
+              hinweis="Bei Instagram im Browser anmelden, dann in den Entwicklerwerkzeugen unter Anwendung → Cookies den Wert von „sessionid“ kopieren. Eine ganze cookies.txt geht auch."
             >
               <Textfeld
                 name="instagramCookies"
-                rows={4}
-                placeholder={e.instagramCookies ? 'unverändert' : '# Netscape HTTP Cookie File …'}
+                rows={2}
+                placeholder={e.instagramCookies ? 'unverändert' : 'sessionid=…'}
                 className="font-mono text-[11.5px]"
               />
             </Feld>
 
+            <Feld
+              beschriftung="Zum Prüfen: ein Reel-Link"
+              hinweis="Wird nur abgefragt, nicht geladen. Leer lassen, um nur zu speichern."
+            >
+              <Eingabe
+                name="testUrl"
+                type="url"
+                placeholder="https://www.instagram.com/reel/…"
+              />
+            </Feld>
+
             <p className="text-[11.5px] leading-relaxed text-stiller">
-              Das ist eine <strong>Anmeldesitzung</strong> des hinterlegten Instagram-Kontos —
-              also so vertraulich wie ein Passwort. Sie läuft nach einigen Monaten ab und muss
-              dann erneuert werden. Am besten ein Konto verwenden, das nur dafür da ist.
+              Die Sitzung ist so vertraulich wie ein Passwort — wer sie hat, liest als dieses
+              Konto mit. Am besten ein Konto verwenden, das nur dafür da ist. Sie hält
+              üblicherweise Monate und verlängert sich durch die Nutzung; abgelaufen steht sie
+              oben.
             </p>
 
             <div className="flex items-center justify-between gap-4">
               {e.instagramCookies ? (
-                <Schalter name="cookiesLoeschen" beschriftung="Hinterlegte Cookies löschen" />
+                <Schalter name="cookiesLoeschen" beschriftung="Sitzung löschen" />
               ) : (
                 <span />
               )}
-              <Knopf klein type="submit">
-                Speichern
+              <Knopf klein art="primaer" type="submit">
+                Speichern und prüfen
               </Knopf>
             </div>
           </form>
         </Karte>
       </Abschnitt>
+
     </>
   )
 }

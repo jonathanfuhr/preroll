@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { aworkPruefen } from '@/lib/awork'
+import { alsCookiedatei, pruefeInstagram } from '@/lib/instagram'
 import { prisma } from '@/lib/db'
 import { leseDomaenen, schreibeDomaenen } from '@/lib/domaenen'
 import { ladeEinstellungen, speichereEinstellungen } from '@/lib/einstellungen'
@@ -57,15 +58,40 @@ export async function workspaceSpeichern(formular: FormData) {
 export async function referenzvideoSpeichern(formular: FormData) {
   await adminOderRaus()
 
-  const inhalt = String(formular.get('instagramCookies') ?? '').trim()
-  await speichereEinstellungen({
-    // Leeres Feld heißt „unverändert"; gelöscht wird über das Häkchen.
-    ...(formular.get('cookiesLoeschen') === 'on'
-      ? { instagramCookies: null }
-      : inhalt
-        ? { instagramCookies: inhalt }
-        : {}),
-  })
+  if (formular.get('cookiesLoeschen') === 'on') {
+    await speichereEinstellungen({
+      instagramCookies: null,
+      instagramCookiesAm: null,
+      instagramGeprueftAm: null,
+      instagramFehler: null,
+    })
+    redirect('/einstellungen')
+  }
+
+  const eingabe = String(formular.get('instagramCookies') ?? '')
+  const datei = alsCookiedatei(eingabe)
+
+  if (datei) {
+    await speichereEinstellungen({
+      instagramCookies: datei,
+      instagramCookiesAm: new Date(),
+      instagramGeprueftAm: null,
+      instagramFehler: null,
+    })
+  }
+
+  // Steht eine Adresse im Prüffeld, gleich ausprobieren — sonst merkt man erst
+  // beim nächsten Post, ob die Sitzung taugt.
+  const testUrl = String(formular.get('testUrl') ?? '').trim()
+  if (testUrl) {
+    const ergebnis = await pruefeInstagram(testUrl)
+    redirect(
+      ergebnis.ok
+        ? `/einstellungen?ig=ok&meldung=${encodeURIComponent(ergebnis.titel)}`
+        : `/einstellungen?ig=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
+    )
+  }
+
   revalidatePath('/einstellungen')
 }
 
