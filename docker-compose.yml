@@ -21,6 +21,13 @@ services:
   web:
     build: .
     restart: unless-stopped
+    # Das Bridge-Netz hat keine IPv6-Route, Dockers Resolver liefert für
+    # Microsoft- und Google-Hosts aber ausschließlich AAAA-Einträge. Node läuft
+    # damit in ENETUNREACH, und jeder ausgehende Aufruf scheitert — Entra-ID-
+    # Anmeldung, Graph-Mailversand, Klappe. Abgeschaltetes IPv6 bringt den
+    # Container dazu, die vorhandenen IPv4-Adressen zu benutzen.
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
     depends_on:
       postgres:
         condition: service_healthy

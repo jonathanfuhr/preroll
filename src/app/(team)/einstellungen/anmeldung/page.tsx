@@ -1,6 +1,6 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { env } from '@/lib/env'
-import { Abschnitt, Eingabe, Feld, Karte, Knopf, Schalter } from '@/components/ui'
+import { Abschnitt, Eingabe, Feld, Hinweis, Karte, Knopf, Schalter } from '@/components/ui'
 import { anmeldungSpeichern, pushEinrichten } from '../aktionen'
 
 export const metadata = { title: 'Anmeldung — Preroll' }
@@ -41,6 +41,15 @@ export default async function AnmeldungSeite() {
             >
               <Eingabe name="m365ClientSecret" type="password" placeholder="unverändert" />
             </Feld>
+
+            <Hinweis>
+              Wer sich zum ersten Mal über Microsoft anmeldet, bekommt automatisch ein Konto mit
+              der Rolle <strong>Design</strong> — nur Konten aus eurem Tenant kommen bis hierher.
+              Position, Telefonnummer und Profilbild holt Preroll dabei aus dem Verzeichnis
+              (Berechtigung <code className="font-mono text-[11px]">User.Read</code>), aber nur für
+              Felder, die hier noch leer sind. Wer seine Angaben in Preroll selbst ändert, behält
+              sie.
+            </Hinweis>
             <div className="flex justify-end">
               <Knopf klein type="submit">
                 Speichern

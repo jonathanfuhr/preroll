@@ -34,6 +34,22 @@ async function anmelden(formular: FormData) {
   redirect('/kunden')
 }
 
+/**
+ * Was schiefgehen kann, im Klartext. Vorher trug jeder Fehler beim Anmelden
+ * über Microsoft die Meldung „E-Mail oder Passwort stimmen nicht" — bei einem
+ * Weg ohne Passwort führt das nur in die Irre.
+ */
+const MELDUNG: Record<string, string> = {
+  leer: 'Bitte E-Mail und Passwort ausfüllen.',
+  falsch: 'E-Mail oder Passwort stimmen nicht.',
+  'm365-aus': 'Die Anmeldung über Microsoft 365 ist nicht eingerichtet.',
+  'm365-state': 'Die Anmeldung ist abgelaufen. Bitte noch einmal beginnen.',
+  'm365-netz':
+    'Microsoft war nicht erreichbar. Bitte noch einmal versuchen — hält es an, stimmt etwas mit der Netzwerkverbindung des Servers nicht.',
+  'm365-token': 'Microsoft hat die Anmeldung abgelehnt. Bitte noch einmal versuchen.',
+  'm365-gesperrt': 'Dieses Konto ist abgeschaltet. Bitte im Team nachfragen.',
+}
+
 export default async function AnmeldenSeite({
   searchParams,
 }: {
@@ -59,11 +75,7 @@ export default async function AnmeldenSeite({
 
         {fehler && (
           <div className="mb-5">
-            <Fehler>
-              {fehler === 'leer'
-                ? 'Bitte E-Mail und Passwort ausfüllen.'
-                : 'E-Mail oder Passwort stimmen nicht.'}
-            </Fehler>
+            <Fehler>{MELDUNG[fehler] ?? 'E-Mail oder Passwort stimmen nicht.'}</Fehler>
           </div>
         )}
 

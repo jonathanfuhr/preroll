@@ -6,6 +6,16 @@ import { env } from '@/lib/env'
 
 export const STATE_COOKIE = 'preroll_m365_state'
 
+/**
+ * `User.Read` kommt zu den OIDC-Ansprüchen dazu, damit der Rücklauf auch ein
+ * Zugriffstoken für Graph enthält. Daraus holt Preroll Position, Telefon und
+ * Profilbild — Angaben, die im Verzeichnis ohnehin gepflegt sind.
+ *
+ * Bewusst ohne `offline_access`: Gelesen wird einmal bei der Anmeldung, ein
+ * Auffrischungstoken müsste danach nur verwahrt werden.
+ */
+export const M365_SCOPE = 'openid profile email User.Read'
+
 /** Startet die Anmeldung über Microsoft Entra ID (OpenID Connect). */
 export async function GET() {
   const e = await ladeEinstellungen()
@@ -31,7 +41,7 @@ export async function GET() {
   ziel.searchParams.set('response_type', 'code')
   ziel.searchParams.set('redirect_uri', `${env.appUrl}/api/auth/m365/callback`)
   ziel.searchParams.set('response_mode', 'query')
-  ziel.searchParams.set('scope', 'openid profile email')
+  ziel.searchParams.set('scope', M365_SCOPE)
   ziel.searchParams.set('state', state)
 
   redirect(ziel.toString())
