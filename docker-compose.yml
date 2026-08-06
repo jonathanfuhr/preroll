@@ -7,7 +7,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-preroll}
       POSTGRES_DB: preroll
     volumes:
-      - postgres:/var/lib/postgresql/data
+      # Ab Postgres 18 gehört der Mount an /var/lib/postgresql, nicht mehr an
+      # /var/lib/postgresql/data: Das Image legt die Daten dort in einem
+      # Unterordner je Hauptversion ab, damit pg_upgrade --link später ohne
+      # Mount-Grenzen funktioniert. Am alten Pfad verweigert es den Start.
+      - postgres:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U preroll -d preroll']
       interval: 10s
