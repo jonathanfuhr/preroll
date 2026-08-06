@@ -130,7 +130,17 @@ npm run check   # Typecheck + Tests
   Benachrichtigung aus.
 - **Freigabe-Links öffnen sich nie ohne Anmeldung.** Dreistufig wie in Klappe:
   E-Mail → Code → Name. Die Gast-Sitzung gilt 40 Tage. Ein Gast mit leerem
-  Namen bedeutet „Anmeldung noch nicht abgeschlossen".
+  Namen bedeutet „Anmeldung noch nicht abgeschlossen". **Ausnahme:** Wer am
+  Team angemeldet ist, kommt ohne Gast-Anmeldung durch und sieht dieselbe
+  Seite — mit Vorschau-Banner. Solche Besuche zählen nicht als Aufruf, und
+  eine so eingetragene Freigabe löst keine Benachrichtigung aus.
+- **Die Anmeldeseite hat eine Mailzeile für alle.** Was folgt, entscheidet die
+  Adresse: eigene Domäne (`m365Domaenen`) → Microsoft, bekannter Gast → Code
+  per Mail, sonst Passwort — und das nur, wenn lokale Konten eingeschaltet
+  sind. Über Microsoft entsteht ein Konto beim ersten Anmelden, aber **nur**
+  für eingetragene Domänen; leeres Feld heißt: keine Selbstregistrierung.
+  Position, Telefon und Profilbild kommen aus Graph (`User.Read`) und nur in
+  Felder, die noch leer sind.
 - **Klappe-Videos sind immer projektbezogen.** Die Auswahl zeigt nur Videos aus
   dem Klappe-Projekt des Kunden; ohne Zuordnung in den Stammdaten bleibt sie
   leer. Beim Anlegen eines Reels entsteht dort automatisch das Video.

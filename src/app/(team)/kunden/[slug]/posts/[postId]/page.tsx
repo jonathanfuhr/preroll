@@ -112,6 +112,15 @@ export default async function PostSeite({
         istVideo={istVideo}
         vorschau={{ kunde: post.kunde.name, logo: thumbUrl(post.kunde.logoId) }}
         standardUhrzeit={post.kunde.standardUhrzeit}
+        kommentare={post.kommentare.map((k) => ({
+          id: k.id,
+          autorName: k.autorName,
+          text: k.text,
+          am: k.erstelltAm,
+          status: k.status,
+          vomTeam: Boolean(k.nutzerId),
+          exportId: k.exportId,
+        }))}
         kundeSlug={slug}
         referenz={{
           mediumUrl: medienUrl(post.referenzVideoMediumId),

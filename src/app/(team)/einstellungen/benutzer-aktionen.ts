@@ -56,19 +56,24 @@ export async function nutzerAnlegen(formular: FormData) {
   revalidatePath('/einstellungen/benutzer')
 }
 
+/**
+ * Stammangaben eines Kontos. Die Rolle steht bewusst **nicht** dabei — sie
+ * wird in der Liste direkt umgestellt (`nutzerRolleSetzen`). Stünde sie hier
+ * ebenfalls, würde ein Speichern ohne das Feld sie stillschweigend
+ * zurücksetzen.
+ */
 export async function nutzerSpeichern(nutzerId: string, formular: FormData) {
   const ich = await adminOderRaus()
 
-  const rolle = (text(formular, 'rolle') ?? 'EDITOR') as Rolle
   const aktiv = formular.get('aktiv') === 'on'
 
-  // Sich selbst die Rechte oder den Zugang zu nehmen, sperrt das System aus.
-  if (nutzerId === ich.id && (rolle !== 'ADMIN' || !aktiv)) {
+  // Sich selbst den Zugang zu nehmen, sperrt einen aus.
+  if (nutzerId === ich.id && !aktiv) {
     redirect('/einstellungen/benutzer?fehler=selbst')
   }
 
   // Es muss immer jemand die Verwaltung öffnen können.
-  if (rolle !== 'ADMIN' || !aktiv) {
+  if (!aktiv) {
     const andereAdmins = await prisma.nutzer.count({
       where: { rolle: 'ADMIN', aktiv: true, id: { not: nutzerId } },
     })
@@ -82,13 +87,31 @@ export async function nutzerSpeichern(nutzerId: string, formular: FormData) {
       name: name ?? undefined,
       initialen: name ? initialen(name) : undefined,
       email: text(formular, 'email')?.toLowerCase() ?? undefined,
-      rolle,
       aktiv,
       position: text(formular, 'position'),
       telefon: text(formular, 'telefon'),
     },
   })
 
+  revalidatePath('/einstellungen/benutzer')
+}
+
+/** Rolle direkt aus der Kontenliste — ein Griff statt aufklappen und speichern. */
+export async function nutzerRolleSetzen(nutzerId: string, rolle: Rolle) {
+  const ich = await adminOderRaus()
+
+  if (nutzerId === ich.id && rolle !== 'ADMIN') {
+    redirect('/einstellungen/benutzer?fehler=selbst')
+  }
+
+  if (rolle !== 'ADMIN') {
+    const andereAdmins = await prisma.nutzer.count({
+      where: { rolle: 'ADMIN', aktiv: true, id: { not: nutzerId } },
+    })
+    if (andereAdmins === 0) redirect('/einstellungen/benutzer?fehler=letzter-admin')
+  }
+
+  await prisma.nutzer.update({ where: { id: nutzerId }, data: { rolle } })
   revalidatePath('/einstellungen/benutzer')
 }
 

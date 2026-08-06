@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import type { NextRequest } from 'next/server'
 import { starteTeamSession } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { istEigeneDomaene, leseDomaenen } from '@/lib/domaenen'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { env } from '@/lib/env'
 import { speichereMedium } from '@/lib/medien'
@@ -65,11 +66,12 @@ function telefonnummer(profil: GraphProfil): string | null {
 /**
  * Rücklauf von Entra ID.
  *
- * Wer hier ankommt, kommt aus dem konfigurierten Tenant — die Anmeldeadresse
- * nennt ihn ausdrücklich, fremde Konten kommen gar nicht bis hierher. Deshalb
- * entsteht beim ersten Anmelden ein Konto mit der Rolle `DESIGNER`: lesen und
+ * Ein Konto entsteht beim ersten Anmelden nur, wenn die Adresse zu einer der
+ * eingetragenen eigenen Domänen gehört — mit der Rolle `DESIGNER`: lesen und
  * bearbeiten dürfen ohnehin alle, Benachrichtigungen kommen nur für betreute
- * Kunden, und die Verwaltung bleibt der Administration vorbehalten.
+ * Kunden, und die Verwaltung bleibt der Administration vorbehalten. Ein
+ * Gasttenant oder ein Konto von außerhalb kommt damit nicht durch, selbst
+ * wenn Microsoft die Anmeldung durchwinkt.
  */
 export async function GET(anfrage: NextRequest) {
   const e = await ladeEinstellungen()
@@ -137,6 +139,12 @@ export async function GET(anfrage: NextRequest) {
   const vorhanden = await prisma.nutzer.findUnique({ where: { email } })
   if (vorhanden && !vorhanden.aktiv) {
     redirect('/anmelden?fehler=m365-gesperrt')
+  }
+
+  // Selbst anlegen darf sich nur, wessen Adresse in einer eingetragenen
+  // Domäne liegt. Ohne Eintrag gibt es gar keine Selbstregistrierung.
+  if (!vorhanden && !istEigeneDomaene(email, leseDomaenen(e.m365Domaenen))) {
+    redirect('/anmelden?fehler=m365-fremd')
   }
 
   const nutzer =

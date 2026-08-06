@@ -4,7 +4,9 @@ import type { MailTransport } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
+import { aworkPruefen } from '@/lib/awork'
 import { prisma } from '@/lib/db'
+import { leseDomaenen, schreibeDomaenen } from '@/lib/domaenen'
 import { ladeEinstellungen, speichereEinstellungen } from '@/lib/einstellungen'
 import { sendeMail } from '@/lib/mail'
 import { vorlageTestmail } from '@/lib/mail/vorlagen'
@@ -104,6 +106,9 @@ export async function anmeldungSpeichern(formular: FormData) {
     m365LoginErlaubt: formular.get('m365LoginErlaubt') === 'on',
     m365TenantId: text(formular, 'm365TenantId'),
     m365ClientId: text(formular, 'm365ClientId'),
+    // Durchgeputzt speichern, damit die Anmeldung nicht bei jedem Aufruf
+    // Tippfehler wegräumen muss.
+    m365Domaenen: schreibeDomaenen(leseDomaenen(text(formular, 'm365Domaenen'))) || null,
     ...(geheimnis(formular, 'm365ClientSecret')
       ? { m365ClientSecret: geheimnis(formular, 'm365ClientSecret') }
       : {}),
@@ -145,4 +150,48 @@ export async function benachrichtigungenSpeichern(formular: FormData) {
     },
   })
   revalidatePath('/einstellungen')
+}
+
+// ---------------------------------------------------------------------- awork
+
+export async function aworkSpeichern(formular: FormData) {
+  await adminOderRaus()
+  await speichereEinstellungen({
+    aworkAktiv: formular.get('aworkAktiv') === 'on',
+    ...(geheimnis(formular, 'aworkApiKey') ? { aworkApiKey: geheimnis(formular, 'aworkApiKey') } : {}),
+  })
+  revalidatePath('/einstellungen/awork')
+}
+
+/**
+ * Verbindungstest. Nimmt einen frisch eingegebenen Schlüssel entgegen, damit
+ * er sich prüfen lässt, bevor er gespeichert ist.
+ */
+export async function aworkTesten(formular: FormData) {
+  await adminOderRaus()
+
+  const einstellungen = await ladeEinstellungen()
+  const schluessel = geheimnis(formular, 'aworkApiKey') ?? einstellungen.aworkApiKey
+
+  if (!schluessel) {
+    redirect('/einstellungen/awork?test=fehler&meldung=' + encodeURIComponent('Kein Schlüssel hinterlegt.'))
+  }
+
+  // `redirect()` arbeitet, indem es wirft. Es steht deshalb außerhalb des
+  // try-Blocks — sonst finge der eigene catch den Erfolgsfall ab und meldete
+  // ihn als Verbindungsfehler.
+  let ergebnis: { nutzer: number; projekte: number }
+  try {
+    ergebnis = await aworkPruefen(schluessel)
+  } catch (fehler) {
+    const text = fehler instanceof Error ? fehler.message : 'Unbekannter Fehler.'
+    redirect(`/einstellungen/awork?test=fehler&meldung=${encodeURIComponent(text)}`)
+  }
+
+  await speichereEinstellungen({ aworkGeprueftAm: new Date() })
+  redirect(
+    `/einstellungen/awork?test=ok&meldung=${encodeURIComponent(
+      `${ergebnis.nutzer} Nutzer und ${ergebnis.projekte} Projekte gefunden.`,
+    )}`,
+  )
 }

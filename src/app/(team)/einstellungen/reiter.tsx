@@ -3,12 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
+// „Anmeldung" hat keinen eigenen Reiter mehr — wer Zugänge regelt, ist
+// ohnehin bei den Benutzern, und dort steht es jetzt am Ende der Seite.
 const REITER = [
   { href: '/einstellungen', text: 'Workspace', exakt: true },
   { href: '/einstellungen/benutzer', text: 'Benutzer' },
   { href: '/einstellungen/mail', text: 'Mailversand' },
-  { href: '/einstellungen/anmeldung', text: 'Anmeldung' },
   { href: '/einstellungen/klappe', text: 'Klappe' },
+  { href: '/einstellungen/awork', text: 'awork' },
 ]
 
 export function EinstellungenReiter() {

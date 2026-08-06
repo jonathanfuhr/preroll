@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { POST_MEDIEN, rasterMedium } from '@/lib/abfragen'
-import { aktuellerGast } from '@/lib/auth'
+import { aktuellerGast, aktuellerNutzer } from '@/lib/auth'
 import { zeitraumText } from '@/lib/benachrichtigungen'
 import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
@@ -53,8 +53,19 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
 
   // Ein Freigabe-Link öffnet sich nie ohne Anmeldung. Die Sitzung gilt
   // 40 Tage — danach genügt der Link wieder allein.
-  const gast = await aktuellerGast()
-  if (!gast || !gast.name.trim()) redirect(`/f/${token}/anmelden`)
+  //
+  // Ausnahme: Wer am Team angemeldet ist, kommt ohne Gast-Anmeldung durch und
+  // sieht genau dieselbe Seite wie der Kunde. Sich für einen Blick auf den
+  // eigenen Plan als Gast zu registrieren, wäre ein Umweg — und die Kommentare
+  // trügen danach einen zweiten Namen derselben Person.
+  const [gast, nutzer] = await Promise.all([aktuellerGast(), aktuellerNutzer()])
+  const angemeldeterGast = gast && gast.name.trim() ? gast : null
+  if (!angemeldeterGast && !nutzer) redirect(`/f/${token}/anmelden`)
+
+  // Aus Sicht der Seite zählt nur, welcher Name an Kommentar und Freigabe
+  // steht. Das Team schreibt unter seinem eigenen.
+  const anzeigename = angemeldeterGast?.name ?? nutzer!.name
+  const alsTeam = !angemeldeterGast
 
   const einstellungen = await ladeEinstellungen()
 
@@ -77,21 +88,31 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   const sektionen = postsImZeitraum(alle, regeln)
   const kacheln = feedVorschau(alle, regeln)
 
-  // Aufruf zählen, ohne die Antwort zu blockieren.
-  void prisma.export
-    .update({
-      where: { id: exp.id },
-      data: { aufrufe: { increment: 1 }, zuletztGeoeffnet: new Date() },
-    })
-    .catch(() => {})
+  // Aufruf zählen, ohne die Antwort zu blockieren — aber nur den des Kunden.
+  if (angemeldeterGast) {
+    void prisma.export
+      .update({
+        where: { id: exp.id },
+        data: { aufrufe: { increment: 1 }, zuletztGeoeffnet: new Date() },
+      })
+      .catch(() => {})
+  }
 
-  void prisma.exportGast
-    .upsert({
-      where: { exportId_gastId: { exportId: exp.id, gastId: gast.id } },
-      update: { zuletztGeoeffnetAm: new Date() },
-      create: { exportId: exp.id, gastId: gast.id, zuletztGeoeffnetAm: new Date() },
-    })
-    .catch(() => {})
+  // Nur echte Kundenbesuche zählen — sonst stünde beim Kunden „zuletzt
+  // geöffnet", wenn in Wahrheit die Agentur selbst nachgesehen hat.
+  if (angemeldeterGast) {
+    void prisma.exportGast
+      .upsert({
+        where: { exportId_gastId: { exportId: exp.id, gastId: angemeldeterGast.id } },
+        update: { zuletztGeoeffnetAm: new Date() },
+        create: {
+          exportId: exp.id,
+          gastId: angemeldeterGast.id,
+          zuletztGeoeffnetAm: new Date(),
+        },
+      })
+      .catch(() => {})
+  }
 
   const kalendereintraege: Kalendereintrag[] = sektionen.map((p) => ({
     id: p.id,
@@ -126,6 +147,19 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
 
   return (
     <div className="min-h-screen">
+      {alsTeam && (
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 bg-tinte px-5 py-2 text-center text-[12px] text-white">
+          <strong className="font-medium">Vorschau</strong>
+          <span className="text-white/70">
+            Sie sehen diese Seite als {anzeigename} — genau so bekommt sie der Kunde. Kommentare
+            und Freigaben tragen Ihren Namen.
+          </span>
+          <a href={`/kunden/${exp.kunde.slug}/export`} className="underline underline-offset-2">
+            Zurück zur Verwaltung
+          </a>
+        </div>
+      )}
+
       <ExportTopbar
         kunde={exp.kunde.name}
         logo={thumbUrl(exp.kunde.logoId)}
@@ -237,13 +271,13 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                       am: f.erstelltAm.toISOString(),
                       vomTeam: Boolean(f.nutzerId),
                     }))}
-                    gastName={gast.name}
+                    gastName={anzeigename}
                   />
                   <KommentarBereich
                   token={token}
                   postId={post.id}
                   erlaubt={exp.kommentareErlaubt}
-                  gastName={gast.name}
+                  gastName={anzeigename}
                   kommentare={exp.kommentare
                     .filter((k) => k.postId === post.id)
                     .map((k) => ({

@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import type { NextRequest } from 'next/server'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { env } from '@/lib/env'
 
@@ -17,7 +18,7 @@ export const STATE_COOKIE = 'preroll_m365_state'
 export const M365_SCOPE = 'openid profile email User.Read'
 
 /** Startet die Anmeldung über Microsoft Entra ID (OpenID Connect). */
-export async function GET() {
+export async function GET(anfrage: NextRequest) {
   const e = await ladeEinstellungen()
   if (!e.m365LoginErlaubt || !e.m365TenantId || !e.m365ClientId) {
     redirect('/anmelden?fehler=m365-aus')
@@ -43,6 +44,11 @@ export async function GET() {
   ziel.searchParams.set('response_mode', 'query')
   ziel.searchParams.set('scope', M365_SCOPE)
   ziel.searchParams.set('state', state)
+
+  // Kam die Adresse schon auf der Anmeldeseite, muss sie drüben niemand
+  // erneut tippen.
+  const email = anfrage.nextUrl.searchParams.get('email')
+  if (email) ziel.searchParams.set('login_hint', email)
 
   redirect(ziel.toString())
 }

@@ -4,6 +4,7 @@ import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
 import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
 import { MedienDialog } from '@/components/medien-dialog'
+import { KommentarListe, type Kommentareintrag } from '@/components/kommentar-liste'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
@@ -74,6 +75,7 @@ export function PostEditor({
   istVideo,
   vorschau,
   standardUhrzeit,
+  kommentare,
   referenz,
   klappe,
   kundeSlug,
@@ -92,6 +94,7 @@ export function PostEditor({
   vorschau: { kunde: string; logo: string | null }
   /** Uhrzeit aus den Stammdaten — Vorbelegung für noch ungeplante Posts. */
   standardUhrzeit: string
+  kommentare: Kommentareintrag[]
   referenz: {
     mediumUrl: string | null
     geladen: boolean
@@ -272,6 +275,18 @@ export function PostEditor({
           </Knopf>
         </div>
       </form>
+
+      {/* ---------------------------------------------------------- Kommentare */}
+      <Abschnitt
+        titel={
+          kommentare.length > 0
+            ? `Kommentare · ${kommentare.filter((k) => k.status === 'OFFEN').length} offen`
+            : 'Kommentare'
+        }
+        hinweis="Was der Kunde im Freigabe-Link schreibt. Antworten erscheinen dort sofort."
+      >
+        <KommentarListe postId={post.id} kommentare={kommentare} />
+      </Abschnitt>
 
       {/* ----------------------------------------------------------- Freigaben */}
       <Abschnitt

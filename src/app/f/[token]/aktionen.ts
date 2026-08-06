@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import {
   aktuellerGast,
+  aktuellerNutzer,
   beendeGastSession,
   erzeugeLoginCode,
   loeseLoginCodeEin,
@@ -126,9 +127,13 @@ export async function kommentarVomKunden(token: string, formular: FormData) {
   const text = String(formular.get('text') ?? '').trim()
   if (!text) return
 
-  // Ohne Anmeldung kommt niemand bis hierher — der Name steht am Gast.
+  // Ohne Anmeldung kommt niemand bis hierher. Das Team sieht dieselbe Seite
+  // in der Vorschau und schreibt dort unter seinem eigenen Namen — solche
+  // Kommentare gehen an die Gäste des Links, nicht ins eigene Haus
+  // (`meldeNeuenKommentar` entscheidet das am `nutzerId`).
   const gast = await aktuellerGast()
-  if (!gast) redirect(`/f/${token}/anmelden`)
+  const nutzer = gast?.name.trim() ? null : await aktuellerNutzer()
+  if (!gast?.name.trim() && !nutzer) redirect(`/f/${token}/anmelden`)
 
   const postId = String(formular.get('postId') ?? '') || null
 
@@ -137,9 +142,10 @@ export async function kommentarVomKunden(token: string, formular: FormData) {
       postId,
       exportId: exp.id,
       abschnitt: String(formular.get('abschnitt') ?? 'allgemein'),
-      autorName: gast.name,
-      autorEmail: gast.email,
-      gastId: gast.id,
+      autorName: nutzer ? nutzer.name : gast!.name,
+      autorEmail: nutzer ? nutzer.email : gast!.email,
+      gastId: nutzer ? null : gast!.id,
+      nutzerId: nutzer?.id ?? null,
       text,
     },
   })
@@ -158,7 +164,8 @@ export async function freigabeErteilen(token: string, postId: string, formular: 
   if (!exp || !exp.freigabenErlaubt) return
 
   const gast = await aktuellerGast()
-  if (!gast) redirect(`/f/${token}/anmelden`)
+  const nutzer = gast?.name.trim() ? null : await aktuellerNutzer()
+  if (!gast?.name.trim() && !nutzer) redirect(`/f/${token}/anmelden`)
 
   const post = await prisma.post.findUnique({ where: { id: postId } })
   if (!post || post.kundeId !== exp.kundeId) return
@@ -173,13 +180,16 @@ export async function freigabeErteilen(token: string, postId: string, formular: 
       postId,
       stufe,
       exportId: exp.id,
-      gastId: gast.id,
-      autorName: gast.name,
+      gastId: nutzer ? null : gast!.id,
+      nutzerId: nutzer?.id ?? null,
+      autorName: nutzer ? nutzer.name : gast!.name,
       notiz: String(formular.get('notiz') ?? '').trim() || null,
     },
   })
 
-  await meldeFreigabe(freigabe.id)
+  // Trägt das Team die Freigabe ein, weiß es bereits Bescheid — dieselbe Regel
+  // wie im Post-Editor.
+  if (!nutzer) await meldeFreigabe(freigabe.id)
   revalidatePath(`/f/${token}`)
   revalidatePath('/portal')
 }

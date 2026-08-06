@@ -599,6 +599,17 @@ model Einstellungen {
   m365TenantId        String?
   m365ClientId        String?
   m365ClientSecret    String?
+  // Eigene Mail-Domänen, kommagetrennt. Adressen daraus gehen beim Anmelden
+  // direkt zu Microsoft; wer dort zum ersten Mal ankommt, bekommt ein Konto.
+  // Leer heißt: keine Selbstregistrierung.
+  m365Domaenen        String?
+
+  // awork — vorerst nur die Verbindung. Was Preroll dorthin schreibt (Aufgaben,
+  // Kommentare), ist noch nicht entschieden; die Anbindung steht schon, damit
+  // der Schlüssel nicht später nachgereicht werden muss.
+  aworkAktiv     Boolean @default(false)
+  aworkApiKey    String?
+  aworkGeprueftAm DateTime?
 
   // Mailversand — ein aktiver Transport, drei mögliche Wege.
   mailTransport MailTransport @default(DEAKTIVIERT)

@@ -182,9 +182,10 @@ export function ExportKarte({
             href={`/f/${exp.token}`}
             target="_blank"
             rel="noreferrer"
+            title="Öffnet die Kundenseite mit Ihrem Konto — ohne Gast-Anmeldung."
             className="rounded-[5px] border border-rahmen-3 px-3 py-1.5 text-[12px] font-medium text-tinte hover:border-rahmen-4"
           >
-            Ansehen
+            Vorschau ansehen
           </a>
           <Knopf
             klein
