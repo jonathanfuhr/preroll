@@ -5,6 +5,9 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Eingabe, Feld, Fehler, Knopf } from '@/components/ui'
 
 export const metadata = { title: 'Anmelden — Preroll' }
+// Fragt beim Rendern die Datenbank, ob es schon ein Konto gibt — darf deshalb
+// nicht beim Bauen vorgerendert werden.
+export const dynamic = 'force-dynamic'
 
 async function anmelden(formular: FormData) {
   'use server'
