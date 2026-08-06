@@ -157,11 +157,6 @@ export default async function WorkspaceSeite({
           <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[5px] border border-rahmen bg-flaeche-leise px-3.5 py-2.5 text-[12.5px]">
             {!e.kennzahlenAktiv ? (
               <span className="text-leise">Aus — die Zahlen werden von Hand gepflegt.</span>
-            ) : !e.instagramCookies ? (
-              <>
-                <span className="font-medium text-akzent">Wartet auf die Sitzung</span>
-                <span className="text-leiser">Oben eine Instagram-Sitzung hinterlegen.</span>
-              </>
             ) : (
               <>
                 <span className="font-medium text-final">An</span>
@@ -183,16 +178,17 @@ export default async function WorkspaceSeite({
 
             <div className="grid gap-2.5 text-[12px] leading-relaxed text-leise">
               <p>
-                Geholt wird über <strong>dieselbe Instagram-Sitzung</strong>, die oben für die
-                Videos hinterlegt ist — eine eigene Anmeldung braucht es nicht. Preroll nimmt sich
-                dabei <strong>ein Profil alle 20 Minuten</strong> vor und jedes höchstens einmal am
-                Tag. Angestoßen wird beim Arbeiten im Backend; Preroll hat keinen Zeitplaner.
+                Gefragt wird <strong>ohne Anmeldung</strong> — für die öffentlichen Profilzahlen
+                verlangt Instagram keine. Die für die Videos hinterlegte Sitzung bleibt damit aus
+                dem Spiel; sie kommt nur zum Zug, falls die anonyme Anfrage abgewiesen wird. Ein
+                Instagram-Konto ist hierfür also <strong>nicht</strong> nötig.
               </p>
               <p>
-                Der Weg ist derselbe wie beim Video-Download: nicht von Instagram dokumentiert und
-                gegen dessen Bedingungen. Er kann sich jederzeit ändern, und häufige Abfragen
-                können die Sitzung auffällig machen — dann stehen auch die Referenzvideos still,
-                es ist dieselbe. Deshalb ist das hier ein eigener Schalter und nicht einfach an.
+                Preroll nimmt sich <strong>ein Profil alle 20 Minuten</strong> vor und jedes
+                höchstens einmal am Tag. Angestoßen wird beim Arbeiten im Backend; einen
+                Zeitplaner hat Preroll nicht. Der Endpunkt ist nicht von Instagram dokumentiert
+                und kann sich jederzeit ändern — deshalb ein eigener Schalter und keine
+                Selbstverständlichkeit.
               </p>
               <p>
                 Übernommen werden Follower, Gefolgt, Beiträge sowie Bio und Website, wenn Instagram
@@ -228,12 +224,8 @@ function KennzahlenAnleitung() {
       <div className="mt-3 grid gap-4 text-[12px] leading-relaxed text-leise">
         <ol className="grid list-decimal gap-2 pl-4">
           <li>
-            <strong>Instagram-Sitzung hinterlegen</strong> — im Abschnitt darüber. Wie man an die
-            Session-ID kommt, steht dort unter „Wo finde ich die Session-ID?". Ist sie schon für
-            die Videos eingetragen, ist hier nichts weiter zu tun: Es ist dieselbe.
-          </li>
-          <li>
-            <strong>Diesen Schalter einschalten</strong> und speichern.
+            <strong>Diesen Schalter einschalten</strong> und speichern. Sonst ist nichts
+            einzurichten — für die öffentlichen Profilzahlen verlangt Instagram keine Anmeldung.
           </li>
           <li>
             <strong>Bei jedem Kunden den Handle eintragen</strong> — Stammdaten → Instagram-Handle,
@@ -259,10 +251,11 @@ function KennzahlenAnleitung() {
         <div>
           <div className="mb-1 text-[12.5px] font-medium text-tinte">Wenn keine Zahlen kommen</div>
           <p>
-            Fast immer ist die Sitzung abgelaufen; dann steht oben „Abgelaufen" und im Backend das
-            rote Band. Neue Session-ID eintragen, fertig. Kommt stattdessen „Das Profil gibt es
-            nicht (mehr)", stimmt der Handle nicht. Bei „Instagram bremst gerade ab" einfach
-            später noch einmal — das legt sich.
+            „Das Profil gibt es nicht (mehr)" heißt: Der Handle stimmt nicht — Tippfehler oder
+            umbenannt. Bei „Instagram bremst gerade ab" einfach später noch einmal, das legt
+            sich. Steht „Instagram hat die Anfrage abgewiesen", ist meist die Adresse des Servers
+            vorübergehend gesperrt; auch das geht vorbei. Mit dem Video-Download hat das nichts
+            zu tun — der läuft über einen anderen Weg und ist davon nicht betroffen.
           </p>
         </div>
 

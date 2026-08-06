@@ -122,21 +122,12 @@ export default async function StammdatenSeite({
                 Eingaben mitnimmt oder überschreibt.
               */}
               <div className="mb-4 flex flex-wrap items-center gap-3">
-                <Knopf
-                  klein
-                  type="submit"
-                  form="kennzahlen-holen"
-                  disabled={!kunde.handle || !einstellungen.instagramCookies}
-                >
+                <Knopf klein type="submit" form="kennzahlen-holen" disabled={!kunde.handle}>
                   Jetzt von Instagram holen
                 </Knopf>
                 {!kunde.handle ? (
                   <span className="text-[11.5px] text-leiser">
                     Dafür oben einen Instagram-Handle eintragen.
-                  </span>
-                ) : !einstellungen.instagramCookies ? (
-                  <span className="text-[11.5px] text-leiser">
-                    Dafür unter Einstellungen eine Instagram-Sitzung hinterlegen.
                   </span>
                 ) : !einstellungen.kennzahlenAktiv ? (
                   <span className="text-[11.5px] text-leiser">

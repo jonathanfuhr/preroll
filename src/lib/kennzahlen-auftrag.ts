@@ -2,7 +2,6 @@ import 'server-only'
 import { prisma } from './db'
 import { ladeEinstellungen, speichereEinstellungen } from './einstellungen'
 import { holeProfilwerte } from './instagram-kennzahlen'
-import { merkeAbgelaufen } from './instagram'
 import { speichereMedium } from './medien'
 
 /**
@@ -38,12 +37,11 @@ export async function aktualisiereKennzahlen(kundeId: string): Promise<Aktualisi
   }
 
   const ergebnis = await holeProfilwerte(kunde.handle)
-  if (!ergebnis.ok) {
-    // Eine tote Sitzung gehört in die Einstellungen und ins Warnband, nicht
-    // nur an diesen einen Kunden — genau wie beim Referenzvideo.
-    if (ergebnis.abgelaufen) await merkeAbgelaufen()
-    return { ok: false, fehler: ergebnis.fehler }
-  }
+  // Bewusst ohne `merkeAbgelaufen`: Gefragt wird ohne Sitzung, ein
+  // Fehlschlag sagt also nichts über sie aus. Die erste Fassung meldete hier
+  // eine abgelaufene Sitzung — und das rote Band im Backend behauptete, die
+  // Referenzvideos gingen nicht, obwohl sie gingen.
+  if (!ergebnis.ok) return { ok: false, fehler: ergebnis.fehler }
 
   const { werte } = ergebnis
   const jetzt = new Date()
@@ -116,7 +114,7 @@ async function uebernimmProfilbild(kundeId: string, url: string): Promise<void> 
 export async function wacheUeberKennzahlen(): Promise<void> {
   try {
     const e = await ladeEinstellungen()
-    if (!e.kennzahlenAktiv || !e.instagramCookies?.trim()) return
+    if (!e.kennzahlenAktiv) return
 
     if (e.kennzahlenLaufAm && Date.now() - e.kennzahlenLaufAm.getTime() < LAUFABSTAND) return
 

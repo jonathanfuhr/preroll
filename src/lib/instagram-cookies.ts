@@ -61,7 +61,12 @@ export function cookieKopfzeile(inhalt: string | null | undefined): string | nul
 
   const werte = new Map<string, string>()
 
-  for (const zeile of inhalt.split('\n')) {
+  for (const roh of inhalt.split('\n')) {
+    // Browser-Erweiterungen schreiben HttpOnly-Cookies mit dem Präfix
+    // `#HttpOnly_` — und ausgerechnet `sessionid` ist HttpOnly. Wer die
+    // Zeile für einen Kommentar hält, wirft genau das weg, worauf es
+    // ankommt. yt-dlp kennt die Marke; hier fehlte sie.
+    const zeile = roh.replace(/^#HttpOnly_/, '')
     if (!zeile.trim() || zeile.startsWith('#')) continue
 
     // Netscape-Format: Domäne, Flag, Pfad, Sicher, Ablauf, Name, Wert
@@ -74,4 +79,14 @@ export function cookieKopfzeile(inhalt: string | null | undefined): string | nul
 
   if (!werte.has('sessionid')) return null
   return [...werte].map(([n, w]) => `${n}=${w}`).join('; ')
+}
+
+/** Der Wert eines einzelnen Cookies aus der Kopfzeile — für `x-csrftoken`. */
+export function cookieWert(kopfzeile: string | null, name: string): string | null {
+  if (!kopfzeile) return null
+  for (const teil of kopfzeile.split(';')) {
+    const [n, ...rest] = teil.trim().split('=')
+    if (n === name && rest.length) return rest.join('=')
+  }
+  return null
 }

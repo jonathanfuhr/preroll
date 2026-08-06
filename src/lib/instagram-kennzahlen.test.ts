@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cookieKopfzeile } from './instagram-cookies'
+import { cookieKopfzeile, cookieWert } from './instagram-cookies'
 import { normalisiereHandle, werteAusAntwort } from './instagram-profil'
 
 describe('normalisiereHandle', () => {
@@ -89,10 +89,39 @@ describe('cookieKopfzeile', () => {
     expect(cookieKopfzeile(datei)).not.toContain('#')
   })
 
+  it('liest die HttpOnly-Marke, die Browser-Erweiterungen davorschreiben', () => {
+    // Ausgerechnet `sessionid` ist HttpOnly. Wer die Zeile für einen
+    // Kommentar hält, wirft genau das weg, worauf es ankommt.
+    const export_ = [
+      '# Netscape HTTP Cookie File',
+      '#HttpOnly_.instagram.com\tTRUE\t/\tTRUE\t1799999999\tsessionid\tABC123',
+      '.instagram.com\tTRUE\t/\tFALSE\t1799999999\tcsrftoken\tCSRF9',
+    ].join('\n')
+    expect(cookieKopfzeile(export_)).toBe('sessionid=ABC123; csrftoken=CSRF9')
+  })
+
   it('gibt ohne sessionid nichts zurück — damit ließe sich nichts abrufen', () => {
     const ohne = '.instagram.com\tTRUE\t/\tTRUE\t1799999999\tds_user_id\t42'
     expect(cookieKopfzeile(ohne)).toBeNull()
     expect(cookieKopfzeile('')).toBeNull()
     expect(cookieKopfzeile(null)).toBeNull()
+  })
+})
+
+describe('cookieWert', () => {
+  const kopf = 'sessionid=ABC123; csrftoken=CSRF9; ds_user_id=42'
+
+  it('holt einen einzelnen Wert heraus — Instagram will csrftoken doppelt', () => {
+    expect(cookieWert(kopf, 'csrftoken')).toBe('CSRF9')
+    expect(cookieWert(kopf, 'sessionid')).toBe('ABC123')
+  })
+
+  it('gibt null für Unbekanntes und für nichts', () => {
+    expect(cookieWert(kopf, 'gibtsnicht')).toBeNull()
+    expect(cookieWert(null, 'csrftoken')).toBeNull()
+  })
+
+  it('zerlegt Werte mit Gleichheitszeichen nicht', () => {
+    expect(cookieWert('sessionid=abc==def', 'sessionid')).toBe('abc==def')
   })
 })
