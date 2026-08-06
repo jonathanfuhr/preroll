@@ -138,7 +138,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         zeitraum={zeitraum}
         einleitung={
           `Hier sehen Sie alle geplanten Beiträge für ${zeitraum} — so, wie sie später auf ` +
-          'Instagram erscheinen. Über den Kalender springen Sie direkt zum Beitrag. Ihre ' +
+          'Instagram erscheinen. Über den Kalender springen Sie direkt zum Beitrag. ' +
           'Ihre Kommentare schreiben Sie direkt neben dem Beitrag — wir sehen sie sofort.'
         }
         eckdaten={[
