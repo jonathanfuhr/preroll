@@ -428,24 +428,14 @@ function RasterIcon({ aktiv }: { aktiv?: boolean }) {
   )
 }
 
-/** Höhe einer Rasterreihe im Schirm: drei Kacheln in 3:4, dazu die Fuge. */
-const RASTERREIHE = ((320 - 4) / 3) * (4 / 3) + 2
-
-/**
- * Alles zwischen Statusleiste und Raster — Kopfzeile, Zahlen, Name, Reiter.
- * Die Zahl steht hier, weil der Rollbereich wissen muss, wie hoch er werden
- * darf; wer den Profilblock umbaut, zieht sie mit.
- */
-const PROFILBLOCK = 180
-
 /**
  * Profilraster im Geräterahmen — Mockup 3d. Zeigt, wie das Instagram-Profil
  * nach der geplanten Periode aussieht: drei Kacheln je Reihe im Verhältnis
  * 3:4, neueste oben links.
  *
- * Der Schirm wächst mit dem Raster, aber nur bis `reihen`; darüber hinaus
- * wird im Gerät gerollt — wie am echten Telefon. Die Statusleiste bleibt
- * dabei stehen: Uhrzeit und Akku wandern nicht mit dem Profil weg.
+ * Das Gerät behält seine Maße; gerollt wird **darin**, wie am echten
+ * Telefon. Die Statusleiste bleibt dabei stehen — Uhrzeit und Akku wandern
+ * nicht mit dem Profil weg.
  */
 export function IPhoneFeed({
   kunde,
@@ -456,7 +446,6 @@ export function IPhoneFeed({
   gefolgt,
   kacheln,
   gross,
-  reihen = 6,
   fuss,
 }: {
   kunde: string
@@ -468,8 +457,6 @@ export function IPhoneFeed({
   kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string; href?: string }>
   /** Vergrößert den Rahmen. */
   gross?: boolean
-  /** Wie viele Rasterreihen ohne Rollen zu sehen sind. */
-  reihen?: number
   /** Steht unter dem Raster im Schirm — etwa „Mehr anzeigen". */
   fuss?: ReactNode
 }) {
@@ -477,14 +464,16 @@ export function IPhoneFeed({
     wert === null || wert === undefined ? '—' : new Intl.NumberFormat('de-DE').format(wert)
 
   return (
-    <Geraet zusatz={gross ? 'geraet-gross geraet-waechst' : 'geraet-waechst'}>
-      <Statusleiste />
+    <Geraet zusatz={gross ? 'geraet-gross' : undefined}>
+      {/* Steht auf Weiß und bleibt stehen — der Inhalt rollt darunter durch. */}
+      <div className="shrink-0 bg-flaeche">
+        <Statusleiste />
+      </div>
 
       <div
         // Ohne `overscroll-contain`: Am Ende der Liste rollt die Seite weiter.
         // Sonst säße man am Telefon in einem Rahmen fest, der nicht loslässt.
         className="flex min-h-0 flex-1 flex-col overflow-y-auto"
-        style={{ maxHeight: PROFILBLOCK + reihen * RASTERREIHE }}
       >
         <div className="flex shrink-0 items-center justify-between gap-2.5 px-4 pb-3">
           <span className="truncate text-[13px] font-semibold text-tinte">{handle ?? kunde}</span>

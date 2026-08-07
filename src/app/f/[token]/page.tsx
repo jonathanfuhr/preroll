@@ -257,14 +257,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         </div>
 
         <aside className="justify-self-center lg:justify-self-end">
-          {/*
-            Sechs Reihen stehen offen; hat der Monat mehr Beiträge, wächst
-            der Schirm mit, damit der Kunde seinen ganzen Monat ohne Rollen
-            sieht. Was darunter liegt — die schon veröffentlichten Beiträge —
-            wird im Gerät gerollt.
-          */}
           <IPhoneFeed
-            reihen={Math.max(6, Math.ceil(sektionen.length / 3))}
             kunde={exp.kunde.name}
             handle={exp.kunde.handle}
             logo={thumbUrl(exp.kunde.logoId)}

@@ -372,17 +372,13 @@ Geräterahmen: 344 × 645 px außen, 320 × 621 px Bildschirm, Reel-Fläche
 nicht bedienbar. In der Feed-Planung ist er um 22 % vergrößert
 (`.geraet-gross`); dort ist er Arbeitsmittel, nicht bloß Vorschau.
 
-**Das Profilraster wächst und rollt.** Bei 3:4 passen in die festen 621 px
-nur 2,8 Reihen — der Rest verschwand unter dem, was folgte. Deshalb wächst
-der Schirm mit dem Raster (`.geraet-waechst`), aber höchstens auf **sechs
-Reihen, also 18 Kacheln**; darüber hinaus wird **im Gerät** gerollt. Hat ein
-Monat mehr Beiträge, wächst der Schirm weiter, damit der Kunde seinen Monat
-ohne Rollen sieht — gerollt wird nur, was darunter liegt. Die **Statusleiste
-bleibt stehen**, gerollt wird ab dem Profilnamen: Uhrzeit und Akku wandern
-am echten Telefon auch nicht mit. Die Reihenhöhe ergibt sich aus der
-Schirmbreite (`RASTERREIHE`), die Höhe des Profilblocks darüber steht als
-Zahl daneben (`PROFILBLOCK`) — sie ist die einzige Stelle, an der der
-Rollbereich von seiner Umgebung weiß.
+**Das Profilraster rollt im Gerät, das Gerät wächst nicht.** Bei 3:4 passen
+in die festen 621 px nur 2,8 Reihen — vorher verschwand der Rest unter dem,
+was folgte. Der Rahmen behält trotzdem seine Maße: Ein Telefon, das mit dem
+Raster mitwächst, ist irgendwann kein Telefon mehr. Gerollt wird deshalb
+**im Schirm** (`overflow-y`), und zwar alles ab dem Profilnamen. Die
+**Statusleiste bleibt stehen** und liegt auf Weiß — Uhrzeit und Akku
+wandern am echten Telefon auch nicht mit.
 
 ## Struktur
 

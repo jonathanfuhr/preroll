@@ -128,16 +128,13 @@
   }
 
   /*
-   * In der Feed-Planung darf der Rahmen größer sein und mit dem Raster
-   * mitwachsen — dort ist er das Arbeitsmittel, nicht nur eine Vorschau.
+   * In der Feed-Planung darf der Rahmen größer sein — dort ist er das
+   * Arbeitsmittel, nicht nur eine Vorschau. Seine Maße behält er trotzdem:
+   * Ein Telefon, das mit dem Raster mitwächst, ist irgendwann kein Telefon
+   * mehr. Gerollt wird deshalb im Schirm.
    */
   .geraet-gross {
     zoom: 1.22;
-  }
-
-  .geraet-waechst .geraet-schirm {
-    height: auto;
-    min-height: 621px;
   }
 
   /*
@@ -147,8 +144,8 @@
    *
    * `zoom` und nicht `transform: scale()`: Skalieren lässt den Platzbedarf
    * unverändert und verlangte einen negativen Außenabstand als Ausgleich —
-   * eine feste Zahl, die nur zum 645 px hohen Rahmen passte. Seit der Feed
-   * mitwächst, stimmte sie nicht mehr.
+   * eine feste Zahl, die bei jeder Änderung an der Rahmenhöhe nachzuziehen
+   * gewesen wäre. `zoom` rechnet den Platz selbst mit.
    */
   @media (max-width: 389px) {
     .geraet {
