@@ -110,9 +110,17 @@ npm run check   # Typecheck + Tests
   Beiträge und Slides — dann ist der Ausschnitt im Raster das ganze Bild.
   Der Preis ist bewusst gewählt: Anderswo gilt 4:5 weiter als Standard, im
   Feed werden beide unbeschnitten gezeigt.
-- **Reel-Thumbnails im Raster.** In allen Grid-/Feed-Ansichten wird vom
-  9:16-Thumbnail der **mittige 3:4-Ausschnitt** gezeigt, wie bei Instagram.
-  Das ist die Stelle, an der der Zuschnitt wirklich etwas tut.
+- **Beschnitten wird nur, was höher ist als das Raster.** Ein 9:16-Reel-
+  Thumbnail bekommt den **mittigen 3:4-Ausschnitt**, wie bei Instagram — das
+  ist die einzige Stelle, an der der Zuschnitt wirklich etwas tut. Ein
+  Beitrag in 4:5 ist dagegen *breiter* als 3:4 und bleibt **unangetastet**:
+  Ihn zu beschneiden hieße, seitlich wegzunehmen, was jemand bewusst
+  gestaltet hat. Wie die Kachel ihn zeigt, entscheidet die Anzeige, nicht
+  die Datei (`brauchtZuschnitt`). Logos und Profilbilder fallen damit auch
+  heraus — sie sind quadratisch und standen nie im Raster.
+- **4:5 bleibt hochladbar.** Für Altbestand. Es gibt nur eine Warnung, dass
+  das aktuelle Format 3:4 ist — wie bei jeder Formatabweichung: gewarnt,
+  nicht blockiert.
   Diesen Ausschnitt liefert `thumbUrl()` als fertige Datei. Er entsteht beim
   Upload — ändert sich das Zielformat, müssen Bestandsbilder über
   **Einstellungen → Vorschaubilder** neu zugeschnitten werden. Dieselbe

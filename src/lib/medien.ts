@@ -7,7 +7,7 @@ import sharp from 'sharp'
 import { prisma } from './db'
 import { env } from './env'
 import { VERHAELTNIS } from './format'
-import { mittigerAusschnitt, schnittfenster } from './karussell'
+import { brauchtZuschnitt, mittigerAusschnitt, schnittfenster } from './karussell'
 
 const THUMB_BREITE = 640
 
@@ -67,11 +67,19 @@ async function erzeugeThumbnail(
   hoehe: number,
 ): Promise<string | null> {
   try {
-    const ausschnitt = mittigerAusschnitt(breite, hoehe, VERHAELTNIS.hochkant)
+    const bild = sharp(inhalt)
+
+    // Beschnitten wird nur, was höher ist als das Raster — Reel-Thumbnails
+    // in 9:16. Alles andere behält sein Format; ein 4:5-Beitrag soll nicht
+    // seitlich beschnitten werden, nur weil er nicht 3:4 misst. Der Zuschnitt
+    // für die Kachel ist dann Sache der Anzeige, nicht der Datei.
+    if (brauchtZuschnitt(breite, hoehe)) {
+      bild.extract(mittigerAusschnitt(breite, hoehe, VERHAELTNIS.hochkant))
+    }
+
     const relativ = neuerPfad('image/jpeg')
-    const daten = await sharp(inhalt)
-      .extract(ausschnitt)
-      .resize(THUMB_BREITE, Math.round(THUMB_BREITE / VERHAELTNIS.hochkant), { fit: 'cover' })
+    const daten = await bild
+      .resize({ width: THUMB_BREITE, withoutEnlargement: true })
       .jpeg({ quality: 82 })
       .toBuffer()
     await schreibe(relativ, daten)

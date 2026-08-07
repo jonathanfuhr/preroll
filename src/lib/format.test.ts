@@ -37,6 +37,15 @@ describe('pruefeFormat', () => {
     expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1434)).toBeNull()
   })
 
+  it('warnt beim Altbestand in 4:5 — aber blockiert ihn nicht', () => {
+    // 4:5 bleibt hochladbar, damit sich Älteres nachpflegen lässt. Der
+    // Hinweis nennt nur, dass das aktuelle Format 3:4 ist.
+    const hinweis = pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1350)
+    expect(hinweis?.erkannt).toBe('4:5')
+    expect(hinweis?.erwartet).toBe('3:4')
+    expect(hinweis?.text).toContain('erwartet wird 3:4')
+  })
+
   it('gibt bei fehlenden Maßen keinen Hinweis', () => {
     expect(pruefeFormat('BEITRAG', 'MEDIUM', 0, 0)).toBeNull()
   })

@@ -110,6 +110,29 @@ export function schnittfenster(
 }
 
 /**
+ * Beschneiden fürs Raster — oder nicht?
+ *
+ * **Nur was höher ist als das Raster.** Ein Reel-Thumbnail liegt in 9:16 vor
+ * und muss beschnitten werden, sonst passt es nirgends hin; genau so zeigt
+ * Instagram Reels im Profil. Ein Beitrag in 4:5 ist dagegen *breiter* als
+ * 3:4 — ihn zu beschneiden hieße, seitlich etwas wegzunehmen, was jemand
+ * bewusst gestaltet hat. Das Vorschaubild behält deshalb alles; wie die
+ * Kachel es zeigt, entscheidet die Anzeige.
+ *
+ * Nebenbei fallen damit auch Logos und Profilbilder heraus — die sind
+ * quadratisch oder breiter und standen nie im Raster.
+ */
+export function brauchtZuschnitt(
+  breite: number,
+  hoehe: number,
+  ziel = VERHAELTNIS.hochkant,
+): boolean {
+  if (!breite || !hoehe) return false
+  // Ein Prozent Spiel, damit ein krummer Export nicht um zwei Pixel schneidet.
+  return breite / hoehe < ziel * 0.99
+}
+
+/**
  * Mittiger 3:4-Ausschnitt eines 9:16-Thumbnails — so zeigt Instagram Reels
  * im Profilraster. Das Raster ist seit 2025 3:4, vorher quadratisch.
  */

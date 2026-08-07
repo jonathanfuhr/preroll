@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   berechneAuftrennung,
+  brauchtZuschnitt,
   erkenneSlideAnzahl,
   maximaleSlideAnzahl,
   mittigerAusschnitt,
@@ -97,5 +98,34 @@ describe('mittigerAusschnitt', () => {
     expect(a.height).toBe(1080)
     expect(a.width).toBe(810)
     expect(a.left).toBe(555)
+  })
+})
+
+describe('brauchtZuschnitt', () => {
+  it('beschneidet ein 9:16-Reel-Thumbnail — sonst passt es nirgends hin', () => {
+    expect(brauchtZuschnitt(1080, 1920)).toBe(true)
+  })
+
+  it('lässt einen 4:5-Beitrag in Ruhe — er ist breiter als das Raster', () => {
+    // Beschneiden hieße hier, seitlich etwas wegzunehmen, was jemand
+    // bewusst gestaltet hat. Das entscheidet die Anzeige, nicht die Datei.
+    expect(brauchtZuschnitt(1080, 1350)).toBe(false)
+  })
+
+  it('lässt 3:4 unangetastet — das ist bereits das Zielformat', () => {
+    expect(brauchtZuschnitt(1080, 1440)).toBe(false)
+  })
+
+  it('lässt Quadrate und Querformate in Ruhe — Logos und Profilbilder', () => {
+    expect(brauchtZuschnitt(800, 800)).toBe(false)
+    expect(brauchtZuschnitt(1920, 1080)).toBe(false)
+  })
+
+  it('schneidet nicht wegen eines krummen Exports um zwei Pixel', () => {
+    expect(brauchtZuschnitt(1078, 1440)).toBe(false)
+  })
+
+  it('gibt bei fehlenden Maßen false zurück', () => {
+    expect(brauchtZuschnitt(0, 0)).toBe(false)
   })
 })
