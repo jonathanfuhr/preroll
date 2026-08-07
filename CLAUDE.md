@@ -196,7 +196,10 @@ npm run check   # Typecheck + Tests
   In Mail, Push und PDF steht schlichtes `@Name` (`alsKlartext`).
 - **Eine Freigabe ist immer ein ganzer Monat.** Gewählt wird der Monat, nicht
   Von und Bis; je Kunde und Monat gibt es genau eine (`@@unique`). Der Kunde
-  wechselt über die Monatsleiste zwischen ihnen — bis dahin war ein Link eine
+  wechselt über die **Monats-Seitenleiste** zwischen ihnen — am linken
+  Bildschirmrand, über die volle Höhe, gebaut wie die Navigation im Backend
+  (samt Marke; die Topbar lässt ihre dann weg). Am Telefon wird daraus eine
+  waagerechte Reihe unter der Kopfzeile. Bis dahin war ein Link eine
   Sackgasse. Was früher je Link einstellbar war, ist entfallen: Kommentare
   sind immer erlaubt, Freigaben richten sich nach `Kunde.freigabenNoetig`,
   Konzepte werden immer gezeigt, und eine Ablauffrist gibt es nicht mehr.
