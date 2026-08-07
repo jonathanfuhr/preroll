@@ -77,6 +77,7 @@ export default async function PostsSeite({
           zeilen={posts.map((post) => ({
             id: post.id,
             typ: post.typ,
+            verhaeltnis: post.verhaeltnis,
             status: post.status,
             titel: post.titel,
             kurzbeschreibung: post.kurzbeschreibung,
@@ -107,6 +108,7 @@ export default async function PostsSeite({
             .map((post) => ({
               id: post.id,
               typ: post.typ,
+            verhaeltnis: post.verhaeltnis,
               status: post.status,
               titel: post.titel,
               bild: thumbUrl(rasterMedium(post)),
@@ -126,6 +128,7 @@ function Kalender({ slug, posts }: { slug: string; posts: Posts }) {
   const eintraege: Kalendereintrag[] = posts.map((post) => ({
     id: post.id,
     typ: post.typ,
+    verhaeltnis: post.verhaeltnis,
     titel: post.titel,
     postenAm: post.postenAm,
     href: `/kunden/${slug}/posts/${post.id}`,

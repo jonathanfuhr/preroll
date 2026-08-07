@@ -1,7 +1,8 @@
 'use client'
 
-import type { PostTyp } from '@prisma/client'
+import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import { useState } from 'react'
+import { ERLAUBT, standardVerhaeltnis, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { Eingabe, Feld, Knopf, TYP_FARBE } from '@/components/ui'
 import { postAnlegen } from './aktionen'
 
@@ -38,14 +39,22 @@ function IconReel() {
 }
 
 const TYPEN: Array<{ wert: PostTyp; titel: string; text: string; Icon: () => React.ReactElement }> = [
-  { wert: 'BEITRAG', titel: 'Beitrag', text: 'Ein Bild · 3:4', Icon: IconBeitrag },
-  { wert: 'KARUSSELL', titel: 'Karussell', text: 'Mehrere Slides · 3:4', Icon: IconKarussell },
-  { wert: 'REEL', titel: 'Reel', text: 'Video · 9:16', Icon: IconReel },
+  { wert: 'BEITRAG', titel: 'Beitrag', text: 'Ein Bild', Icon: IconBeitrag },
+  { wert: 'KARUSSELL', titel: 'Karussell', text: 'Mehrere Slides', Icon: IconKarussell },
+  { wert: 'REEL', titel: 'Reel', text: 'Ein Video', Icon: IconReel },
 ]
 
 export function PostAnlegen({ kundeId }: { kundeId: string }) {
   const [offen, setOffen] = useState(false)
   const [typ, setTyp] = useState<PostTyp>('BEITRAG')
+  const [verhaeltnis, setVerhaeltnis] = useState<Verhaeltnis>(standardVerhaeltnis('BEITRAG'))
+
+  // Der Typ entscheidet, was zur Wahl steht — beim Wechsel auf dessen
+  // Standard zurück, sonst bliebe ein Format stehen, das es dort nicht gibt.
+  function waehleTyp(neu: PostTyp) {
+    setTyp(neu)
+    setVerhaeltnis(standardVerhaeltnis(neu))
+  }
 
   if (!offen) {
     return (
@@ -65,6 +74,7 @@ export function PostAnlegen({ kundeId }: { kundeId: string }) {
 
         <form action={postAnlegen.bind(null, kundeId)} className="grid gap-5">
           <input type="hidden" name="typ" value={typ} />
+          <input type="hidden" name="verhaeltnis" value={verhaeltnis} />
 
           <div className="grid grid-cols-3 gap-3">
             {TYPEN.map((eintrag) => {
@@ -73,7 +83,7 @@ export function PostAnlegen({ kundeId }: { kundeId: string }) {
                 <button
                   key={eintrag.wert}
                   type="button"
-                  onClick={() => setTyp(eintrag.wert)}
+                  onClick={() => waehleTyp(eintrag.wert)}
                   aria-pressed={aktiv}
                   className={`grid justify-items-center gap-2 rounded-md border px-3 py-4 transition-colors ${
                     aktiv
@@ -96,6 +106,34 @@ export function PostAnlegen({ kundeId }: { kundeId: string }) {
               )
             })}
           </div>
+
+          <Feld
+            beschriftung="Format"
+            hinweis={
+              typ === 'REEL' && verhaeltnis !== 'VERTIKAL_9_16'
+                ? 'Quer oder quadratisch heißt es Video, nicht Reel. Lässt sich später ändern.'
+                : 'Lässt sich später ändern.'
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              {ERLAUBT[typ].map((wert, i) => (
+                <button
+                  key={wert}
+                  type="button"
+                  onClick={() => setVerhaeltnis(wert)}
+                  aria-pressed={verhaeltnis === wert}
+                  className={`rounded-[5px] border px-3 py-1.5 text-[12.5px] transition-colors ${
+                    verhaeltnis === wert
+                      ? 'border-akzent bg-akzent-zart text-tinte'
+                      : 'border-rahmen-3 text-leise hover:border-rahmen-4'
+                  }`}
+                >
+                  {VERHAELTNIS_TEXT[wert]}
+                  {i === 0 && <span className="ml-1.5 text-[10.5px] text-stiller">Standard</span>}
+                </button>
+              ))}
+            </div>
+          </Feld>
 
           <Feld beschriftung="Titel" hinweis="Nur intern — steht in Listen, Kalender und Klappe.">
             <Eingabe name="titel" required autoFocus placeholder="z. B. Recruiting-Reel" />

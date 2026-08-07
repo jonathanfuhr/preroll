@@ -131,6 +131,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   const kalendereintraege: Kalendereintrag[] = sektionen.map((p) => ({
     id: p.id,
     typ: p.typ,
+    verhaeltnis: p.verhaeltnis,
     titel: p.titel,
     postenAm: p.postenAm,
     href: `#post-${p.id}`,

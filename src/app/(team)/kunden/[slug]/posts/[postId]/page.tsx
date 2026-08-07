@@ -100,6 +100,7 @@ export default async function PostSeite({
           stil: post.stil,
           inhalte: post.inhalte,
           szenenplanAktiv: post.szenenplanAktiv,
+          verhaeltnis: post.verhaeltnis,
           videoDownloadUrl: post.videoDownloadUrl,
         }}
         szenen={post.szenen.map((s) => ({

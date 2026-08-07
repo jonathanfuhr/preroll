@@ -58,7 +58,7 @@ export async function GET(
   for (const eintrag of post.medien) {
     const endung = eintrag.medium.dateiname.split('.').pop() ?? 'jpg'
     const basis = post.postenAm
-      ? zipDateiname(post.postenAm, post.typ, eintrag.rolle, eintrag.position)
+      ? zipDateiname(post.postenAm, post.typ, eintrag.rolle, eintrag.position, post.verhaeltnis)
       : `${stempel}_${eintrag.rolle}${eintrag.rolle === 'SLIDE' ? `_${eintrag.position + 1}` : ''}`
 
     try {

@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { kalenderwoche } from '@/lib/format'
+import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
 import { TYP_FARBE, TYP_TEXT, TypPunkt } from './ui'
 import { WOCHENTAGE, gleicherTag, wochenDesMonats, type Kalendereintrag } from './kalender'
 
@@ -132,7 +133,7 @@ function Tageszelle({
             className="shrink-0 px-0.5 text-[9px] leading-none text-stiller"
             title={eintraege
               .slice(sichtbar.length)
-              .map((e) => `${TYP_TEXT[e.typ]} · ${e.titel}`)
+              .map((e) => `${postBezeichnung(e.typ, e.verhaeltnis ?? standardVerhaeltnis(e.typ))} · ${e.titel}`)
               .join('\n')}
           >
             +{weitere} weitere

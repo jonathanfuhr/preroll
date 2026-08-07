@@ -1,12 +1,15 @@
-import type { PostTyp } from '@prisma/client'
+import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import { monatsbeginn } from '@/lib/datum'
 import { kalenderwoche } from '@/lib/format'
+import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
 import { TYP_FARBE, TYP_TEXT, TypPunkt } from './ui'
 
 export type Kalendereintrag = {
   id: string
   typ: PostTyp
+  /** Entscheidet, ob ein Video „Reel" oder „Video" heißt. */
+  verhaeltnis?: Verhaeltnis
   titel: string
   /** Ohne Termin: der Post ist noch ungeplant. */
   postenAm: Date | null
@@ -152,7 +155,7 @@ export function Monatskalender({
                    */}
                   <div className="mt-1 flex min-h-0 flex-1 flex-wrap items-center justify-center gap-1 overflow-hidden sm:hidden">
                     {desTages.map((eintrag) => {
-                      const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}`
+                      const beschriftung = `${postBezeichnung(eintrag.typ, eintrag.verhaeltnis ?? standardVerhaeltnis(eintrag.typ))} · ${eintrag.titel}`
                       const punkt = (
                         <span
                           aria-hidden
@@ -174,7 +177,7 @@ export function Monatskalender({
 
                   <div className="mt-1 hidden min-h-0 flex-1 flex-col gap-[3px] overflow-hidden sm:flex">
                     {sichtbar.map((eintrag) => {
-                      const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}`
+                      const beschriftung = `${postBezeichnung(eintrag.typ, eintrag.verhaeltnis ?? standardVerhaeltnis(eintrag.typ))} · ${eintrag.titel}`
                       const inhalt = (
                         <span className="flex min-w-0 items-center gap-1.5">
                           <span
@@ -215,7 +218,7 @@ export function Monatskalender({
                         className="shrink-0 px-0.5 text-[9px] leading-none text-stiller"
                         title={desTages
                           .slice(sichtbar.length)
-                          .map((e) => `${TYP_TEXT[e.typ]} · ${e.titel}`)
+                          .map((e) => `${postBezeichnung(e.typ, e.verhaeltnis ?? standardVerhaeltnis(e.typ))} · ${e.titel}`)
                           .join('\n')}
                       >
                         +{weitere} weitere

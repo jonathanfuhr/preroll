@@ -1,6 +1,7 @@
-import type { PostStatus, PostTyp } from '@prisma/client'
+import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import type { ReactNode } from 'react'
 import { kalenderwoche } from '@/lib/format'
+import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
 import { StatusLeiste } from './status-leiste'
@@ -165,6 +166,7 @@ export function PostSektion({
     stil: string | null
     inhalte: string | null
     szenenplanAktiv: boolean
+    verhaeltnis: Verhaeltnis
   }
   kunde: string
   logo: string | null
@@ -183,7 +185,7 @@ export function PostSektion({
   const eckdaten = [
     {
       t: 'Format',
-      w: post.typ === 'REEL' ? 'Reel · 9:16' : post.typ === 'KARUSSELL' ? 'Karussell · 3:4' : 'Beitrag · 3:4',
+      w: postBeschriftung(post.typ, post.verhaeltnis),
     },
     ...(post.laenge ? [{ t: 'Länge', w: post.laenge }] : []),
     ...(post.ziel ? [{ t: 'Ziel', w: post.ziel }] : []),
@@ -205,7 +207,7 @@ export function PostSektion({
             {kalenderwoche(post.postenAm)}
           </span>
           <span className="pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
-            {TYP_TEXT[post.typ]}
+            {postBezeichnung(post.typ, post.verhaeltnis)}
           </span>
         </div>
 
@@ -234,6 +236,7 @@ export function PostSektion({
             logo={logo}
             medien={medien}
             caption={post.caption}
+            verhaeltnis={post.verhaeltnis}
             istVideo={istVideo}
             thumbnail={thumbnail}
           />

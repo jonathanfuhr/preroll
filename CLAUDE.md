@@ -101,8 +101,19 @@ npm run check   # Typecheck + Tests
 
 ## Fachliche Regeln, die leicht verloren gehen
 
-- **Seitenverhältnisse.** Beiträge und Karussell-Slides **3:4**
-  (1080 × 1440), Reels und Reel-Thumbnails 9:16. Abweichungen werden **gewarnt, nicht blockiert** — der
+- **Typ und Format sind getrennt.** Der Typ sagt, **woraus** ein Beitrag
+  besteht (ein Bild, mehrere Bilder, ein Video), das `Verhaeltnis` daneben,
+  **wie er aussieht**. Zur Wahl steht je Typ ein fester Satz, das Erste ist
+  der Standard (`src/lib/verhaeltnis.ts`):
+  Beitrag **3:4**, 1:1 · Karussell **3:4**, 1:1, 9:16 · Reel **9:16**, 1:1,
+  16:9. Ein Beitrag quer gibt es nicht — im Feed bliebe ein Streifen, im
+  Raster ein Ausschnitt.
+- **Ein hochkantes Video heißt Reel, dasselbe quer heißt Video.** Der Typ in
+  der Datenbank bleibt `REEL`, nur das Wort ändert sich —
+  `postBezeichnung(typ, verhaeltnis)`, und zwar überall: Etikett, Kalender,
+  Liste, Kundenseite und ZIP-Dateiname. Nur 9:16 füllt außerdem den
+  Geräteschirm; quer oder quadratisch steht das Video im Feed zwischen
+  Kopfzeile und Caption, weil es dort auch erscheint. Abweichungen werden **gewarnt, nicht blockiert** — der
   Hinweis nennt erkanntes und erwartetes Format.
 - **Instagrams Profilraster ist 3:4, nicht 4:5.** Seit der Umstellung 2025
   beschneidet Instagram dort jedes 4:5-Bild seitlich. Weil dieses Werkzeug
@@ -189,7 +200,8 @@ npm run check   # Typecheck + Tests
   Posts und die freigegebenen des Zeitraums — nichts, was zeitlich **nach** dem
   letzten Post des Zeitraums liegt. Intern sind alle Posts sichtbar, inkl. der
   noch nicht freigegebenen, mit Status je Kachel.
-- **ZIP-Dateinamen.** `JJMMTT_HHMM_Post`, `_Reel`, `_Reel_Thumbnail`,
+- **ZIP-Dateinamen.** `JJMMTT_HHMM_Post`, `_Reel` bzw. `_Video`,
+  `_Reel_Thumbnail`,
   `_Carousel_Slide1` … Da nie zwei Posts exakt zeitgleich erscheinen, sind sie
   ohne Zusatz eindeutig.
 - **Status-Farben.** Konzept grau, Vorschau orange, Final grün — überall

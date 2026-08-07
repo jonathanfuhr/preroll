@@ -1,6 +1,6 @@
 'use client'
 
-import type { PostStatus, PostTyp } from '@prisma/client'
+import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Karte, Leerzustand, StatusBadge, TypBadge } from '@/components/ui'
@@ -15,6 +15,7 @@ export type Filter = 'alle' | 'freigabe' | 'kommentare'
 export type Postzeile = {
   id: string
   typ: PostTyp
+  verhaeltnis: Verhaeltnis
   status: PostStatus
   titel: string
   kurzbeschreibung: string | null
@@ -215,7 +216,7 @@ export function Postliste({
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <TypBadge typ={zeile.typ} />
+                      <TypBadge typ={zeile.typ} verhaeltnis={zeile.verhaeltnis} />
                       {zeile.typ === 'KARUSSELL' && zeile.slides > 0 && (
                         <span className="ml-1.5 text-[11px] text-still">{zeile.slides} Slides</span>
                       )}

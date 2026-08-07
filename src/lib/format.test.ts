@@ -10,44 +10,47 @@ import {
 
 describe('pruefeFormat', () => {
   it('lässt ein korrektes 3:4-Beitragsbild durch', () => {
-    expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1440)).toBeNull()
+    expect(pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1440)).toBeNull()
   })
 
   it('lässt ein korrektes 9:16-Reel durch', () => {
-    expect(pruefeFormat('REEL', 'MEDIUM', 1080, 1920)).toBeNull()
+    expect(pruefeFormat('VERTIKAL_9_16', 'MEDIUM', 1080, 1920)).toBeNull()
   })
 
-  it('erwartet beim Reel-Thumbnail 9:16, auch wenn der Post ein Karussell wäre', () => {
-    expect(pruefeFormat('KARUSSELL', 'THUMBNAIL', 1080, 1920)).toBeNull()
+  it('erwartet beim Thumbnail dasselbe wie beim Medium — es zeigt ja dasselbe Bild', () => {
+    expect(pruefeFormat('VERTIKAL_9_16', 'THUMBNAIL', 1080, 1920)).toBeNull()
+    expect(pruefeFormat('QUER_16_9', 'THUMBNAIL', 1920, 1080)).toBeNull()
+    // Ein hochkantes Thumbnail zu einem Querformat-Video wäre ein Versehen.
+    expect(pruefeFormat('QUER_16_9', 'THUMBNAIL', 1080, 1920)).not.toBeNull()
   })
 
   it('warnt bei quadratischem Beitragsbild', () => {
-    const hinweis = pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1080)
+    const hinweis = pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1080)
     expect(hinweis).not.toBeNull()
     expect(hinweis?.erwartet).toBe('3:4')
     expect(hinweis?.erkannt).toBe('1:1')
   })
 
   it('warnt bei einem 3:4-Bild im Reel', () => {
-    const hinweis = pruefeFormat('REEL', 'MEDIUM', 1080, 1440)
+    const hinweis = pruefeFormat('VERTIKAL_9_16', 'MEDIUM', 1080, 1440)
     expect(hinweis?.erwartet).toBe('9:16')
   })
 
   it('verträgt ein Prozent Abweichung', () => {
-    expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1434)).toBeNull()
+    expect(pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1434)).toBeNull()
   })
 
   it('warnt beim Altbestand in 4:5 — aber blockiert ihn nicht', () => {
     // 4:5 bleibt hochladbar, damit sich Älteres nachpflegen lässt. Der
     // Hinweis nennt nur, dass das aktuelle Format 3:4 ist.
-    const hinweis = pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1350)
+    const hinweis = pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1350)
     expect(hinweis?.erkannt).toBe('4:5')
     expect(hinweis?.erwartet).toBe('3:4')
     expect(hinweis?.text).toContain('erwartet wird 3:4')
   })
 
   it('gibt bei fehlenden Maßen keinen Hinweis', () => {
-    expect(pruefeFormat('BEITRAG', 'MEDIUM', 0, 0)).toBeNull()
+    expect(pruefeFormat('HOCH_3_4', 'MEDIUM', 0, 0)).toBeNull()
   })
 })
 
@@ -71,8 +74,17 @@ describe('zipDateiname', () => {
   })
 
   it('benennt ein Reel und dessen Thumbnail', () => {
-    expect(zipDateiname(am, 'REEL', 'MEDIUM')).toBe('260805_1100_Reel')
-    expect(zipDateiname(am, 'REEL', 'THUMBNAIL')).toBe('260805_1100_Reel_Thumbnail')
+    expect(zipDateiname(am, 'REEL', 'MEDIUM', 0, 'VERTIKAL_9_16')).toBe('260805_1100_Reel')
+    expect(zipDateiname(am, 'REEL', 'THUMBNAIL', 0, 'VERTIKAL_9_16')).toBe(
+      '260805_1100_Reel_Thumbnail',
+    )
+  })
+
+  it('nennt dasselbe Video quer nur Video — wie in der Oberfläche', () => {
+    expect(zipDateiname(am, 'REEL', 'MEDIUM', 0, 'QUER_16_9')).toBe('260805_1100_Video')
+    expect(zipDateiname(am, 'REEL', 'THUMBNAIL', 0, 'QUADRAT_1_1')).toBe(
+      '260805_1100_Video_Thumbnail',
+    )
   })
 
   it('nummeriert Karussell-Slides ab 1', () => {

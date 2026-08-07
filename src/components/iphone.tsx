@@ -1,6 +1,7 @@
-import type { PostTyp } from '@prisma/client'
+import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import { KarussellFlaeche } from './karussell-blaettern'
+import { flaechenHoehe, VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { ReelFlaeche, ReelRahmen } from './reel-player'
 import type { ReactNode } from 'react'
 
@@ -192,32 +193,63 @@ export function IPhoneBeitrag({
   logo,
   bild,
   caption,
+  verhaeltnis,
+  istVideo,
+  thumbnail,
   aufUpload,
 }: {
   kunde: string
   logo?: string | null
   bild?: string | null
   caption: string
+  verhaeltnis: Verhaeltnis
+  /** Ein Video im Feed — 1:1 oder 16:9. Hochkant wäre es ein Reel. */
+  istVideo?: boolean
+  thumbnail?: string | null
   aufUpload?: () => void
 }) {
-  return (
+  const inhalt = (
+    // Die Höhe folgt dem Verhältnis, damit die Vorschau nicht lügt.
+    <div
+      className="relative w-[320px] shrink-0 border-y border-grund"
+      style={{ height: flaechenHoehe(verhaeltnis) }}
+    >
+      {bild ? (
+        <>
+          {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
+          {istVideo ? (
+            <ReelFlaeche />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={bild} alt="" className="h-full w-full object-cover" />
+          )}
+        </>
+      ) : (
+        <Platzhalter
+          text={`${istVideo ? 'Video' : 'Grafik'} ${VERHAELTNIS_TEXT[verhaeltnis]} · ${VERHAELTNIS_MASSE[verhaeltnis]}`}
+          aufKlick={aufUpload}
+        />
+      )}
+    </div>
+  )
+
+  const rahmen = (
     <Geraet>
       <Statusleiste />
       <Kopfzeile name={kunde} logo={logo} />
-      <div className="relative h-[427px] w-[320px] shrink-0 border-y border-grund">
-        {bild ? (
-          <>
-            {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bild} alt="" className="h-full w-full object-cover" />
-          </>
-        ) : (
-          <Platzhalter text="Grafik 3:4 · 1080 × 1440" aufKlick={aufUpload} />
-        )}
-      </div>
+      {inhalt}
       <Aktionsleiste />
       <Caption name={kunde} text={caption} />
     </Geraet>
+  )
+
+  // Ein Video braucht den Player-Zusammenhang; ein Bild nicht.
+  return istVideo ? (
+    <ReelRahmen quelle={bild ?? null} thumbnail={thumbnail ?? null}>
+      {rahmen}
+    </ReelRahmen>
+  ) : (
+    rahmen
   )
 }
 
@@ -228,12 +260,14 @@ export function IPhoneKarussell({
   logo,
   slides,
   caption,
+  verhaeltnis,
   aufUpload,
 }: {
   kunde: string
   logo?: string | null
   slides: string[]
   caption: string
+  verhaeltnis: Verhaeltnis
   aufUpload?: () => void
 }) {
   return (
@@ -244,6 +278,7 @@ export function IPhoneKarussell({
       {/* Blättern liegt im eigenen Bauteil — dafür braucht es Zustand. */}
       <KarussellFlaeche
         slides={slides}
+        verhaeltnis={verhaeltnis}
         aufUpload={aufUpload}
         ersetzenKnopf={aufUpload ? <ErsetzenKnopf aufKlick={aufUpload} /> : null}
       />
@@ -520,6 +555,7 @@ function Kachelrahmen({ href, children }: { href?: string; children: ReactNode }
 /** Wählt anhand des Typs den passenden Rahmen. */
 export function IPhoneVorschau({
   typ,
+  verhaeltnis,
   kunde,
   logo,
   medien,
@@ -529,6 +565,7 @@ export function IPhoneVorschau({
   thumbnail,
 }: {
   typ: PostTyp
+  verhaeltnis: Verhaeltnis
   kunde: string
   logo?: string | null
   medien: string[]
@@ -539,7 +576,10 @@ export function IPhoneVorschau({
   /** Beim Reel: steht vor dem Video, solange nichts läuft. */
   thumbnail?: string | null
 }) {
-  if (typ === 'REEL') {
+  // Nur hochkant füllt ein Video den Schirm — so sieht ein Reel aus. Quer
+  // oder quadratisch erscheint dasselbe Video im Feed, zwischen Kopfzeile
+  // und Caption; es dort bildschirmfüllend zu zeigen wäre gelogen.
+  if (typ === 'REEL' && verhaeltnis === 'VERTIKAL_9_16') {
     return (
       <IPhoneReel
         kunde={kunde}
@@ -554,8 +594,26 @@ export function IPhoneVorschau({
   }
   if (typ === 'KARUSSELL') {
     return (
-      <IPhoneKarussell kunde={kunde} logo={logo} slides={medien} caption={caption} aufUpload={aufUpload} />
+      <IPhoneKarussell
+        kunde={kunde}
+        logo={logo}
+        slides={medien}
+        caption={caption}
+        verhaeltnis={verhaeltnis}
+        aufUpload={aufUpload}
+      />
     )
   }
-  return <IPhoneBeitrag kunde={kunde} logo={logo} bild={medien[0]} caption={caption} aufUpload={aufUpload} />
+  return (
+    <IPhoneBeitrag
+      kunde={kunde}
+      logo={logo}
+      bild={medien[0]}
+      caption={caption}
+      verhaeltnis={verhaeltnis}
+      istVideo={typ === 'REEL' && istVideo}
+      thumbnail={thumbnail}
+      aufUpload={aufUpload}
+    />
+  )
 }

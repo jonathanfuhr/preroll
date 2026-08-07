@@ -63,7 +63,7 @@ export async function GET(
     const ordner = `KW${String(kalenderwoche(post.postenAm)).padStart(2, '0')}`
 
     for (const eintrag of post.medien) {
-      const basis = zipDateiname(post.postenAm, post.typ, eintrag.rolle, eintrag.position)
+      const basis = zipDateiname(post.postenAm, post.typ, eintrag.rolle, eintrag.position, post.verhaeltnis)
       const endung = eintrag.medium.dateiname.split('.').pop() ?? 'jpg'
 
       try {

@@ -1,9 +1,10 @@
 'use client'
 
-import type { PostTyp } from '@prisma/client'
+import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react'
 import { berechneAuftrennung, erkenneSlideAnzahl } from '@/lib/karussell'
+import { VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { ladeHoch, type Fortschritt } from '@/lib/hochladen'
 import { EinfacherPlayer } from './reel-player'
 import { UploadBalken } from './upload-balken'
@@ -85,9 +86,11 @@ function Ablage({
 /** Zwei Wege: fertige Slides oder ein durchgehendes Motiv zum Auftrennen. */
 function KarussellInhalt({
   postId,
+  verhaeltnis,
   fertig,
 }: {
   postId: string
+  verhaeltnis: Verhaeltnis
   fertig: () => void
 }) {
   const router = useRouter()
@@ -119,9 +122,12 @@ function KarussellInhalt({
     }
   }
 
-  const erkannt = masse ? erkenneSlideAnzahl(masse.breite, masse.hoehe) : null
+  const erkannt = masse ? erkenneSlideAnzahl(masse.breite, masse.hoehe, verhaeltnis) : null
   const gewaehlt = anzahl === '' ? erkannt : anzahl
-  const probe = masse && gewaehlt ? berechneAuftrennung(masse.breite, masse.hoehe, gewaehlt) : null
+  const probe =
+    masse && gewaehlt
+      ? berechneAuftrennung(masse.breite, masse.hoehe, gewaehlt, verhaeltnis)
+      : null
 
   async function einzelne(dateien: FileList | null) {
     if (!dateien?.length) return
@@ -182,7 +188,7 @@ function KarussellInhalt({
             {
               wert: 'einzeln' as const,
               titel: 'Mehrere Einzelbilder',
-              text: 'Fertige 3:4-Grafiken. So viele, wie das Karussell haben soll — die Reihenfolge lässt sich danach ziehen.',
+              text: `Fertige ${VERHAELTNIS_TEXT[verhaeltnis]}-Grafiken. So viele, wie das Karussell haben soll — die Reihenfolge lässt sich danach ziehen.`,
             },
             {
               wert: 'gesamt' as const,
@@ -215,7 +221,7 @@ function KarussellInhalt({
       {weg === 'einzeln' ? (
         <Ablage
           titel="Slides hierher ziehen"
-          hinweis="Erwartet werden 3:4-Grafiken, üblicherweise 1080 × 1440 px."
+          hinweis={`Erwartet werden ${VERHAELTNIS_TEXT[verhaeltnis]}-Grafiken, üblicherweise ${VERHAELTNIS_MASSE[verhaeltnis]} px.`}
           mehrere
           akzeptiert="image/jpeg,image/png,image/webp"
           laeuft={laeuft}
@@ -239,7 +245,7 @@ function KarussellInhalt({
             <>
               {erkannt ? (
                 <Hinweis>
-                  <strong>{erkannt} Slides erkannt</strong> — das Bild geht glatt im 3:4-Raster auf.
+                  <strong>{erkannt} Slides erkannt</strong> — das Bild geht glatt im {VERHAELTNIS_TEXT[verhaeltnis]}-Raster auf.
                 </Hinweis>
               ) : (
                 <Fehler>
@@ -271,7 +277,7 @@ function KarussellInhalt({
               {probe?.ok && (
                 <p className="text-[11.5px] text-leiser">
                   Ergibt {probe.anzahl} Slides à {probe.slideBreite} × {probe.slideHoehe} px
-                  {!probe.exakt && ' — breiter als 3:4'}.
+                  {!probe.exakt && ` — breiter als ${VERHAELTNIS_TEXT[verhaeltnis]}`}.
                 </p>
               )}
             </>
@@ -378,6 +384,7 @@ export function MedienDialog({
   schliessen,
   postId,
   typ,
+  verhaeltnis,
   videoQuellen,
   videoUrl,
   videoHerkunft,
@@ -388,6 +395,8 @@ export function MedienDialog({
   schliessen: () => void
   postId: string
   typ: PostTyp
+  /** Bestimmt Zuschnitt-Erwartung und Karussell-Auftrennung. */
+  verhaeltnis: Verhaeltnis
   /**
    * Die anderen beiden Wege zum Reel-Video — aus Klappe holen oder von einem
    * Link laden. Sie stehen gleichberechtigt neben der Ablage: Es ist
@@ -463,7 +472,7 @@ export function MedienDialog({
                 ? 'Zwei Sachen, zwei Wege: Das Video kann hochgeladen, aus Klappe geholt oder von einem Link geladen werden — das Thumbnail wird hochgeladen.'
                 : typ === 'KARUSSELL'
                   ? 'Einzelne Slides oder ein Gesamtbild, das aufgetrennt wird.'
-                  : 'Ein Bild im Verhältnis 3:4.'}
+                  : `Ein Bild im Verhältnis ${VERHAELTNIS_TEXT[verhaeltnis]}.`}
             </p>
           </div>
           <button
@@ -481,12 +490,12 @@ export function MedienDialog({
             postId={postId}
             rolle="MEDIUM"
             titel="Grafik hierher ziehen"
-            hinweis="Erwartet: 3:4, üblicherweise 1080 × 1440 px."
+            hinweis={`Erwartet: ${VERHAELTNIS_TEXT[verhaeltnis]}, üblicherweise ${VERHAELTNIS_MASSE[verhaeltnis]} px.`}
             fertig={schliessen}
           />
         )}
 
-        {typ === 'KARUSSELL' && <KarussellInhalt postId={postId} fertig={schliessen} />}
+        {typ === 'KARUSSELL' && <KarussellInhalt postId={postId} verhaeltnis={verhaeltnis} fertig={schliessen} />}
 
         {typ === 'REEL' && (
           <div className="grid gap-6 sm:grid-cols-2">

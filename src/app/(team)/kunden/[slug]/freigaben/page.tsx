@@ -83,7 +83,7 @@ export default async function FreigabenSeite({ params }: { params: Promise<{ slu
                       )}
                     </td>
                     <td className="px-3 py-2.5">
-                      <TypBadge typ={post.typ} />
+                      <TypBadge typ={post.typ} verhaeltnis={post.verhaeltnis} />
                     </td>
                     <td className="px-3 py-2.5">
                       <Link

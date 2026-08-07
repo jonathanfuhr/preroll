@@ -121,7 +121,7 @@ async function verarbeite({
     })
 
     const gewuenscht = formular.get('anzahl') ? Number(formular.get('anzahl')) : undefined
-    const ergebnis = berechneAuftrennung(quelle.breite, quelle.hoehe, gewuenscht)
+    const ergebnis = berechneAuftrennung(quelle.breite, quelle.hoehe, gewuenscht, post.verhaeltnis)
 
     if (!ergebnis.ok) {
       return Response.json(
@@ -187,7 +187,7 @@ async function verarbeite({
       hochgeladenVonId: nutzer.id,
     })
 
-    const hinweis = pruefeFormat(post.typ, rolle, breite, hoehe)
+    const hinweis = pruefeFormat(post.verhaeltnis, rolle, breite, hoehe)
     if (hinweis) hinweise.push(`${datei.name}: ${hinweis.text}`)
 
     const transparenz = transparenzHinweis(hatTransparenz, datei.name)

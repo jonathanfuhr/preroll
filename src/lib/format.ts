@@ -1,4 +1,5 @@
-import type { MediumRolle, PostTyp } from '@prisma/client'
+import type { MediumRolle, PostTyp, Verhaeltnis } from '@prisma/client'
+import { VERHAELTNIS_TEXT, VERHAELTNIS_WERT } from './verhaeltnis'
 
 /**
  * Erwartete Seitenverhältnisse.
@@ -34,10 +35,13 @@ function groessterGemeinsamerTeiler(a: number, b: number): number {
   return b === 0 ? a : groessterGemeinsamerTeiler(b, a % b)
 }
 
-export function erwartetesVerhaeltnis(typ: PostTyp, rolle: MediumRolle): number {
-  if (rolle === 'THUMBNAIL') return VERHAELTNIS.reel
-  if (typ === 'REEL') return VERHAELTNIS.reel
-  return VERHAELTNIS.hochkant
+/**
+ * Erwartet wird das Verhältnis des Beitrags — für das Medium wie für sein
+ * Thumbnail. Ein 16:9-Video hätte ein hochkantes Vorschaubild nicht nötig;
+ * das Thumbnail zeigt dasselbe Bild wie das Video.
+ */
+export function erwartetesVerhaeltnis(verhaeltnis: Verhaeltnis, _rolle: MediumRolle): number {
+  return VERHAELTNIS_WERT[verhaeltnis]
 }
 
 export type Formathinweis = {
@@ -65,18 +69,18 @@ export function transparenzHinweis(hatTransparenz: boolean, dateiname: string): 
  * deutlicher Hinweis, damit fehlerhafte Canva-Exporte sofort auffallen.
  */
 export function pruefeFormat(
-  typ: PostTyp,
+  verhaeltnis: Verhaeltnis,
   rolle: MediumRolle,
   breite: number,
   hoehe: number,
 ): Formathinweis | null {
   if (!breite || !hoehe) return null
 
-  const erwartet = erwartetesVerhaeltnis(typ, rolle)
+  const erwartet = erwartetesVerhaeltnis(verhaeltnis, rolle)
   const ist = breite / hoehe
   if (Math.abs(ist - erwartet) <= erwartet * TOLERANZ) return null
 
-  const erwartetText = erwartet === VERHAELTNIS.reel ? '9:16' : '3:4'
+  const erwartetText = VERHAELTNIS_TEXT[verhaeltnis]
   const erkanntText = verhaeltnisText(breite, hoehe)
 
   return {
@@ -105,11 +109,17 @@ export function zipDateiname(
   typ: PostTyp,
   rolle: MediumRolle,
   position = 0,
+  verhaeltnis: Verhaeltnis = 'HOCH_3_4',
 ): string {
   const stempel = zipStempel(postenAm)
 
-  if (rolle === 'THUMBNAIL') return `${stempel}_Reel_Thumbnail`
-  if (typ === 'REEL') return `${stempel}_Reel`
+  // Ein hochkantes Video heißt Reel, dasselbe quer nur Video — im Dateinamen
+  // wie in der Oberfläche. Wer die ZIP in den Scheduler zieht, soll am Namen
+  // sehen, wohin die Datei gehört.
+  const videowort = verhaeltnis === 'VERTIKAL_9_16' ? 'Reel' : 'Video'
+
+  if (rolle === 'THUMBNAIL') return `${stempel}_${videowort}_Thumbnail`
+  if (typ === 'REEL') return `${stempel}_${videowort}`
   if (typ === 'KARUSSELL') return `${stempel}_Carousel_Slide${position + 1}`
   return `${stempel}_Post`
 }

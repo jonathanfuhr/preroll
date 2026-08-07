@@ -1,12 +1,14 @@
 'use server'
 
 import type { PostStatus, PostTyp } from '@prisma/client'
+import type { Verhaeltnis } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
+import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
@@ -99,6 +101,10 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
       typ,
       titel: text(formular, 'titel') ?? 'Ohne Titel',
       verantwortlichId: nutzer.id,
+      // Das Format kommt aus dem Dialog; ohne Angabe der Standard des Typs.
+      verhaeltnis: istErlaubt(typ, formular.get('verhaeltnis') as Verhaeltnis)
+        ? (formular.get('verhaeltnis') as Verhaeltnis)
+        : standardVerhaeltnis(typ),
       // Beim Reel ist der Szenenplan der Normalfall, sonst nicht.
       szenenplanAktiv: typ === 'REEL',
     },
@@ -140,6 +146,14 @@ export async function postSpeichern(postId: string, formular: FormData) {
   const datum = text(formular, 'postenAm')
   const uhrzeit = text(formular, 'uhrzeit') ?? '10:00'
 
+  // Der Typ entscheidet, welche Formate erlaubt sind — er steht nicht im
+  // Formular und lässt sich von dort auch nicht ändern.
+  const { typ } = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    select: { typ: true },
+  })
+  const gewaehlt = formular.get('verhaeltnis') as Verhaeltnis | null
+
   const post = await prisma.post.update({
     where: { id: postId },
     data: {
@@ -151,6 +165,9 @@ export async function postSpeichern(postId: string, formular: FormData) {
       stil: text(formular, 'stil'),
       inhalte: text(formular, 'inhalte'),
       szenenplanAktiv: formular.get('szenenplanAktiv') === 'on',
+      // Nur ein für diesen Typ vorgesehenes Format — ein veralteter Tab oder
+      // ein von Hand gebogenes Formular soll kein 16:9-Karussell anlegen.
+      ...(gewaehlt && istErlaubt(typ, gewaehlt) ? { verhaeltnis: gewaehlt } : {}),
       // Leeres Datumsfeld heißt: der Post wird wieder ungeplant.
       postenAm: datum ? new Date(`${datum}T${uhrzeit}`) : null,
     },

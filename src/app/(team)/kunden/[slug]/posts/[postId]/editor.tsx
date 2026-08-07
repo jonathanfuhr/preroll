@@ -1,6 +1,6 @@
 'use client'
 
-import type { CustomFeldTyp, PostStatus, PostTyp } from '@prisma/client'
+import type { CustomFeldTyp, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
 import { MedienDialog } from '@/components/medien-dialog'
@@ -12,6 +12,7 @@ import {
   type Downloadstand,
 } from '@/components/download-fortschritt'
 import { kalenderwoche } from '@/lib/format'
+import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
 import type { Zielreel } from './uebertragen'
@@ -52,6 +53,7 @@ type PostDaten = {
   stil: string | null
   inhalte: string | null
   szenenplanAktiv: boolean
+  verhaeltnis: Verhaeltnis
   videoDownloadUrl: string | null
 
 }
@@ -161,6 +163,9 @@ export function PostEditor({
   const [szenenplan, setSzenenplan] = useState(post.szenenplanAktiv)
   // Die Caption steht im Zustand, damit die Vorschau beim Tippen mitläuft.
   const [caption, setCaption] = useState(post.caption)
+  // Dasselbe fürs Format: Wer umstellt, will den Rahmen sofort anders sehen,
+  // nicht erst nach dem Speichern.
+  const [verhaeltnis, setVerhaeltnis] = useState<Verhaeltnis>(post.verhaeltnis)
 
   // Beim Reel zeigt der Rahmen den einen Video-Platz — egal, ob das Video
   // hochgeladen, geladen oder aus Klappe eingebettet ist.
@@ -193,7 +198,7 @@ export function PostEditor({
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div className="min-w-0 flex-1">
             <div className="mb-2.5 flex flex-wrap items-center gap-3">
-              <TypBadge typ={post.typ} />
+              <TypBadge typ={post.typ} verhaeltnis={verhaeltnis} />
               {post.postenAm ? (
                 <>
                   <span className="flex items-baseline gap-2">
@@ -298,10 +303,27 @@ export function PostEditor({
               <Feld beschriftung="Uhrzeit">
                 <Eingabe name="uhrzeit" type="time" defaultValue={uhrzeit} required />
               </Feld>
-              <Feld beschriftung={post.typ === 'REEL' ? 'Format' : 'Seitenverhältnis'}>
-                <div className="rounded-[5px] border border-rahmen bg-flaeche-leise px-3 py-[7px] text-[13px] text-leise">
-                  {post.typ === 'REEL' ? 'Reel · 9:16' : `${TYP_TEXT[post.typ]} · 3:4`}
-                </div>
+              <Feld
+                beschriftung="Format"
+                hinweis={
+                  post.typ === 'REEL' && verhaeltnis !== 'VERTIKAL_9_16'
+                    ? 'Quer oder quadratisch heißt es Video, nicht Reel.'
+                    : undefined
+                }
+              >
+                <select
+                  name="verhaeltnis"
+                  value={verhaeltnis}
+                  onChange={(e) => setVerhaeltnis(e.target.value as Verhaeltnis)}
+                  className="w-full rounded-[5px] border border-rahmen-3 bg-flaeche px-3 py-[7px] text-[13px] text-tinte focus:border-rahmen-4 focus:outline-none"
+                >
+                  {ERLAUBT[post.typ].map((wert, i) => (
+                    <option key={wert} value={wert}>
+                      {VERHAELTNIS_TEXT[wert]}
+                      {i === 0 ? ' (Standard)' : ''}
+                    </option>
+                  ))}
+                </select>
               </Feld>
               {post.typ === 'REEL' && (
                 <Feld beschriftung="Länge">
@@ -444,6 +466,7 @@ export function PostEditor({
           logo={vorschau.logo}
           medien={vorschauMedien}
           caption={caption}
+          verhaeltnis={verhaeltnis}
           istVideo={vorschauIstVideo}
           thumbnail={thumbnailUrl}
           aufUpload={() => setDialogOffen(true)}
@@ -467,6 +490,7 @@ export function PostEditor({
         schliessen={() => setDialogOffen(false)}
         postId={post.id}
         typ={post.typ}
+        verhaeltnis={verhaeltnis}
         videoUrl={videoQuelle?.url ?? null}
         videoHerkunft={videoQuelle?.herkunft ?? null}
         thumbnailUrl={thumbnailUrl}

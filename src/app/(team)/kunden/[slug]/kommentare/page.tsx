@@ -55,7 +55,7 @@ export default async function KundenKommentareSeite({
                 )}
                 {kommentar.post && (
                   <>
-                    <TypBadge typ={kommentar.post.typ} />
+                    <TypBadge typ={kommentar.post.typ} verhaeltnis={kommentar.post.verhaeltnis} />
                     <Link
                       href={`/kunden/${slug}/posts/${kommentar.postId}`}
                       className="text-[12.5px] text-leise hover:text-akzent"

@@ -310,6 +310,18 @@ enum PostTyp {
   BEITRAG
 }
 
+/**
+ * Seitenverhältnis eines Beitrags. Steht neben dem Typ, nicht darin: Der Typ
+ * sagt, woraus ein Beitrag besteht, das Verhältnis, wie er aussieht. Was je
+ * Typ zur Wahl steht, entscheidet `src/lib/verhaeltnis.ts`.
+ */
+enum Verhaeltnis {
+  HOCH_3_4
+  QUADRAT_1_1
+  VERTIKAL_9_16
+  QUER_16_9
+}
+
 enum PostStatus {
   KONZEPT
   VORSCHAU
@@ -339,6 +351,8 @@ model Post {
 
   verantwortlichId String?
   verantwortlich   Nutzer? @relation("Verantwortlich", fields: [verantwortlichId], references: [id], onDelete: SetNull)
+
+  verhaeltnis Verhaeltnis @default(HOCH_3_4)
 
   // Reel: Szenenplan ist optional. Ohne ihn tritt das Freitextfeld an seine Stelle.
   szenenplanAktiv Boolean @default(true)

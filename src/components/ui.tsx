@@ -1,4 +1,4 @@
-import type { PostStatus, PostTyp } from '@prisma/client'
+import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import type { ComponentProps, ReactNode } from 'react'
 
@@ -28,6 +28,8 @@ export function StatusBadge({ status, klein }: { status: PostStatus; klein?: boo
   )
 }
 
+import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
+
 export const TYP_TEXT: Record<PostTyp, string> = {
   REEL: 'Reel',
   KARUSSELL: 'Karussell',
@@ -40,7 +42,12 @@ export const TYP_FARBE: Record<PostTyp, string> = {
   BEITRAG: 'var(--color-typ-beitrag)',
 }
 
-export function TypBadge({ typ }: { typ: PostTyp }) {
+/**
+ * Farbe kommt vom Typ, das Wort vom Format: Ein hochkantes Video ist ein
+ * Reel, dasselbe quer nur noch ein Video. Ohne Angabe gilt der Standard des
+ * Typs — dann steht dort wie bisher „Reel".
+ */
+export function TypBadge({ typ, verhaeltnis }: { typ: PostTyp; verhaeltnis?: Verhaeltnis }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-tinte-3">
       <span
@@ -48,7 +55,7 @@ export function TypBadge({ typ }: { typ: PostTyp }) {
         className="block size-[7px] rounded-full"
         style={{ background: TYP_FARBE[typ] }}
       />
-      {TYP_TEXT[typ]}
+      {postBezeichnung(typ, verhaeltnis ?? standardVerhaeltnis(typ))}
     </span>
   )
 }
