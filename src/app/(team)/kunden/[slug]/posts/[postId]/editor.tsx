@@ -60,7 +60,7 @@ type PostDaten = {
 
 type CustomFeld = { id: string; name: string; typ: CustomFeldTyp; wert: string | null }
 
-const STATUS: PostStatus[] = ['KONZEPT', 'VORSCHAU', 'FINAL']
+const STATUS: PostStatus[] = ['ENTWURF', 'KONZEPT', 'VORSCHAU', 'FINAL']
 const STATUS_TEXT: Record<PostStatus, string> = {
   ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',

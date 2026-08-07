@@ -39,7 +39,7 @@ export function ZeilenMenue({ postId, status }: { postId: string; status: PostSt
             type="submit"
             className="whitespace-nowrap rounded-[5px] border border-rahmen-3 px-2.5 py-1 text-[11.5px] font-medium text-tinte-3 transition-colors hover:border-rahmen-4 hover:text-tinte"
           >
-            In {PHASE_TEXT[naechste]}
+            Status wechseln: {PHASE_TEXT[naechste]}
           </button>
         </form>
       ) : (
@@ -100,10 +100,20 @@ export function ZeilenMenue({ postId, status }: { postId: string; status: PostSt
 
             <div className="grid gap-2">
               {PHASEN.map((phase) => (
-                <form key={phase} action={postStatusSetzen.bind(null, postId, phase)}>
+                /*
+                  Geschlossen wird über `onSubmit`, nicht über `onClick` am
+                  Knopf: Ein Klick-Handler läuft **vor** dem Absenden, das
+                  Schließen hängt den Dialog samt Formular aus — und die
+                  Server-Aktion kam nie los. Genau daran ist die erste
+                  Fassung gescheitert.
+                */
+                <form
+                  key={phase}
+                  action={postStatusSetzen.bind(null, postId, phase)}
+                  onSubmit={() => setStatusDialog(false)}
+                >
                   <button
                     type="submit"
-                    onClick={() => setStatusDialog(false)}
                     disabled={phase === status}
                     className={`flex w-full items-center gap-2.5 rounded-[5px] border px-3.5 py-2.5 text-left text-[13px] transition-colors ${
                       phase === status
