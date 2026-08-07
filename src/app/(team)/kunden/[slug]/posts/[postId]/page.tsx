@@ -12,6 +12,7 @@ import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { BrotkrumeSetzen } from '@/components/brotkrumen'
 import { PostEditor } from './editor'
+import { VeroeffentlichungStandLeiste } from './veroeffentlichung-stand'
 
 export default async function PostSeite({
   params,
@@ -30,9 +31,20 @@ export default async function PostSeite({
   const betrachter = { art: 'nutzer' as const, id: ich?.id ?? '', rolle: ich?.rolle ?? 'EDITOR' }
   const erwaehnbar = await erwaehnbarePersonen(post.kundeId)
 
-  const [einstellungen, angebunden] = await Promise.all([
+  const [einstellungen, angebunden, veroeffentlichungen] = await Promise.all([
     ladeEinstellungen(),
     klappeEingerichtet(),
+    prisma.veroeffentlichung.findMany({
+      where: { postId },
+      orderBy: { plattform: 'asc' },
+      select: {
+        plattform: true,
+        stand: true,
+        geplantFuer: true,
+        meldung: true,
+        versuche: true,
+      },
+    }),
   ])
 
   // Videoauswahl nur laden, wenn sie auch gebraucht wird.
@@ -85,6 +97,8 @@ export default async function PostSeite({
           ← Zur Übersicht
         </Link>
       </div>
+
+      <VeroeffentlichungStandLeiste zeilen={veroeffentlichungen} />
 
       <PostEditor
         post={{

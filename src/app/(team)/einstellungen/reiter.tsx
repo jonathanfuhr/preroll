@@ -9,6 +9,7 @@ const REITER = [
   { href: '/einstellungen', text: 'Workspace', exakt: true },
   { href: '/einstellungen/benutzer', text: 'Benutzer' },
   { href: '/einstellungen/mail', text: 'Mailversand' },
+  { href: '/einstellungen/veroeffentlichen', text: 'Veröffentlichen' },
   { href: '/einstellungen/klappe', text: 'Klappe' },
   { href: '/einstellungen/awork', text: 'awork' },
 ]

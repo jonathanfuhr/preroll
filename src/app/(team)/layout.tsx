@@ -47,7 +47,7 @@ export default async function TeamLayout({
   // Zeitplaner; die Arbeit im Backend ist der Takt.
   void wacheUeberKennzahlen()
 
-  const [einstellungen, kunden, favoriten, meldungen, ungelesen, offeneKommentare] =
+  const [einstellungen, kunden, favoriten, meldungen, ungelesen, offeneKommentare, metaZugang] =
     await Promise.all([
       ladeEinstellungen(),
       prisma.kunde.findMany({
@@ -72,6 +72,19 @@ export default async function TeamLayout({
         by: ['postId'],
         where: { status: 'OFFEN', postId: { not: null } },
         _count: true,
+      }),
+      // Ein abgelehnter Meta-Zugang fällt sonst erst auf, wenn ein Termin
+      // verstrichen ist — und dann ist der Beitrag nicht draußen.
+      prisma.plattformZugang.findFirst({
+        where: { plattform: 'FACEBOOK', fehler: { not: null } },
+        select: {
+          fehler: true,
+          kunden: {
+            where: { archiviert: false, postenAktiv: true },
+            orderBy: { name: 'asc' },
+            select: { name: true },
+          },
+        },
       }),
     ])
 
@@ -161,6 +174,31 @@ export default async function TeamLayout({
               {darfVerwalten(nutzer.rolle) && (
                 <Link href="/einstellungen" className="font-medium underline underline-offset-2">
                   Jetzt erneuern
+                </Link>
+              )}
+            </div>
+          )}
+
+          {/*
+            Ein toter Zugang ist kein fehlgeschlagener Beitrag: Betroffen sind
+            alle Kunden, die daran hängen, und bis jemand ihn erneuert, geht
+            für sie nichts raus. Deshalb stehen sie hier namentlich — „Meta
+            geht nicht" wäre eine Auskunft, mit der niemand etwas anfangen kann.
+          */}
+          {metaZugang && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-4 py-2.5 text-[12.5px] text-akzent-dunkel md:px-8">
+              <strong className="font-semibold">Meta-Zugang abgelehnt</strong>
+              <span className="text-akzent-dunkel/80">
+                {metaZugang.kunden.length === 0
+                  ? 'Zurzeit veröffentlicht Preroll für keinen Kunden — es geht also nichts verloren.'
+                  : `Für ${metaZugang.kunden.map((k) => k.name).join(', ')} geht bis zur Erneuerung nichts raus.`}
+              </span>
+              {darfVerwalten(nutzer.rolle) && (
+                <Link
+                  href="/einstellungen/veroeffentlichen"
+                  className="font-medium underline underline-offset-2"
+                >
+                  Jetzt nachsehen
                 </Link>
               )}
             </div>
