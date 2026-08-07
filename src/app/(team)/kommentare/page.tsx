@@ -107,9 +107,11 @@ export default async function KommentareSeite({
                 postId={kommentar.postId}
                 exportId={kommentar.exportId}
                 text={kommentar.text}
+                autorName={kommentar.autorName}
                 erwaehnbar={listen.get(kommentar.post?.kundeId ?? '') ?? []}
                 darfAendern={darfBearbeiten(kommentar, betrachter)}
                 istAntwort={Boolean(kommentar.antwortAufId)}
+                strangId={kommentar.antwortAufId}
               />
             </Karte>
           ))}

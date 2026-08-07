@@ -79,9 +79,11 @@ export default async function KundenKommentareSeite({
                 postId={kommentar.postId}
                 exportId={kommentar.exportId}
                 text={kommentar.text}
+                autorName={kommentar.autorName}
                 erwaehnbar={erwaehnbar}
                 darfAendern={darfBearbeiten(kommentar, betrachter)}
                 istAntwort={Boolean(kommentar.antwortAufId)}
+                strangId={kommentar.antwortAufId}
               />
             </Karte>
           ))}

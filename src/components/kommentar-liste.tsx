@@ -71,6 +71,7 @@ export function KommentarListe({
             postId={postId}
             exportId={kommentar.exportId}
             text={kommentar.text}
+            autorName={kommentar.autorName}
             erwaehnbar={erwaehnbar}
             darfAendern={kommentar.darfAendern}
           />
@@ -85,9 +86,11 @@ export function KommentarListe({
                 postId={postId}
                 exportId={antwort.exportId}
                 text={antwort.text}
+                autorName={antwort.autorName}
                 erwaehnbar={erwaehnbar}
                 darfAendern={antwort.darfAendern}
                 istAntwort
+                strangId={kommentar.id}
               />
             </div>
           ))}

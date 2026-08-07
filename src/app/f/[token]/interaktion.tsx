@@ -107,8 +107,9 @@ export function KommentarBereich({
                       postId={postId}
                       kommentar={antwort}
                       erwaehnbar={erwaehnbar}
-                      antwortenErlaubt={false}
+                      antwortenErlaubt={erlaubt}
                       alsTeam={alsTeam}
+                      strangId={kommentar.id}
                     />
                   </div>
                 ))}
@@ -154,6 +155,7 @@ function Eintrag({
   erwaehnbar,
   antwortenErlaubt,
   alsTeam,
+  strangId,
 }: {
   token: string
   postId: string
@@ -161,6 +163,13 @@ function Eintrag({
   erwaehnbar: Erwaehnbar[]
   antwortenErlaubt: boolean
   alsTeam?: boolean
+  /**
+   * Bei einer Antwort die Kennung der Rückmeldung, an der sie hängt. Eine
+   * Antwort auf eine Antwort bleibt im selben Strang — eine dritte Ebene
+   * würde die Unterhaltung nur ausfransen. Wem sie gilt, steht als
+   * Erwähnung im Text.
+   */
+  strangId?: string
 }) {
   const [antworten, setAntworten] = useState(false)
   const [bearbeiten, setBearbeiten] = useState(false)
@@ -249,8 +258,14 @@ function Eintrag({
         >
           <input type="hidden" name="postId" value={postId} />
           <input type="hidden" name="abschnitt" value="allgemein" />
-          <input type="hidden" name="antwortAufId" value={kommentar.id} />
-          <KommentarFeld erwaehnbar={erwaehnbar} platzhalter="Antwort …" autoFokus intern={alsTeam} />
+          <input type="hidden" name="antwortAufId" value={strangId ?? kommentar.id} />
+          <KommentarFeld
+            erwaehnbar={erwaehnbar}
+            platzhalter="Antwort …"
+            standardwert={strangId ? `@${kommentar.autorName} ` : ''}
+            autoFokus
+            intern={alsTeam}
+          />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">
               Antwort senden

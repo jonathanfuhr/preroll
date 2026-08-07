@@ -25,6 +25,8 @@ export function KommentarZeile({
   erwaehnbar,
   darfAendern,
   istAntwort,
+  strangId,
+  autorName,
 }: {
   kommentarId: string
   status: KommentarStatus
@@ -33,8 +35,16 @@ export function KommentarZeile({
   text: string
   erwaehnbar: Erwaehnbar[]
   darfAendern: boolean
-  /** Auf eine Antwort wird nicht noch einmal geantwortet — ein Strang genügt. */
+  /** Eine Antwort schließt nicht den Strang — das tut nur die Rückmeldung selbst. */
   istAntwort?: boolean
+  /**
+   * Bei einer Antwort die Kennung der Rückmeldung, an der sie hängt. Eine
+   * Antwort auf eine Antwort bleibt damit im selben Strang — eine dritte
+   * Ebene würde die Unterhaltung nur ausfransen. Wem sie gilt, steht als
+   * Erwähnung im Text.
+   */
+  strangId?: string | null
+  autorName: string
 }) {
   const [antworten, setAntworten] = useState(false)
   const [bearbeiten, setBearbeiten] = useState(false)
@@ -85,7 +95,7 @@ export function KommentarZeile({
           </form>
         )}
 
-        {postId && !istAntwort && (
+        {postId && (
           <button
             type="button"
             onClick={() => setAntworten((v) => !v)}
@@ -120,10 +130,11 @@ export function KommentarZeile({
           className="mt-3 grid gap-2"
         >
           <input type="hidden" name="abschnitt" value="allgemein" />
-          <input type="hidden" name="antwortAufId" value={kommentarId} />
+          <input type="hidden" name="antwortAufId" value={strangId ?? kommentarId} />
           <KommentarFeld
             erwaehnbar={erwaehnbar}
             platzhalter="Antwort … @ erwähnt jemanden"
+            standardwert={strangId ? `@${autorName} ` : ''}
             autoFokus
             intern
           />
