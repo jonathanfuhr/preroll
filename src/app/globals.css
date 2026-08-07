@@ -144,12 +144,15 @@
    * Der Rahmen hat feste Maße — auf schmalen Geräten wird er als Ganzes
    * verkleinert, statt das Innenleben umzubrechen. Sonst stimmen die
    * Instagram-Proportionen nicht mehr.
+   *
+   * `zoom` und nicht `transform: scale()`: Skalieren lässt den Platzbedarf
+   * unverändert und verlangte einen negativen Außenabstand als Ausgleich —
+   * eine feste Zahl, die nur zum 645 px hohen Rahmen passte. Seit der Feed
+   * mitwächst, stimmte sie nicht mehr.
    */
   @media (max-width: 389px) {
     .geraet {
-      transform: scale(0.92);
-      transform-origin: top center;
-      margin-bottom: -52px;
+      zoom: 0.92;
     }
   }
 

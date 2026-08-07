@@ -428,10 +428,24 @@ function RasterIcon({ aktiv }: { aktiv?: boolean }) {
   )
 }
 
+/** Höhe einer Rasterreihe im Schirm: drei Kacheln in 3:4, dazu die Fuge. */
+const RASTERREIHE = ((320 - 4) / 3) * (4 / 3) + 2
+
+/**
+ * Alles zwischen Statusleiste und Raster — Kopfzeile, Zahlen, Name, Reiter.
+ * Die Zahl steht hier, weil der Rollbereich wissen muss, wie hoch er werden
+ * darf; wer den Profilblock umbaut, zieht sie mit.
+ */
+const PROFILBLOCK = 180
+
 /**
  * Profilraster im Geräterahmen — Mockup 3d. Zeigt, wie das Instagram-Profil
  * nach der geplanten Periode aussieht: drei Kacheln je Reihe im Verhältnis
  * 3:4, neueste oben links.
+ *
+ * Der Schirm wächst mit dem Raster, aber nur bis `reihen`; darüber hinaus
+ * wird im Gerät gerollt — wie am echten Telefon. Die Statusleiste bleibt
+ * dabei stehen: Uhrzeit und Akku wandern nicht mit dem Profil weg.
  */
 export function IPhoneFeed({
   kunde,
@@ -442,6 +456,7 @@ export function IPhoneFeed({
   gefolgt,
   kacheln,
   gross,
+  reihen = 6,
   fuss,
 }: {
   kunde: string
@@ -451,8 +466,10 @@ export function IPhoneFeed({
   follower?: number | null
   gefolgt?: number | null
   kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string; href?: string }>
-  /** Vergrößert den Rahmen und lässt ihn mit dem Raster mitwachsen. */
+  /** Vergrößert den Rahmen. */
   gross?: boolean
+  /** Wie viele Rasterreihen ohne Rollen zu sehen sind. */
+  reihen?: number
   /** Steht unter dem Raster im Schirm — etwa „Mehr anzeigen". */
   fuss?: ReactNode
 }) {
@@ -460,27 +477,33 @@ export function IPhoneFeed({
     wert === null || wert === undefined ? '—' : new Intl.NumberFormat('de-DE').format(wert)
 
   return (
-    <Geraet zusatz={gross ? 'geraet-gross geraet-waechst' : undefined}>
+    <Geraet zusatz={gross ? 'geraet-gross geraet-waechst' : 'geraet-waechst'}>
       <Statusleiste />
 
-      <div className="flex shrink-0 items-center justify-between gap-2.5 px-4 pb-3">
-        <span className="truncate text-[13px] font-semibold text-tinte">{handle ?? kunde}</span>
-        <span className="tracking-[2px] text-[14px] text-rahmen-4">···</span>
-      </div>
+      <div
+        // Ohne `overscroll-contain`: Am Ende der Liste rollt die Seite weiter.
+        // Sonst säße man am Telefon in einem Rahmen fest, der nicht loslässt.
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        style={{ maxHeight: PROFILBLOCK + reihen * RASTERREIHE }}
+      >
+        <div className="flex shrink-0 items-center justify-between gap-2.5 px-4 pb-3">
+          <span className="truncate text-[13px] font-semibold text-tinte">{handle ?? kunde}</span>
+          <span className="tracking-[2px] text-[14px] text-rahmen-4">···</span>
+        </div>
 
-      <div className="flex shrink-0 items-center gap-5 px-4 pb-3">
-        <Avatar bild={logo} groesse={62} />
-        <div className="flex flex-1 justify-around">
-          {[
-            { wert: beitraege, text: 'Beiträge' },
-            { wert: follower, text: 'Follower' },
-            { wert: gefolgt, text: 'gefolgt' },
-          ].map((k) => (
-            <div key={k.text} className="grid justify-items-center gap-1">
-              <span className="text-[13px] font-semibold text-tinte">{zahl(k.wert)}</span>
-              <span className="text-[9.5px] text-still">{k.text}</span>
-            </div>
-          ))}
+        <div className="flex shrink-0 items-center gap-5 px-4 pb-3">
+          <Avatar bild={logo} groesse={62} />
+          <div className="flex flex-1 justify-around">
+            {[
+              { wert: beitraege, text: 'Beiträge' },
+              { wert: follower, text: 'Follower' },
+              { wert: gefolgt, text: 'gefolgt' },
+            ].map((k) => (
+              <div key={k.text} className="grid justify-items-center gap-1">
+                <span className="text-[13px] font-semibold text-tinte">{zahl(k.wert)}</span>
+                <span className="text-[9.5px] text-still">{k.text}</span>
+              </div>
+            ))}
         </div>
       </div>
 
@@ -497,11 +520,7 @@ export function IPhoneFeed({
         </div>
       </div>
 
-      <div
-        className={`grid grid-cols-3 content-start gap-[2px] pt-[2px] ${
-          gross ? '' : 'min-h-0 flex-1 overflow-hidden'
-        }`}
-      >
+      <div className="grid grid-cols-3 content-start gap-[2px] pt-[2px]">
         {kacheln.length === 0 ? (
           <span className="schraffur col-span-3 flex aspect-[12/5] items-center justify-center font-mono text-[10px] text-leiser">
             Noch keine Beiträge
@@ -533,9 +552,10 @@ export function IPhoneFeed({
             </Kachelrahmen>
           ))
         )}
-      </div>
+        </div>
 
-      {fuss}
+        {fuss}
+      </div>
     </Geraet>
   )
 }

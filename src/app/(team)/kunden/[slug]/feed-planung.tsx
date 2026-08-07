@@ -5,8 +5,8 @@ import { FeedRaster, type FeedKachel } from '@/components/feed'
 import { IPhoneFeed } from '@/components/iphone'
 import { Hinweis, Knopf } from '@/components/ui'
 
-/** Ein Schub — fünf volle Reihen im Profilraster. */
-const SCHRITT = 15
+/** Ein Schub — genau die sechs Reihen, die der Schirm ohne Rollen zeigt. */
+const SCHRITT = 18
 
 /**
  * Feed-Vorschau im großen Geräterahmen. Geladen wird in Schüben: ein Profil

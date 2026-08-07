@@ -340,9 +340,20 @@ Farben werden dort ergänzt statt im Bauteil hartkodiert.
 
 Geräterahmen: 344 × 645 px außen, 320 × 621 px Bildschirm, Reel-Fläche
 320 × 569 px (9:16), Kommentarzeile 52 px — **nur beim Reel**, sichtbar, aber
-nicht bedienbar. In der Feed-Planung wächst der Rahmen mit dem Raster mit und
-ist um 22 % vergrößert (`.geraet-gross`, `.geraet-waechst`); dort ist er
-Arbeitsmittel, nicht bloß Vorschau.
+nicht bedienbar. In der Feed-Planung ist er um 22 % vergrößert
+(`.geraet-gross`); dort ist er Arbeitsmittel, nicht bloß Vorschau.
+
+**Das Profilraster wächst und rollt.** Bei 3:4 passen in die festen 621 px
+nur 2,8 Reihen — der Rest verschwand unter dem, was folgte. Deshalb wächst
+der Schirm mit dem Raster (`.geraet-waechst`), aber höchstens auf **sechs
+Reihen, also 18 Kacheln**; darüber hinaus wird **im Gerät** gerollt. Hat ein
+Monat mehr Beiträge, wächst der Schirm weiter, damit der Kunde seinen Monat
+ohne Rollen sieht — gerollt wird nur, was darunter liegt. Die **Statusleiste
+bleibt stehen**, gerollt wird ab dem Profilnamen: Uhrzeit und Akku wandern
+am echten Telefon auch nicht mit. Die Reihenhöhe ergibt sich aus der
+Schirmbreite (`RASTERREIHE`), die Höhe des Profilblocks darüber steht als
+Zahl daneben (`PROFILBLOCK`) — sie ist die einzige Stelle, an der der
+Rollbereich von seiner Umgebung weiß.
 
 ## Struktur
 
