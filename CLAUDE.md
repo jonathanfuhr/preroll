@@ -133,8 +133,11 @@ npm run check   # Typecheck + Tests
   das aktuelle Format 3:4 ist — wie bei jeder Formatabweichung: gewarnt,
   nicht blockiert.
   Diesen Ausschnitt liefert `thumbUrl()` als fertige Datei. Er entsteht beim
-  Upload — ändert sich das Zielformat, müssen Bestandsbilder über
-  **Einstellungen → Vorschaubilder** neu zugeschnitten werden. Dieselbe
+  Upload. Für den einmaligen Wechsel von 4:5 auf 3:4 gab es in den
+  Einstellungen einen Knopf, der den Bestand neu zuschnitt; er ist nach dem
+  Lauf am 07.08.2026 wieder entfernt worden — ein Werkzeug für einen Umzug,
+  kein Dauergast. Ändert sich das Zielformat noch einmal, gehört er neu
+  gebaut (Vorlage: Commit `440f70e`). Dieselbe
   Adresse trägt dann anderen Inhalt, deshalb ist die Vorschau-Variante
   **nicht** `immutable` gecacht, sondern kurzlebig mit ETag. Überall dort, wo
   das Thumbnail in voller Höhe steht — Geräterahmen, Medien-Dialog —, gehört

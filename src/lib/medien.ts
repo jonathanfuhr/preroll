@@ -89,33 +89,6 @@ async function erzeugeThumbnail(
   }
 }
 
-/**
- * Vorschaubild eines bestehenden Mediums neu erzeugen.
- *
- * Nötig, wenn sich der Rasterausschnitt ändert — wie beim Wechsel von 4:5
- * auf 3:4. Vorschaubilder entstehen sonst nur beim Upload; ohne diesen Weg
- * bliebe alles Ältere im alten Zuschnitt liegen.
- *
- * Gibt den neuen Pfad zurück, ohne den alten anzufassen: Das Umhängen und
- * Löschen macht der Aufrufer, in dieser Reihenfolge. Bricht es dazwischen
- * ab, ist nichts verloren — nur eine verwaiste Datei zu viel.
- */
-export async function erneuereVorschaubild(medium: {
-  pfad: string
-  breite: number
-  hoehe: number
-  mimeTyp: string
-}): Promise<string | null> {
-  if (istVideo(medium.mimeTyp) || !medium.breite || !medium.hoehe) return null
-
-  try {
-    const inhalt = await readFile(absoluterPfad(medium.pfad))
-    return await erzeugeThumbnail(inhalt, medium.breite, medium.hoehe)
-  } catch {
-    return null
-  }
-}
-
 export type UploadErgebnis = {
   medium: Medium
   breite: number

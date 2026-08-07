@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { aworkPruefen } from '@/lib/awork'
 import { alsCookiedatei, pruefeInstagram } from '@/lib/instagram'
-import { erneuereVorschaubild, loescheDatei } from '@/lib/medien'
+import { loescheDatei } from '@/lib/medien'
 import { prisma } from '@/lib/db'
 import { leseDomaenen, schreibeDomaenen } from '@/lib/domaenen'
 import { ladeEinstellungen, speichereEinstellungen } from '@/lib/einstellungen'
@@ -120,41 +120,6 @@ export async function kennzahlenSpeichern(formular: FormData) {
 
   revalidatePath('/einstellungen')
   revalidatePath('/kunden', 'layout')
-}
-
-/**
- * Alle Vorschaubilder neu zuschneiden.
- *
- * Einmalig nötig nach dem Wechsel des Rasterausschnitts von 4:5 auf 3:4:
- * Vorschaubilder entstehen sonst nur beim Upload, alles Ältere bliebe im
- * alten Zuschnitt liegen und stünde im Profilraster seitlich beschnitten.
- *
- * Läuft in der Anfrage, nicht im Hintergrund — es sind Bilder, keine Videos,
- * und sharp schafft ein paar hundert in Sekunden. Käme je ein Bestand
- * zusammen, bei dem das nicht mehr trägt, gehört es in einen Auftrag wie den
- * Video-Download.
- */
-export async function vorschaubilderNeuErzeugen() {
-  await adminOderRaus()
-
-  const medien = await prisma.medium.findMany({
-    where: { thumbPfad: { not: null }, mimeTyp: { startsWith: 'image/' } },
-    select: { id: true, pfad: true, thumbPfad: true, breite: true, hoehe: true, mimeTyp: true },
-  })
-
-  let erneuert = 0
-  for (const medium of medien) {
-    const neu = await erneuereVorschaubild(medium)
-    if (!neu) continue
-
-    const alt = medium.thumbPfad!
-    await prisma.medium.update({ where: { id: medium.id }, data: { thumbPfad: neu } })
-    await loescheDatei(alt)
-    erneuert++
-  }
-
-  revalidatePath('/', 'layout')
-  redirect(`/einstellungen?thumbs=${erneuert}`)
 }
 
 export async function mailSpeichern(formular: FormData) {
