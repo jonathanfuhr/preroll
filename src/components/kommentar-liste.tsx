@@ -1,7 +1,7 @@
 import type { KommentarStatus } from '@prisma/client'
 import { KommentarInhalt } from './kommentar-inhalt'
 import type { Erwaehnbar } from './kommentar-feld'
-import { Karte } from './ui'
+import { InternBadge, Karte } from './ui'
 import { KommentarZeile } from '@/app/(team)/kommentare/zeile'
 
 const ZEIT = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' })
@@ -14,6 +14,8 @@ export type Kommentareintrag = {
   bearbeitetAm: Date | null
   status: KommentarStatus
   vomTeam: boolean
+  /** Trägt `#intern`: bleibt im Haus, der Kunde sieht ihn nicht. */
+  intern: boolean
   exportId: string | null
   antwortAufId: string | null
   /** Ergebnis der Rechteprüfung am Server — hier wird nur angezeigt. */
@@ -102,6 +104,7 @@ function Kopf({ kommentar }: { kommentar: Kommentareintrag }) {
       {kommentar.vomTeam && (
         <span className="text-[10px] uppercase tracking-[0.08em] text-still">Agentur</span>
       )}
+      {kommentar.intern && <InternBadge />}
       <span className="ml-auto text-[11px] text-stiller">
         {ZEIT.format(kommentar.am)}
         {kommentar.bearbeitetAm && ' · bearbeitet'}

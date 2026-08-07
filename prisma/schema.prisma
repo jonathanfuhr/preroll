@@ -568,6 +568,9 @@ model Kommentar {
   nutzer     Nutzer? @relation(fields: [nutzerId], references: [id], onDelete: SetNull)
 
   text   String
+  /// `#intern` im Text: nur fürs Haus, der Kunde sieht den Kommentar nie.
+  /// Beim Schreiben abgeleitet, damit die Abfrage filtern kann.
+  intern Boolean         @default(false)
   status KommentarStatus @default(OFFEN)
   // Gesetzt, sobald jemand den Text nachträglich ändert. `aktualisiertAm`
   // taugt dafür nicht — das springt auch beim Erledigen.

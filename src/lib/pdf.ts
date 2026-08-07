@@ -4,6 +4,7 @@ import PDFDocument from 'pdfkit'
 type KommentarZeile = {
   autorName: string
   text: string
+  intern: boolean
   status: string
   abschnitt: string
   erstelltAm: Date
@@ -51,9 +52,11 @@ export function kommentarPdf(kunde: string, kommentare: KommentarZeile[]): Promi
         .fontSize(9)
         .fillColor('#57534f')
         .text(
+          // Das PDF liegt im ZIP des Teams, kann aber weitergereicht werden.
+          // Deshalb steht am internen Kommentar, dass er es ist.
           `${kommentar.autorName} · ${ZEIT.format(kommentar.erstelltAm)} · ${
             kommentar.status === 'ERLEDIGT' ? 'erledigt' : 'offen'
-          }`,
+          }${kommentar.intern ? ' · NUR INTERN' : ''}`,
         )
       dokument.fontSize(10).fillColor('#3a3733').text(kommentar.text, { indent: 12 })
       dokument.moveDown(0.5)

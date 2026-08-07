@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
 import { darfBearbeiten } from '@/lib/kommentar-rechte'
 import { KommentarInhalt } from '@/components/kommentar-inhalt'
-import { Karte, Leerzustand, TypBadge } from '@/components/ui'
+import { InternBadge, Karte, Leerzustand, TypBadge } from '@/components/ui'
 import { KommentarZeile } from '../../../kommentare/zeile'
 
 const ZEIT = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' })
@@ -53,6 +53,7 @@ export default async function KundenKommentareSeite({
                 {kommentar.nutzerId && (
                   <span className="text-[10px] uppercase tracking-[0.08em] text-still">Agentur</span>
                 )}
+                {kommentar.intern && <InternBadge />}
                 {kommentar.post && (
                   <>
                     <TypBadge typ={kommentar.post.typ} verhaeltnis={kommentar.post.verhaeltnis} />

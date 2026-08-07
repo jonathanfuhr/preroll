@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { freigabeBeschriftung, STUFE_TEXT } from '@/lib/freigabe'
 import { KommentarFeld, type Erwaehnbar } from '@/components/kommentar-feld'
 import { KommentarInhalt } from '@/components/kommentar-inhalt'
-import { Knopf, Textfeld } from '@/components/ui'
+import { InternBadge, Knopf, Textfeld } from '@/components/ui'
 import {
   freigabeErteilen,
   gastKommentarBearbeiten,
@@ -35,6 +35,8 @@ type Kommentar = {
   am: string
   bearbeitet: boolean
   vomTeam: boolean
+  /** Nur fürs Haus — steht beim Gast gar nicht erst in der Liste. */
+  intern: boolean
   antwortAufId: string | null
   /** Ergebnis der Rechteprüfung am Server — hier wird nur angezeigt. */
   darfAendern: boolean
@@ -50,12 +52,15 @@ export function KommentarBereich({
   erlaubt,
   kommentare,
   erwaehnbar,
+  alsTeam,
 }: {
   token: string
   postId: string
   erlaubt: boolean
   kommentare: Kommentar[]
   erwaehnbar: Erwaehnbar[]
+  /** Das Team in der Vorschau — nur dort wirkt `#intern`. */
+  alsTeam?: boolean
 }) {
   const [offen, setOffen] = useState(false)
 
@@ -90,6 +95,7 @@ export function KommentarBereich({
                 kommentar={kommentar}
                 erwaehnbar={erwaehnbar}
                 antwortenErlaubt={erlaubt}
+                alsTeam={alsTeam}
               />
 
               {kommentare
@@ -102,6 +108,7 @@ export function KommentarBereich({
                       kommentar={antwort}
                       erwaehnbar={erwaehnbar}
                       antwortenErlaubt={false}
+                      alsTeam={alsTeam}
                     />
                   </div>
                 ))}
@@ -122,6 +129,7 @@ export function KommentarBereich({
           <KommentarFeld
             erwaehnbar={erwaehnbar}
             platzhalter="Was soll geändert werden? Mit @ jemanden ansprechen"
+            intern={alsTeam}
           />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">
@@ -145,12 +153,14 @@ function Eintrag({
   kommentar,
   erwaehnbar,
   antwortenErlaubt,
+  alsTeam,
 }: {
   token: string
   postId: string
   kommentar: Kommentar
   erwaehnbar: Erwaehnbar[]
   antwortenErlaubt: boolean
+  alsTeam?: boolean
 }) {
   const [antworten, setAntworten] = useState(false)
   const [bearbeiten, setBearbeiten] = useState(false)
@@ -163,6 +173,7 @@ function Eintrag({
     >
       <div className="mb-1 flex flex-wrap items-baseline gap-2">
         <span className="text-[12px] font-semibold text-tinte">{kommentar.autorName}</span>
+        {kommentar.intern && <InternBadge />}
         {kommentar.vomTeam && (
           <span className="text-[10px] uppercase tracking-[0.08em] text-still">Agentur</span>
         )}
@@ -178,7 +189,7 @@ function Eintrag({
           onSubmit={() => setBearbeiten(false)}
           className="grid gap-2"
         >
-          <KommentarFeld erwaehnbar={erwaehnbar} standardwert={kommentar.text} autoFokus />
+          <KommentarFeld erwaehnbar={erwaehnbar} standardwert={kommentar.text} autoFokus intern={alsTeam} />
           <div className="flex items-center justify-end gap-3">
             <button
               type="button"
@@ -239,7 +250,7 @@ function Eintrag({
           <input type="hidden" name="postId" value={postId} />
           <input type="hidden" name="abschnitt" value="allgemein" />
           <input type="hidden" name="antwortAufId" value={kommentar.id} />
-          <KommentarFeld erwaehnbar={erwaehnbar} platzhalter="Antwort …" autoFokus />
+          <KommentarFeld erwaehnbar={erwaehnbar} platzhalter="Antwort …" autoFokus intern={alsTeam} />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">
               Antwort senden

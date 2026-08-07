@@ -12,6 +12,7 @@ import {
 } from '@/lib/auth'
 import { meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { darfBearbeiten, darfLoeschen, type Betrachter } from '@/lib/kommentar-rechte'
+import { internAbleiten } from '@/lib/kommentar-intern'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { offeneStufe } from '@/lib/freigabe'
@@ -150,6 +151,10 @@ export async function kommentarVomKunden(token: string, formular: FormData) {
       gastId: nutzer ? null : gast!.id,
       nutzerId: nutzer?.id ?? null,
       text,
+      // Nur das Team markiert intern; ein Gast schreibt an den Kunden,
+      // nicht über ihn. Vererbt wird trotzdem — sonst risse ein interner
+      // Strang auf.
+      intern: await internAbleiten(text, antwortAufId, Boolean(nutzer)),
       antwortAufId,
     },
   })
@@ -184,7 +189,12 @@ export async function gastKommentarBearbeiten(token: string, kommentarId: string
 
   const kommentar = await prisma.kommentar.findUniqueOrThrow({
     where: { id: kommentarId },
-    select: { nutzerId: true, gastId: true, export: { select: { token: true } } },
+    select: {
+      nutzerId: true,
+      gastId: true,
+      antwortAufId: true,
+      export: { select: { token: true } },
+    },
   })
   // Der Kommentar muss zu diesem Link gehören — sonst ließe sich mit einer
   // fremden Kennung an einem anderen Export herumschreiben.
@@ -193,7 +203,11 @@ export async function gastKommentarBearbeiten(token: string, kommentarId: string
 
   await prisma.kommentar.update({
     where: { id: kommentarId },
-    data: { text: inhalt, bearbeitetAm: new Date() },
+    data: {
+      text: inhalt,
+      intern: await internAbleiten(inhalt, kommentar.antwortAufId, Boolean(kommentar.nutzerId)),
+      bearbeitetAm: new Date(),
+    },
   })
   revalidatePath(`/f/${token}`)
 }

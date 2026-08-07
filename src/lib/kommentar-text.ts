@@ -45,6 +45,24 @@ export function alsKlartext(text: string): string {
   return text.replace(MUSTER, (_, name: string) => `@${name}`)
 }
 
+// ------------------------------------------------------------- #intern
+
+/**
+ * `#intern` macht einen Kommentar zur Hausangelegenheit: für Abstimmungen
+ * im Team, an denen der Kunde nicht teilnehmen soll. Er sieht ihn nicht und
+ * hört auch nichts davon.
+ *
+ * Am Wortanfang, damit eine Adresse oder ein Hashtag mitten im Satz nicht
+ * versehentlich auslöst; `#interne Abstimmung` bleibt gewöhnlicher Text.
+ */
+const INTERN = /(^|\s)#intern(?![\wäöüß])/i
+
+export const INTERN_MARKE = '#intern'
+
+export function istIntern(text: string): boolean {
+  return INTERN.test(text)
+}
+
 /** Text in Stücke zerlegt, damit die Anzeige Chips setzen kann. */
 export type Stueck =
   | { art: 'text'; inhalt: string }

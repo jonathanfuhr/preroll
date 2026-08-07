@@ -46,7 +46,7 @@ export function KommentarZeile({
         onSubmit={() => setBearbeiten(false)}
         className="mt-3 grid gap-2 border-t border-rahmen pt-3"
       >
-        <KommentarFeld erwaehnbar={erwaehnbar} standardwert={text} autoFokus />
+        <KommentarFeld erwaehnbar={erwaehnbar} standardwert={text} autoFokus intern />
         <div className="flex items-center justify-end gap-3">
           <button
             type="button"
@@ -125,6 +125,7 @@ export function KommentarZeile({
             erwaehnbar={erwaehnbar}
             platzhalter="Antwort … @ erwähnt jemanden"
             autoFokus
+            intern
           />
           <div className="flex justify-end">
             <Knopf art="primaer" klein type="submit">

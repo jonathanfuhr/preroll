@@ -45,7 +45,9 @@ export default async function PortalSeite() {
               },
             },
           },
-          _count: { select: { kommentare: true } },
+          // Interne Kommentare zählen für den Gast nicht mit — sonst
+          // verspräche die Zahl etwas, das er nirgends findet.
+          _count: { select: { kommentare: { where: { intern: false } } } },
         },
       },
     },

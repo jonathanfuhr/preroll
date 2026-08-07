@@ -30,19 +30,6 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
 export default async function ExportSeite({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
 
-  const exp = await prisma.export.findUnique({
-    where: { token },
-    include: {
-      kunde: {
-        include: { logo: true, hauptAnsprechpartner: { include: { foto: true } } },
-      },
-      zusatzAnsprechpartner: { include: { foto: true } },
-      kommentare: { orderBy: { erstelltAm: 'asc' } },
-    },
-  })
-  if (!exp) notFound()
-
-
   // Ein Freigabe-Link öffnet sich nie ohne Anmeldung. Die Sitzung gilt
   // 40 Tage — danach genügt der Link wieder allein.
   //
@@ -50,6 +37,10 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   // sieht genau dieselbe Seite wie der Kunde. Sich für einen Blick auf den
   // eigenen Plan als Gast zu registrieren, wäre ein Umweg — und die Kommentare
   // trügen danach einen zweiten Namen derselben Person.
+  //
+  // Wer da sitzt, steht vor der Abfrage fest, weil die Kommentare davon
+  // abhängen: Interne Abstimmungen werden für einen Gast gar nicht erst
+  // geladen.
   const [gast, nutzer] = await Promise.all([aktuellerGast(), aktuellerNutzer()])
   const angemeldeterGast = gast && gast.name.trim() ? gast : null
   if (!angemeldeterGast && !nutzer) redirect(`/f/${token}/anmelden`)
@@ -58,6 +49,28 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   // steht. Das Team schreibt unter seinem eigenen.
   const anzeigename = angemeldeterGast?.name ?? nutzer!.name
   const alsTeam = !angemeldeterGast
+
+  const exp = await prisma.export.findUnique({
+    where: { token },
+    include: {
+      kunde: {
+        include: { logo: true, hauptAnsprechpartner: { include: { foto: true } } },
+      },
+      zusatzAnsprechpartner: { include: { foto: true } },
+      /*
+        Gefiltert wird in der Abfrage, nicht in der Anzeige — was nie geladen
+        wird, kann auch nicht durchrutschen. Das Team sieht die interne
+        Abstimmung auch hier, sonst verschwände die eigene Antwort im Moment
+        des Abschickens und sähe aus wie ein Fehler; sie trägt dann ihr
+        Etikett.
+      */
+      kommentare: {
+        where: alsTeam ? {} : { intern: false },
+        orderBy: { erstelltAm: 'asc' },
+      },
+    },
+  })
+  if (!exp) notFound()
 
   // Wer hier sitzt, entscheidet über Bearbeiten und Löschen. Sieht das Team
   // die Seite in der Vorschau, gelten seine eigenen Rechte — inklusive der
@@ -340,6 +353,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                   token={token}
                   postId={post.id}
                   erlaubt
+                  alsTeam={alsTeam}
                   erwaehnbar={erwaehnbar}
                   kommentare={exp.kommentare
                     .filter((k) => k.postId === post.id)
@@ -350,6 +364,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                       am: k.erstelltAm.toISOString(),
                       bearbeitet: Boolean(k.bearbeitetAm),
                       vomTeam: Boolean(k.nutzerId),
+                      intern: k.intern,
                       antwortAufId: k.antwortAufId,
                       darfAendern: betrachter ? darfBearbeiten(k, betrachter) : false,
                     }))}

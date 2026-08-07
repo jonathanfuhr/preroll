@@ -185,6 +185,18 @@ npm run check   # Typecheck + Tests
   nur bei sich selbst, die Administration überall** (`kommentar-rechte.ts`);
   geprüft wird am Server, die Knöpfe sind Bequemlichkeit. Ein Strang ist
   flach: Auf eine Antwort wird nicht noch einmal geantwortet.
+- **`#intern` behält einen Kommentar im Haus.** Für Abstimmungen, die den
+  Kunden nichts angehen. Die Marke am Wortanfang genügt (`istIntern`), und
+  **nur das Team** setzt sie — beim Gast ist `#intern` gewöhnlicher Text.
+  Was daran hängt: keine Anzeige beim Kunden, keine Mail, kein Push, keine
+  Erwähnung nach außen, nicht in seiner Kommentarzahl. Eine **Antwort erbt**
+  den Zustand ihres Strangs: Ohne die Erbregel stünde ein „ja, machen wir"
+  plötzlich allein beim Kunden. Abgeleitet wird beim Schreiben und in
+  `Kommentar.intern` festgehalten (`kommentar-intern.ts`), damit schon die
+  **Abfrage** filtert — Vertraulichkeit, die an einer vergessenen Bedingung
+  im Bauteil hängt, ist keine. Auf der Kundenseite sieht das Team seine
+  internen Kommentare trotzdem, markiert: Sonst verschwände die eigene
+  Antwort im Moment des Abschickens.
 - **@-Erwähnungen stehen im Text.** Format `@[Name](n:<id>)` für Team,
   `(g:<id>)` für Gäste — der Name liegt mit im Text, damit ein Kommentar auch
   nach einer Umbenennung lesbar bleibt. Der Text ist die **einzige** Quelle

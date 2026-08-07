@@ -148,6 +148,7 @@ export default async function PostSeite({
           bearbeitetAm: k.bearbeitetAm,
           status: k.status,
           vomTeam: Boolean(k.nutzerId),
+          intern: k.intern,
           exportId: k.exportId,
           antwortAufId: k.antwortAufId,
           darfAendern: darfBearbeiten(k, betrachter),

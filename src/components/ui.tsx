@@ -33,6 +33,22 @@ export function StatusBadge({ status, klein }: { status: PostStatus; klein?: boo
   )
 }
 
+/**
+ * Ein Kommentar, der das Haus nicht verlässt. Deutlich genug, dass niemand
+ * ihn für eine Kundenantwort hält — aber ohne Alarmfarbe: Er ist der
+ * Normalfall für interne Abstimmungen, kein Fehler.
+ */
+export function InternBadge() {
+  return (
+    <span
+      title="Nur für das Team sichtbar — der Kunde sieht diesen Kommentar nicht."
+      className="inline-flex items-center rounded-[3px] bg-tinte px-1.5 py-0.5 text-[9.5px] font-medium uppercase tracking-[0.06em] text-white"
+    >
+      Nur intern
+    </span>
+  )
+}
+
 export const TYP_TEXT: Record<PostTyp, string> = {
   REEL: 'Reel',
   KARUSSELL: 'Karussell',

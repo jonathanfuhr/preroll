@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { darfBearbeiten, darfErledigen, darfLoeschen } from './kommentar-rechte'
-import { alsKlartext, erwaehnungMarke, erwaehnungenAus, zerlegeText } from './kommentar-text'
+import {
+  alsKlartext,
+  erwaehnungMarke,
+  erwaehnungenAus,
+  istIntern,
+  zerlegeText,
+} from './kommentar-text'
 
 describe('Erwähnungen im Text', () => {
   const marke = erwaehnungMarke('nutzer', 'n1', 'Helena Avdijaj')
@@ -77,5 +83,19 @@ describe('Rechte an einem Kommentar', () => {
   it('erledigt nur das Team', () => {
     expect(darfErledigen(kollege)).toBe(true)
     expect(darfErledigen(gast)).toBe(false)
+  })
+})
+
+describe('#intern', () => {
+  it('erkennt die Marke am Anfang und mitten im Text', () => {
+    expect(istIntern('#intern kurz abstimmen')).toBe(true)
+    expect(istIntern('Machen wir das so? #intern')).toBe(true)
+    expect(istIntern('#INTERN')).toBe(true)
+  })
+
+  it('lässt gewöhnlichen Text in Ruhe', () => {
+    expect(istIntern('Bitte das Logo tauschen')).toBe(false)
+    expect(istIntern('#interne Abstimmung folgt')).toBe(false)
+    expect(istIntern('siehe www.beispiel.de/#intern')).toBe(false)
   })
 })

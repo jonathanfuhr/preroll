@@ -128,8 +128,10 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
   // selben Kommentar liest niemand gern.
   const erwaehnt = await meldeErwaehnungen(kommentar, post.titel, kunde, url, lesbar)
 
-  // Kommentare vom Team gehen an die Gäste des Links, nicht ins eigene Haus.
-  if (kommentar.nutzerId) {
+  // Kommentare vom Team gehen an die Gäste des Links, nicht ins eigene Haus
+  // — es sei denn, sie sind mit `#intern` markiert. Dann ist das Haus genau
+  // der richtige Empfänger und der Kunde erfährt nichts davon.
+  if (kommentar.nutzerId && !kommentar.intern) {
     if (!kommentar.exportId) return
 
     const beteiligungen = await prisma.exportGast.findMany({
@@ -178,7 +180,9 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
     ziele,
     {
       art: 'KOMMENTAR',
-      titel: `Neuer Kommentar — ${post.titel}`,
+      // Beim internen Wort steht das auch in der Meldung — sonst antwortet
+      // jemand darauf im Glauben, der Kunde lese mit.
+      titel: `${kommentar.intern ? 'Interne Anmerkung' : 'Neuer Kommentar'} — ${post.titel}`,
       text: `${kommentar.autorName}: ${lesbar.slice(0, 160)}`,
       url,
       kundeId: kunde.id,
@@ -196,7 +200,13 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
  * anschreiben, der mit dem Kunden nichts zu tun hat.
  */
 async function meldeErwaehnungen(
-  kommentar: { autorName: string; exportId: string | null; postId: string | null; text: string },
+  kommentar: {
+    autorName: string
+    exportId: string | null
+    postId: string | null
+    text: string
+    intern: boolean
+  },
   postTitel: string,
   kunde: { id: string; name: string },
   teamUrl: string,
@@ -212,7 +222,10 @@ async function meldeErwaehnungen(
     nutzerIds.length > 0
       ? prisma.nutzer.findMany({ where: { id: { in: nutzerIds }, aktiv: true } })
       : [],
-    gastIds.length > 0 && kommentar.exportId
+    // Ein interner Kommentar erwähnt niemanden nach außen: Eine Mail „Sie
+    // wurden erwähnt" zu einem Text, den der Gast nirgends findet, wäre die
+    // unangenehmste Art, ihn doch mitzuteilen.
+    gastIds.length > 0 && kommentar.exportId && !kommentar.intern
       ? prisma.exportGast.findMany({
           where: { exportId: kommentar.exportId, gastId: { in: gastIds } },
           include: { gast: true, export: true },

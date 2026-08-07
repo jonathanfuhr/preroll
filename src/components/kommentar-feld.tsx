@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { erwaehnungMarke } from '@/lib/kommentar-text'
+import { erwaehnungMarke, istIntern } from '@/lib/kommentar-text'
 
 export type Erwaehnbar = { art: 'nutzer' | 'gast'; id: string; name: string; zusatz: string }
 
@@ -23,6 +23,7 @@ export function KommentarFeld({
   platzhalter,
   standardwert = '',
   autoFokus,
+  intern,
 }: {
   name?: string
   erwaehnbar: Erwaehnbar[]
@@ -30,6 +31,8 @@ export function KommentarFeld({
   platzhalter?: string
   standardwert?: string
   autoFokus?: boolean
+  /** Nur im Backend: dort darf `#intern` einen Kommentar im Haus behalten. */
+  intern?: boolean
 }) {
   const feld = useRef<HTMLTextAreaElement>(null)
   const [wert, setWert] = useState(standardwert)
@@ -116,6 +119,23 @@ export function KommentarFeld({
 
       {/* Die Rohfassung mit den Kennungen — das ist, was der Server bekommt. */}
       <input type="hidden" name={name} value={roh} />
+
+      {/*
+        Die Marke wirkt beim Abschicken, deshalb sagt die Zeile schon beim
+        Tippen, was sie tut. Wer sie nur erklärt bekäme, wenn er sie kennt,
+        benutzte sie nie.
+      */}
+      {intern &&
+        (istIntern(wert) ? (
+          <p className="mt-1.5 text-[11px] font-medium text-akzent">
+            Bleibt im Haus — der Kunde sieht diesen Kommentar nicht und bekommt keine Meldung.
+          </p>
+        ) : (
+          <p className="mt-1.5 text-[11px] text-stiller">
+            <span className="font-medium">#intern</span> schreiben, dann bleibt der Kommentar im
+            Team.
+          </p>
+        ))}
 
       {treffer.length > 0 && (
         <ul className="absolute left-2 top-full z-30 mt-1 w-[240px] overflow-hidden rounded-md border border-rahmen bg-flaeche py-1 shadow-lg">

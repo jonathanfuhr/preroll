@@ -14,6 +14,7 @@ import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
 import { slugify } from '@/lib/slug'
+import { internAbleiten } from '@/lib/kommentar-intern'
 import { klappeVideoNachziehen } from './klappe-aktionen'
 
 async function nutzerOderRaus() {
@@ -499,6 +500,7 @@ export async function kommentarVomTeam(postId: string, exportId: string | null, 
       autorEmail: nutzer.email,
       nutzerId: nutzer.id,
       text: inhalt,
+      intern: await internAbleiten(inhalt, antwortAufId, true),
       antwortAufId,
     },
   })
@@ -535,13 +537,19 @@ export async function kommentarBearbeiten(kommentarId: string, formular: FormDat
 
   const kommentar = await prisma.kommentar.findUniqueOrThrow({
     where: { id: kommentarId },
-    select: { nutzerId: true, gastId: true },
+    select: { nutzerId: true, gastId: true, antwortAufId: true },
   })
   if (!darfBearbeiten(kommentar, { art: 'nutzer', id: nutzer.id, rolle: nutzer.rolle })) return
 
   await prisma.kommentar.update({
     where: { id: kommentarId },
-    data: { text: inhalt, bearbeitetAm: new Date() },
+    data: {
+      text: inhalt,
+      // Die Marke wird neu gelesen: Wer sie nachträgt, nimmt den Kommentar
+      // aus der Kundensicht — wer sie streicht, gibt ihn frei.
+      intern: await internAbleiten(inhalt, kommentar.antwortAufId, Boolean(kommentar.nutzerId)),
+      bearbeitetAm: new Date(),
+    },
   })
 
   revalidatePath('/kunden', 'layout')
