@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { createPortal } from 'react-dom'
 import { useEffect, useState, useTransition } from 'react'
 import type { ReactNode } from 'react'
 
@@ -253,11 +254,25 @@ function Navigationsinhalt({
  */
 export function Navigationsknopf(daten: Navigationsdaten) {
   const [offen, setOffen] = useState(false)
+  // `document` gibt es beim Rendern am Server nicht — das Tor davor.
+  const [montiert, setMontiert] = useState(false)
   const pfad = usePathname()
+
+  useEffect(() => setMontiert(true), [])
 
   // Auch die Rücktaste des Browsers schließt sie — sonst bleibt sie offen,
   // während sich die Seite darunter schon geändert hat.
   useEffect(() => setOffen(false), [pfad])
+
+  // Solange sie offen ist, rollt die Seite dahinter nicht mit.
+  useEffect(() => {
+    if (!offen) return
+    const vorher = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = vorher
+    }
+  }, [offen])
 
   return (
     <>
@@ -275,22 +290,29 @@ export function Navigationsknopf(daten: Navigationsdaten) {
         </svg>
       </button>
 
-      {offen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
-          <div
-            className="flex h-full w-[264px] max-w-[82vw] flex-col overflow-y-auto border-r border-rahmen bg-flaeche-leise pb-6 pt-[26px]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Navigationsinhalt {...daten} aufAuswahl={() => setOffen(false)} />
-          </div>
-          <button
-            type="button"
-            aria-label="Navigation schließen"
-            onClick={() => setOffen(false)}
-            className="h-full flex-1 bg-tinte/25"
-          />
-        </div>
-      )}
+      {/*
+        Die Schublade hängt am `body`, nicht an der Kopfzeile. Deren
+        `backdrop-blur` macht sie zum Bezugsrahmen für alles Feste — die
+        Schublade lag dadurch **in** der Kopfzeile und damit hinter dem
+        Seiteninhalt statt darüber. Dasselbe gälte für `transform` oder
+        `filter` an einem Elternteil.
+      */}
+      {offen &&
+        montiert &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex md:hidden">
+            <div className="flex h-full w-[264px] max-w-[82vw] flex-col overflow-y-auto border-r border-rahmen bg-flaeche-leise pb-6 pt-[26px]">
+              <Navigationsinhalt {...daten} aufAuswahl={() => setOffen(false)} />
+            </div>
+            <button
+              type="button"
+              aria-label="Navigation schließen"
+              onClick={() => setOffen(false)}
+              className="h-full flex-1 bg-tinte/25"
+            />
+          </div>,
+          document.body,
+        )}
     </>
   )
 }
