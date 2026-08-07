@@ -13,6 +13,13 @@ import type { PostStatus } from '@prisma/client'
 export const STUFEN = ['KONZEPT', 'VORSCHAU', 'FINAL', 'GEPOSTET'] as const
 export type Stufe = (typeof STUFEN)[number]
 
+/**
+ * `ENTWURF` hat hier bewusst **kein** Gegenstück. Ein Entwurf verlässt das
+ * Haus nicht — für den Kunden beginnt der Weg beim Konzept, und eine
+ * Zeitleiste mit einer Stufe, die er nie zu sehen bekommt, wäre nur eine
+ * Frage mehr. Aussortiert wird schon in `postsImZeitraum`.
+ */
+
 export const STUFE_TEXT: Record<Stufe, string> = {
   KONZEPT: 'Konzept',
   VORSCHAU: 'Vorschau',
@@ -25,6 +32,9 @@ export function abgeleiteteStufe(
   postenAm: Date | null,
   jetzt = new Date(),
 ): Stufe {
+  // Entwürfe erreichen den Kunden nie; steht hier doch einer, ist die erste
+  // Stufe die ehrlichste Antwort.
+  if (status === 'ENTWURF') return 'KONZEPT'
   if (status !== 'FINAL') return status
   if (!postenAm) return 'FINAL'
   return postenAm <= jetzt ? 'GEPOSTET' : 'FINAL'
@@ -51,4 +61,23 @@ export function stufenErklaerung(stufe: Stufe, mitFreigaben: boolean): string {
     case 'GEPOSTET':
       return 'Veröffentlicht. Der Beitrag ist am geplanten Termin online gegangen.'
   }
+}
+
+/**
+ * Die Reihenfolge, in der ein Beitrag durchs Haus geht. `GEPOSTET` fehlt
+ * hier: Das wird berechnet, nicht gesetzt.
+ */
+export const PHASEN = ['ENTWURF', 'KONZEPT', 'VORSCHAU', 'FINAL'] as const
+
+export const PHASE_TEXT: Record<PostStatus, string> = {
+  ENTWURF: 'Entwurf',
+  KONZEPT: 'Konzept',
+  VORSCHAU: 'Vorschau',
+  FINAL: 'Final',
+}
+
+/** Die nächste Phase — oder null, wenn der Beitrag am Ende angekommen ist. */
+export function naechstePhase(status: PostStatus): PostStatus | null {
+  const i = PHASEN.indexOf(status as (typeof PHASEN)[number])
+  return i >= 0 && i < PHASEN.length - 1 ? PHASEN[i + 1] : null
 }

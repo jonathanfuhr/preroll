@@ -19,7 +19,6 @@ function nurGeplante<T extends SichtPost>(posts: T[]): Array<Geplant<T>> {
 export type Sichtregeln = {
   zeitraumVon: Date
   zeitraumBis: Date
-  konzepteMitzeigen: boolean
 }
 
 // Zeiträume sind reine Datumswerte; Posting-Termine echte Zeitstempel.
@@ -27,8 +26,15 @@ export type Sichtregeln = {
 const tagesbeginn = beginnLokal
 const tagesende = endeLokal
 
-function sichtbarerStatus(status: PostStatus, konzepteMitzeigen: boolean): boolean {
-  return status === 'VORSCHAU' || status === 'FINAL' || konzepteMitzeigen
+/**
+ * Konzepte werden immer gezeigt — dafür ist die Freigabe schließlich da.
+ * Was noch nicht gezeigt werden soll, steht auf `ENTWURF` und verlässt das
+ * Haus gar nicht. Früher entschied das ein Schalter je Link; das war eine
+ * Einstellung an der falschen Stelle, denn ob ein Beitrag vorzeigbar ist,
+ * hängt am Beitrag, nicht am Monat.
+ */
+function sichtbarerStatus(status: PostStatus): boolean {
+  return status !== 'ENTWURF'
 }
 
 /**
@@ -44,7 +50,7 @@ export function postsImZeitraum<T extends SichtPost>(
 
   return nurGeplante(posts)
     .filter((p) => p.postenAm >= von && p.postenAm <= bis)
-    .filter((p) => sichtbarerStatus(p.status, regeln.konzepteMitzeigen))
+    .filter((p) => sichtbarerStatus(p.status))
     .sort((a, b) => a.postenAm.getTime() - b.postenAm.getTime())
 }
 
@@ -72,12 +78,6 @@ export function feedVorschau<T extends SichtPost>(
     .filter((p) => p.postenAm <= letzterImZeitraum)
     // Vor dem Zeitraum: alles zeigen, das ist bereits veröffentlicht.
     // Im Zeitraum: nur, was freigegeben ist.
-    .filter((p) => p.postenAm < von || sichtbarerStatus(p.status, regeln.konzepteMitzeigen))
+    .filter((p) => p.postenAm < von || sichtbarerStatus(p.status))
     .sort((a, b) => b.postenAm.getTime() - a.postenAm.getTime())
-}
-
-/** Ein Link ist nur bis zum Ablaufdatum begehbar. */
-export function istAbgelaufen(gueltigBis: Date | null, jetzt = new Date()): boolean {
-  if (!gueltigBis) return false
-  return tagesende(gueltigBis) < jetzt
 }

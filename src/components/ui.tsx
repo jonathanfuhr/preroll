@@ -1,16 +1,21 @@
 import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import type { ComponentProps, ReactNode } from 'react'
+import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
 
 // ------------------------------------------------------------------- Etiketten
 
 const STATUS_TEXT: Record<PostStatus, string> = {
+  ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',
   VORSCHAU: 'Vorschau',
   FINAL: 'Final',
 }
 
 const STATUS_STIL: Record<PostStatus, string> = {
+  // Ein Entwurf hat keine eigene Farbe — er ist noch nichts, was jemand
+  // beurteilen soll.
+  ENTWURF: 'bg-flaeche-tief text-still',
   KONZEPT: 'bg-konzept-flaeche text-konzept',
   VORSCHAU: 'bg-vorschau-flaeche text-vorschau',
   FINAL: 'bg-final-flaeche text-final',
@@ -27,8 +32,6 @@ export function StatusBadge({ status, klein }: { status: PostStatus; klein?: boo
     </span>
   )
 }
-
-import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
 
 export const TYP_TEXT: Record<PostTyp, string> = {
   REEL: 'Reel',

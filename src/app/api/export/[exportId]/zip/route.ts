@@ -48,7 +48,6 @@ export async function GET(
   const posts = postsImZeitraum(alle, {
     zeitraumVon: exp.zeitraumVon,
     zeitraumBis: exp.zeitraumBis,
-    konzepteMitzeigen: true,
   })
 
   // Archiver 8 bietet Klassen statt der früheren Factory-Funktion.

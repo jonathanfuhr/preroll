@@ -4,6 +4,7 @@ import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Karte, Leerzustand, StatusBadge, TypBadge } from '@/components/ui'
+import { ZeilenMenue } from './zeilen-menue'
 import { kalenderwoche } from '@/lib/format'
 
 const DATUM = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -161,7 +162,7 @@ export function Postliste({
           <table className="w-full border-collapse text-[13px]">
             <thead>
               <tr className="border-b border-rahmen bg-flaeche-leise text-left">
-                {['', 'KW', 'Datum', 'Typ', 'Titel', 'Status', 'Wer', 'Kommentare'].map((kopf, i) => (
+                {['', 'KW', 'Datum', 'Typ', 'Titel', 'Status', 'Wer', 'Kommentare', ''].map((kopf, i) => (
                   <th
                     key={i}
                     className="px-3 py-2.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still"
@@ -239,6 +240,9 @@ export function Postliste({
                     </td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.wer ?? '—'}</td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.kommentare || '—'}</td>
+                    <td className="px-3 py-2">
+                      <ZeilenMenue postId={zeile.id} status={zeile.status} />
+                    </td>
                   </tr>
                 ))}
               </tbody>

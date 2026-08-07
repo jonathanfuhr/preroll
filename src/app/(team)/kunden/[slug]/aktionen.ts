@@ -5,6 +5,7 @@ import type { Verhaeltnis } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
+import { monatsgrenzen } from '@/lib/datum'
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
@@ -105,6 +106,11 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
       verhaeltnis: istErlaubt(typ, formular.get('verhaeltnis') as Verhaeltnis)
         ? (formular.get('verhaeltnis') as Verhaeltnis)
         : standardVerhaeltnis(typ),
+      // Neu Angelegtes ist ein Entwurf: in Arbeit, nur intern. Erst wer ihn
+      // aufs Konzept setzt, zeigt ihn dem Kunden. Vorher gab es dafür einen
+      // Schalter am Freigabe-Link — der saß an der falschen Stelle, denn ob
+      // ein Beitrag vorzeigbar ist, hängt am Beitrag, nicht am Monat.
+      status: 'ENTWURF',
       // Beim Reel ist der Szenenplan der Normalfall, sonst nicht.
       szenenplanAktiv: typ === 'REEL',
     },
@@ -358,62 +364,62 @@ export async function betreuungSpeichern(kundeId: string, formular: FormData) {
   revalidatePath(`/kunden/${kunde.slug}`, 'layout')
 }
 
-// ------------------------------------------------------------------ Export
+// ---------------------------------------------------------------- Freigaben
 
+/**
+ * Eine Freigabe umfasst immer einen ganzen Monat — gewählt wird deshalb nur
+ * der Monat, nicht Von und Bis. Je Kunde und Monat gibt es genau eine; ein
+ * zweiter Anlauf aktualisiert die vorhandene, statt einen zweiten Link
+ * anzulegen, von dem der Kunde nie erfahren würde.
+ */
 export async function exportAnlegen(kundeId: string, formular: FormData) {
   await nutzerOderRaus()
 
   const kunde = await prisma.kunde.findUniqueOrThrow({ where: { id: kundeId } })
-  const von = text(formular, 'zeitraumVon')
-  const bis = text(formular, 'zeitraumBis')
-  if (!von || !bis) return
+  const grenzen = monatsgrenzen(String(formular.get('monat') ?? ''))
+  if (!grenzen) return
 
-  await prisma.export.create({
-    data: {
+  await prisma.export.upsert({
+    where: { kundeId_zeitraumVon: { kundeId, zeitraumVon: grenzen.von } },
+    create: {
       kundeId,
       token: erzeugeExportToken(),
       titel: text(formular, 'titel'),
-      zeitraumVon: new Date(von),
-      zeitraumBis: new Date(bis),
-      gueltigBis: text(formular, 'gueltigBis') ? new Date(text(formular, 'gueltigBis')!) : null,
+      zeitraumVon: grenzen.von,
+      zeitraumBis: grenzen.bis,
       zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
-      kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
-      freigabenErlaubt: formular.get('freigabenErlaubt') === 'on',
-      konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
+    },
+    update: {
+      titel: text(formular, 'titel'),
+      zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
     },
   })
 
-  revalidatePath(`/kunden/${kunde.slug}/export`)
+  revalidatePath(`/kunden/${kunde.slug}/freigaben`)
 }
 
 export async function exportSpeichern(exportId: string, formular: FormData) {
   await nutzerOderRaus()
 
-  const von = text(formular, 'zeitraumVon')
-  const bis = text(formular, 'zeitraumBis')
+  const grenzen = monatsgrenzen(String(formular.get('monat') ?? ''))
 
   const exp = await prisma.export.update({
     where: { id: exportId },
     data: {
       titel: text(formular, 'titel'),
-      ...(von ? { zeitraumVon: new Date(von) } : {}),
-      ...(bis ? { zeitraumBis: new Date(bis) } : {}),
-      gueltigBis: text(formular, 'gueltigBis') ? new Date(text(formular, 'gueltigBis')!) : null,
+      ...(grenzen ? { zeitraumVon: grenzen.von, zeitraumBis: grenzen.bis } : {}),
       zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
-      kommentareErlaubt: formular.get('kommentareErlaubt') === 'on',
-      freigabenErlaubt: formular.get('freigabenErlaubt') === 'on',
-      konzepteMitzeigen: formular.get('konzepteMitzeigen') === 'on',
     },
     include: { kunde: true },
   })
 
-  revalidatePath(`/kunden/${exp.kunde.slug}/export`)
+  revalidatePath(`/kunden/${exp.kunde.slug}/freigaben`)
 }
 
 export async function exportLoeschen(exportId: string) {
   await nutzerOderRaus()
   const exp = await prisma.export.delete({ where: { id: exportId }, include: { kunde: true } })
-  revalidatePath(`/kunden/${exp.kunde.slug}/export`)
+  revalidatePath(`/kunden/${exp.kunde.slug}/freigaben`)
 }
 
 /** Lädt einen Kunden-Kontakt zu einem Freigabe-Link ein und schickt die Mail. */
@@ -443,7 +449,7 @@ export async function gastEinladen(exportId: string, formular: FormData) {
     where: { id: exportId },
     include: { kunde: true },
   })
-  revalidatePath(`/kunden/${exp.kunde.slug}/export`)
+  revalidatePath(`/kunden/${exp.kunde.slug}/freigaben`)
 }
 
 export async function einladungZuruecknehmen(exportId: string, gastId: string) {

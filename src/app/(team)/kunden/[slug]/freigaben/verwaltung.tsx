@@ -20,14 +20,11 @@ type ExportDaten = {
   id: string
   token: string
   titel: string | null
-  zeitraum: string
-  zeitraumVon: string
-  zeitraumBis: string
-  gueltigBis: string
+  /** `2026-08` — der Wert des Monatsfeldes. */
+  monat: string
+  /** „August 2026" — die Überschrift. */
+  monatTitel: string
   zusatzAnsprechpartnerId: string | null
-  kommentareErlaubt: boolean
-  freigabenErlaubt: boolean
-  konzepteMitzeigen: boolean
   aufrufe: number
   zuletztGeoeffnet: string | null
   stand: { erledigt: number; gesamt: number; vollstaendig: boolean }
@@ -53,40 +50,15 @@ function AnsprechpartnerWahl({
   )
 }
 
-function Optionen({ exp }: { exp?: ExportDaten }) {
-  return (
-    <div className="grid gap-2.5">
-      <Schalter
-        name="kommentareErlaubt"
-        beschriftung="Kommentare erlauben"
-        defaultChecked={exp?.kommentareErlaubt ?? true}
-      />
-      <Schalter
-        name="freigabenErlaubt"
-        beschriftung="Freigaben erlauben"
-        hinweis="Der Kunde gibt jeden Beitrag einzeln frei — beim Konzept das Konzept, nach dem Dreh die Vorschau."
-        defaultChecked={exp?.freigabenErlaubt ?? true}
-      />
-      <Schalter
-        name="konzepteMitzeigen"
-        beschriftung="Konzept-Beiträge mitzeigen"
-        hinweis="Sonst sieht der Kunde nur, was auf Vorschau oder Final steht."
-        defaultChecked={exp?.konzepteMitzeigen ?? false}
-      />
-    </div>
-  )
-}
-
 export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlbare: Waehlbar[] }) {
   const [offen, setOffen] = useState(false)
   const heute = new Date()
-  const ersterTag = new Date(heute.getFullYear(), heute.getMonth(), 1).toISOString().slice(0, 10)
-  const letzterTag = new Date(heute.getFullYear(), heute.getMonth() + 1, 0).toISOString().slice(0, 10)
+  const dieserMonat = `${heute.getFullYear()}-${String(heute.getMonth() + 1).padStart(2, '0')}`
 
   if (!offen) {
     return (
       <Knopf art="primaer" onClick={() => setOffen(true)}>
-        Neuer Export-Link
+        Neue Freigabe
       </Knopf>
     )
   }
@@ -94,7 +66,7 @@ export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlba
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6">
       <div className="w-full max-w-[460px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
-        <h3 className="mb-5 text-[16px] font-semibold">Neuer Export-Link</h3>
+        <h3 className="mb-5 text-[16px] font-semibold">Neue Freigabe</h3>
 
         {/* Schließt nach dem Anlegen — ein Dialog, der stehen bleibt, sieht
             aus, als wäre nichts passiert. */}
@@ -109,17 +81,11 @@ export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlba
             <Eingabe name="titel" placeholder="Content-Plan August 2026" />
           </Feld>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Feld beschriftung="Zeitraum von">
-              <Eingabe name="zeitraumVon" type="date" defaultValue={ersterTag} required />
-            </Feld>
-            <Feld beschriftung="Zeitraum bis">
-              <Eingabe name="zeitraumBis" type="date" defaultValue={letzterTag} required />
-            </Feld>
-          </div>
-
-          <Feld beschriftung="Link gültig bis" hinweis="Leer lassen = unbegrenzt gültig.">
-            <Eingabe name="gueltigBis" type="date" />
+          <Feld
+            beschriftung="Monat"
+            hinweis="Eine Freigabe umfasst immer den ganzen Monat. Gibt es ihn schon, wird er aktualisiert."
+          >
+            <Eingabe name="monat" type="month" defaultValue={dieserMonat} required />
           </Feld>
 
           <Feld
@@ -129,14 +95,12 @@ export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlba
             <AnsprechpartnerWahl liste={waehlbare} />
           </Feld>
 
-          <Optionen />
-
           <div className="mt-1 flex justify-end gap-2">
             <Knopf type="button" art="leise" onClick={() => setOffen(false)}>
               Abbrechen
             </Knopf>
             <Knopf type="submit" art="primaer">
-              Link erstellen
+              Freigabe erstellen
             </Knopf>
           </div>
         </form>
@@ -165,7 +129,7 @@ export function ExportKarte({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <h3 className="text-[14.5px] font-semibold">{exp.titel ?? exp.zeitraum}</h3>
+            <h3 className="text-[14.5px] font-semibold">{exp.titel ?? exp.monatTitel}</h3>
             {exp.stand.vollstaendig ? (
               <span className="rounded-[3px] bg-final-flaeche px-2 py-0.5 text-[11px] font-medium text-final">
                 alle freigegeben
@@ -179,7 +143,7 @@ export function ExportKarte({
             )}
           </div>
           <p className="mt-1 text-[12px] text-leiser">
-            {exp.zeitraum} · {exp.aufrufe} Aufrufe
+            {exp.monatTitel} · {exp.aufrufe} Aufrufe
             {exp.zuletztGeoeffnet && ` · zuletzt geöffnet ${exp.zuletztGeoeffnet}`}
             {exp.kommentare > 0 && ` · ${exp.kommentare} Kommentare`}
           </p>
@@ -273,17 +237,9 @@ export function ExportKarte({
             <Eingabe name="titel" defaultValue={exp.titel ?? ''} />
           </Feld>
 
-          <div className="grid grid-cols-3 gap-3">
-            <Feld beschriftung="Zeitraum von">
-              <Eingabe name="zeitraumVon" type="date" defaultValue={exp.zeitraumVon} required />
-            </Feld>
-            <Feld beschriftung="Zeitraum bis">
-              <Eingabe name="zeitraumBis" type="date" defaultValue={exp.zeitraumBis} required />
-            </Feld>
-            <Feld beschriftung="Gültig bis">
-              <Eingabe name="gueltigBis" type="date" defaultValue={exp.gueltigBis} />
-            </Feld>
-          </div>
+          <Feld beschriftung="Monat">
+            <Eingabe name="monat" type="month" defaultValue={exp.monat} required />
+          </Feld>
 
           <Feld
             beschriftung="Zusätzlicher Ansprechpartner"
@@ -292,15 +248,13 @@ export function ExportKarte({
             <AnsprechpartnerWahl liste={waehlbare} ausgewaehlt={exp.zusatzAnsprechpartnerId} />
           </Feld>
 
-          <Optionen exp={exp} />
-
           <div className="flex justify-between gap-2">
             <button
               type="submit"
               formAction={exportLoeschen.bind(null, exp.id)}
               className="text-[12px] text-stiller hover:text-akzent"
             >
-              Link löschen
+              Freigabe löschen
             </button>
             <Knopf art="primaer" type="submit">
               Speichern

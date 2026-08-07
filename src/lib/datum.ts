@@ -52,3 +52,39 @@ export function monatsbeginn(datum: Date): Date {
   const { jahr, monat } = tagesteile(datum)
   return new Date(jahr, monat, 1)
 }
+
+/**
+ * Eine Freigabe umfasst immer einen ganzen Monat. Aus `2026-08` werden der
+ * erste und der letzte Tag — als reine Datumswerte in UTC, wie die Spalten
+ * sie erwarten.
+ */
+export function monatsgrenzen(monat: string): { von: Date; bis: Date } | null {
+  const treffer = /^(\d{4})-(\d{2})$/.exec(monat.trim())
+  if (!treffer) return null
+
+  const jahr = Number(treffer[1])
+  const nummer = Number(treffer[2])
+  if (nummer < 1 || nummer > 12) return null
+
+  return {
+    von: new Date(Date.UTC(jahr, nummer - 1, 1)),
+    // Tag 0 des Folgemonats ist dessen letzter Tag.
+    bis: new Date(Date.UTC(jahr, nummer, 0)),
+  }
+}
+
+/** `2026-08` aus einem Datum — die Kennung des Monats. */
+export function alsMonat(datum: Date): string {
+  return `${datum.getUTCFullYear()}-${String(datum.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
+const MONATSNAME = new Intl.DateTimeFormat('de-DE', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
+/** „August 2026“ — die Überschrift einer Freigabe. */
+export function monatsTitel(von: Date): string {
+  return MONATSNAME.format(von)
+}

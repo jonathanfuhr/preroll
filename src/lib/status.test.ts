@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { abgeleiteteStufe, stufenErklaerung } from './status'
+import { abgeleiteteStufe, naechstePhase, STUFEN, stufenErklaerung } from './status'
 
 const JETZT = new Date(2026, 7, 15, 12, 0)
 
@@ -38,5 +38,30 @@ describe('stufenErklaerung', () => {
   it('erklärt die späten Stufen unabhängig von der Freigabepflicht gleich', () => {
     expect(stufenErklaerung('FINAL', true)).toBe(stufenErklaerung('FINAL', false))
     expect(stufenErklaerung('GEPOSTET', true)).toBe(stufenErklaerung('GEPOSTET', false))
+  })
+})
+
+describe('naechstePhase', () => {
+  it('schiebt vom Entwurf bis zum Final durch', () => {
+    expect(naechstePhase('ENTWURF')).toBe('KONZEPT')
+    expect(naechstePhase('KONZEPT')).toBe('VORSCHAU')
+    expect(naechstePhase('VORSCHAU')).toBe('FINAL')
+  })
+
+  it('endet bei Final — „Gepostet" wird berechnet, nicht gesetzt', () => {
+    expect(naechstePhase('FINAL')).toBeNull()
+  })
+})
+
+describe('abgeleiteteStufe mit Entwurf', () => {
+  it('macht daraus die erste Stufe — beim Kunden gibt es keinen Entwurf', () => {
+    // Entwürfe erreichen ihn ohnehin nicht; steht hier doch einer, ist
+    // „Konzept" die ehrlichste Antwort.
+    expect(abgeleiteteStufe('ENTWURF', null, JETZT)).toBe('KONZEPT')
+    expect(abgeleiteteStufe('ENTWURF', new Date(2026, 7, 1), JETZT)).toBe('KONZEPT')
+  })
+
+  it('hat in der Zeitleiste kein Gegenstück', () => {
+    expect(STUFEN).not.toContain('ENTWURF')
   })
 })

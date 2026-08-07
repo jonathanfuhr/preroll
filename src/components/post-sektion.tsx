@@ -29,12 +29,15 @@ const TYP_TEXT: Record<PostTyp, string> = {
 }
 
 const STATUS_TEXT: Record<PostStatus, string> = {
+  ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',
   VORSCHAU: 'Vorschau',
   FINAL: 'Final',
 }
 
 const STATUS_STIL: Record<PostStatus, { flaeche: string; farbe: string }> = {
+  // Ein Entwurf erreicht den Kunden nie — der Eintrag ist reine Formsache.
+  ENTWURF: { flaeche: 'var(--color-flaeche-tief)', farbe: 'var(--color-still)' },
   KONZEPT: { flaeche: 'var(--color-konzept-flaeche)', farbe: 'var(--color-konzept)' },
   VORSCHAU: { flaeche: 'var(--color-vorschau-flaeche)', farbe: 'var(--color-vorschau)' },
   FINAL: { flaeche: 'var(--color-final-flaeche)', farbe: 'var(--color-final)' },

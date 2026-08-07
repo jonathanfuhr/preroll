@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { feedVorschau, istAbgelaufen, postsImZeitraum, type SichtPost } from './export-sicht'
+import { feedVorschau, postsImZeitraum, type SichtPost } from './export-sicht'
 
 // Zeiträume kommen als reine Datumswerte aus der Datenbank: UTC-Mitternacht.
 const regeln = {
   zeitraumVon: new Date('2026-08-01T00:00:00.000Z'),
   zeitraumBis: new Date('2026-08-31T00:00:00.000Z'),
-  konzepteMitzeigen: false,
 }
 
 const posts: SichtPost[] = [
@@ -14,18 +13,23 @@ const posts: SichtPost[] = [
   { id: 'aug-reel', typ: 'REEL', status: 'VORSCHAU', postenAm: new Date(2026, 7, 5, 11, 0) },
   { id: 'aug-karussell', typ: 'KARUSSELL', status: 'VORSCHAU', postenAm: new Date(2026, 7, 11, 10, 0) },
   { id: 'aug-konzept', typ: 'BEITRAG', status: 'KONZEPT', postenAm: new Date(2026, 7, 20, 17, 30) },
+  { id: 'aug-entwurf', typ: 'BEITRAG', status: 'ENTWURF', postenAm: new Date(2026, 7, 25, 9, 0) },
   { id: 'sept', typ: 'BEITRAG', status: 'KONZEPT', postenAm: new Date(2026, 8, 3, 9, 0) },
 ]
 
 describe('postsImZeitraum', () => {
-  it('zeigt nur freigegebene Posts des Zeitraums', () => {
+  it('zeigt alles im Monat außer Entwürfen', () => {
+    // Konzepte gehören dazu — dafür ist die Freigabe schließlich da. Was noch
+    // nicht vorzeigbar ist, steht auf ENTWURF und verlässt das Haus nicht.
     const sichtbar = postsImZeitraum(posts, regeln).map((p) => p.id)
-    expect(sichtbar).toEqual(['aug-reel', 'aug-karussell'])
+    expect(sichtbar).toEqual(['aug-reel', 'aug-karussell', 'aug-konzept'])
   })
 
-  it('nimmt Konzepte mit, wenn die Option gesetzt ist', () => {
-    const sichtbar = postsImZeitraum(posts, { ...regeln, konzepteMitzeigen: true }).map((p) => p.id)
-    expect(sichtbar).toEqual(['aug-reel', 'aug-karussell', 'aug-konzept'])
+  it('lässt Entwürfe unter keinen Umständen durch', () => {
+    const nurEntwuerfe: SichtPost[] = [
+      { id: 'e1', typ: 'BEITRAG', status: 'ENTWURF', postenAm: new Date(2026, 7, 6, 9, 0) },
+    ]
+    expect(postsImZeitraum(nurEntwuerfe, regeln)).toHaveLength(0)
   })
 
   it('schließt den letzten Tag des Zeitraums ein', () => {
@@ -46,8 +50,10 @@ describe('feedVorschau', () => {
   it('zeigt nichts, was nach dem letzten Post des Zeitraums liegt', () => {
     const kacheln = feedVorschau(posts, regeln).map((p) => p.id)
     expect(kacheln).not.toContain('sept')
-    // Das Konzept vom 20.08. liegt nach dem letzten freigegebenen Post (11.08.).
-    expect(kacheln).not.toContain('aug-konzept')
+  })
+
+  it('lässt Entwürfe auch aus dem Raster heraus', () => {
+    expect(feedVorschau(posts, regeln).map((p) => p.id)).not.toContain('aug-entwurf')
   })
 
   it('lässt ungeplante Posts außen vor — ohne Termin gehört nichts in einen Export', () => {
@@ -61,26 +67,14 @@ describe('feedVorschau', () => {
 
   it('sortiert neueste zuerst — die erste Kachel landet oben links', () => {
     const kacheln = feedVorschau(posts, regeln).map((p) => p.id)
-    expect(kacheln).toEqual(['aug-karussell', 'aug-reel', 'juli-b', 'juli-a'])
+    expect(kacheln).toEqual(['aug-konzept', 'aug-karussell', 'aug-reel', 'juli-b', 'juli-a'])
   })
 
-  it('behält ältere Posts auch dann, wenn im Zeitraum nichts freigegeben ist', () => {
-    const nurKonzepte = posts.filter(
-      (p) => p.status === 'KONZEPT' || p.postenAm! < regeln.zeitraumVon,
+  it('behält ältere Posts auch dann, wenn im Monat nur Entwürfe liegen', () => {
+    const nurEntwuerfe = posts.filter(
+      (p) => p.status === 'ENTWURF' || p.postenAm! < regeln.zeitraumVon,
     )
-    const kacheln = feedVorschau(nurKonzepte, regeln).map((p) => p.id)
+    const kacheln = feedVorschau(nurEntwuerfe, regeln).map((p) => p.id)
     expect(kacheln).toEqual(['juli-b', 'juli-a'])
-  })
-})
-
-describe('istAbgelaufen', () => {
-  it('gilt bis zum Ende des Ablauftages', () => {
-    const bis = new Date('2026-09-30T00:00:00.000Z')
-    expect(istAbgelaufen(bis, new Date(2026, 8, 30, 22, 0))).toBe(false)
-    expect(istAbgelaufen(bis, new Date(2026, 9, 1, 0, 1))).toBe(true)
-  })
-
-  it('läuft ohne Datum nie ab', () => {
-    expect(istAbgelaufen(null)).toBe(false)
   })
 })

@@ -62,6 +62,7 @@ type CustomFeld = { id: string; name: string; typ: CustomFeldTyp; wert: string |
 
 const STATUS: PostStatus[] = ['KONZEPT', 'VORSCHAU', 'FINAL']
 const STATUS_TEXT: Record<PostStatus, string> = {
+  ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',
   VORSCHAU: 'Vorschau',
   FINAL: 'Final',
@@ -80,6 +81,7 @@ const TERMIN = new Intl.DateTimeFormat('de-DE', {
 
 /** Der aktive Status trägt seine eigene Farbe — wie überall sonst auch. */
 const STATUS_AKTIV: Record<PostStatus, string> = {
+  ENTWURF: 'bg-flaeche-tief text-tinte-3',
   KONZEPT: 'bg-konzept-flaeche text-konzept',
   VORSCHAU: 'bg-vorschau-flaeche text-vorschau',
   FINAL: 'bg-final-flaeche text-final',

@@ -93,7 +93,6 @@ const BEREICHE = [
   { pfad: '', text: 'Posts' },
   { pfad: '/kommentare', text: 'Kommentare' },
   { pfad: '/freigaben', text: 'Freigaben' },
-  { pfad: '/export', text: 'Export' },
   { pfad: '/stammdaten', text: 'Stammdaten' },
 ] as const
 

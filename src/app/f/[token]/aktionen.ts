@@ -123,7 +123,8 @@ export async function gastAbmelden(ziel = '/portal/anmelden') {
 
 export async function kommentarVomKunden(token: string, formular: FormData) {
   const exp = await prisma.export.findUnique({ where: { token } })
-  if (!exp || !exp.kommentareErlaubt) return
+  // Kommentare sind immer erlaubt — dafür ist die Freigabe da.
+  if (!exp) return
 
   const text = String(formular.get('text') ?? '').trim()
   if (!text) return
@@ -219,7 +220,8 @@ export async function gastKommentarLoeschen(token: string, kommentarId: string) 
  */
 export async function freigabeErteilen(token: string, postId: string, formular: FormData) {
   const exp = await prisma.export.findUnique({ where: { token } })
-  if (!exp || !exp.freigabenErlaubt) return
+  // Ob freigegeben wird, sagen die Stammdaten des Kunden, nicht der Link.
+  if (!exp) return
 
   const gast = await aktuellerGast()
   const nutzer = gast?.name.trim() ? null : await aktuellerNutzer()

@@ -4,10 +4,10 @@ import { aktuellerGast, aktuellerNutzer } from '@/lib/auth'
 import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
 import { darfBearbeiten, type Betrachter } from '@/lib/kommentar-rechte'
 import { zeitraumText } from '@/lib/benachrichtigungen'
-import { formatiereTag } from '@/lib/datum'
+import { formatiereTag, monatsTitel } from '@/lib/datum'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
-import { feedVorschau, istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
+import { feedVorschau, postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
@@ -15,6 +15,7 @@ import { medienUrl, thumbUrl } from '@/lib/urls'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
 import { Monatskalender, monateImZeitraum, type Kalendereintrag } from '@/components/kalender'
+import { Monatsleiste, type Monatseintrag } from '@/components/monatsleiste'
 import { PostSektion } from '@/components/post-sektion'
 import { Freigabefortschritt, KommentarBereich, PostFreigabe } from './interaktion'
 
@@ -41,18 +42,6 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   })
   if (!exp) notFound()
 
-  if (istAbgelaufen(exp.gueltigBis)) {
-    return (
-      <main className="mx-auto max-w-[520px] px-6 py-24 text-center">
-        <div className="text-[11px] uppercase tracking-[0.22em] text-leiser">preroll</div>
-        <h1 className="mt-4 text-[22px] font-semibold">Dieser Link ist abgelaufen</h1>
-        <p className="mt-2 text-[13.5px] leading-relaxed text-leise">
-          Der Freigabe-Zeitraum für {exp.kunde.name} ist beendet. Bitte wenden Sie sich an Ihre
-          Ansprechpartnerin oder Ihren Ansprechpartner für einen aktuellen Link.
-        </p>
-      </main>
-    )
-  }
 
   // Ein Freigabe-Link öffnet sich nie ohne Anmeldung. Die Sitzung gilt
   // 40 Tage — danach genügt der Link wieder allein.
@@ -83,6 +72,37 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
 
   const erwaehnbar = await erwaehnbarePersonen(exp.kundeId)
 
+  /*
+    Alle Monate dieses Kunden — die Leiste, über die der Kunde zwischen
+    seinen Freigaben wechselt. Bis hierher war ein Link eine Sackgasse: Wer
+    den Plan vom Vormonat noch einmal sehen wollte, musste die alte Mail
+    suchen.
+
+    Der Freigabestand je Monat kostet einen zweiten Durchlauf über die Posts;
+    bei einer Handvoll Monaten ist das nichts, und die Leiste ohne Stand wäre
+    nur eine Liste von Namen.
+  */
+  const alleFreigaben = await prisma.export.findMany({
+    where: { kundeId: exp.kundeId },
+    orderBy: { zeitraumVon: 'desc' },
+    include: { kunde: { include: { posts: { include: { freigaben: { select: { stufe: true } } } } } } },
+  })
+
+  const monate: Monatseintrag[] = alleFreigaben.map((f) => {
+    const stand = freigabeFortschritt(
+      postsImZeitraum(f.kunde.posts, {
+        zeitraumVon: f.zeitraumVon,
+        zeitraumBis: f.zeitraumBis,
+      }),
+    )
+    return {
+      token: f.token,
+      titel: monatsTitel(f.zeitraumVon),
+      erledigt: stand.erledigt,
+      gesamt: stand.gesamt,
+    }
+  })
+
   // Live-Sicht: bei jedem Aufruf frisch aus der Datenbank, kein Schnappschuss.
   const alle = await prisma.post.findMany({
     where: { kundeId: exp.kundeId },
@@ -94,11 +114,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     },
   })
 
-  const regeln = {
-    zeitraumVon: exp.zeitraumVon,
-    zeitraumBis: exp.zeitraumBis,
-    konzepteMitzeigen: exp.konzepteMitzeigen,
-  }
+  const regeln = { zeitraumVon: exp.zeitraumVon, zeitraumBis: exp.zeitraumBis }
   const sektionen = postsImZeitraum(alle, regeln)
   const kacheln = feedVorschau(alle, regeln)
 
@@ -157,7 +173,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
 
   // Bei eigenen Kanälen gibt es niemanden, der freigeben müsste — dann steht
   // auf der Seite auch nichts davon.
-  const mitFreigaben = exp.kunde.freigabenNoetig && exp.freigabenErlaubt
+  const mitFreigaben = exp.kunde.freigabenNoetig
   const fortschritt = freigabeFortschritt(sektionen)
   const freigabeleiste = mitFreigaben ? (
     <Freigabefortschritt erledigt={fortschritt.erledigt} gesamt={fortschritt.gesamt} />
@@ -172,7 +188,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
             Sie sehen diese Seite als {anzeigename} — genau so bekommt sie der Kunde. Kommentare
             und Freigaben tragen Ihren Namen.
           </span>
-          <a href={`/kunden/${exp.kunde.slug}/export`} className="underline underline-offset-2">
+          <a href={`/kunden/${exp.kunde.slug}/freigaben`} className="underline underline-offset-2">
             Zurück zur Verwaltung
           </a>
         </div>
@@ -197,10 +213,15 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
           { t: 'Beiträge', w: `${sektionen.length} · ${kwSpanne}` },
           { t: 'Kanal', w: 'Instagram' },
           ...(einstellungen.agenturName ? [{ t: 'Agentur', w: einstellungen.agenturName }] : []),
-          ...(exp.gueltigBis ? [{ t: 'Rückmeldung bis', w: formatiereTag(exp.gueltigBis) }] : []),
         ]}
         aktionMobil={freigabeleiste}
       />
+
+      {monate.length > 1 && (
+        <div className="mx-auto max-w-[1440px] px-5 pb-6 md:px-[72px]">
+          <Monatsleiste monate={monate} aktiv={token} mitFreigaben={mitFreigaben} />
+        </div>
+      )}
 
       {/* ---------------------------------------- Kalender + Feed-Vorschau */}
       <div className="mx-auto grid max-w-[1440px] items-start gap-8 px-5 pb-12 md:px-[72px] md:pb-16 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -305,7 +326,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
                   <KommentarBereich
                   token={token}
                   postId={post.id}
-                  erlaubt={exp.kommentareErlaubt}
+                  erlaubt
                   erwaehnbar={erwaehnbar}
                   kommentare={exp.kommentare
                     .filter((k) => k.postId === post.id)

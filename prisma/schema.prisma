@@ -323,6 +323,12 @@ enum Verhaeltnis {
 }
 
 enum PostStatus {
+  /**
+   * Vor dem Konzept: in Arbeit, nur intern. Geht in keine Freigabe, taucht
+   * in keiner Kundenansicht auf und hat in der Zeitleiste beim Kunden kein
+   * Gegenstück — für ihn beginnt der Weg beim Konzept.
+   */
+  ENTWURF
   KONZEPT
   VORSCHAU
   FINAL
@@ -474,21 +480,17 @@ model Export {
   token String @unique
   titel String?
 
-  zeitraumVon DateTime  @db.Date
-  zeitraumBis DateTime  @db.Date
-  gueltigBis  DateTime?
+  // Eine Freigabe umfasst immer genau einen Monat, vom Ersten bis zum
+  // Letzten. `zeitraumVon` ist damit zugleich die Kennung des Monats —
+  // deshalb je Kunde nur einmal.
+  zeitraumVon DateTime @db.Date
+  zeitraumBis DateTime @db.Date
 
   // Zusätzlicher Ansprechpartner nur für diesen Link. Er erscheint neben dem
   // Hauptansprechpartner des Kunden und bekommt dessen Rückmeldungen mit —
   // ersetzt ihn also nicht.
   zusatzAnsprechpartnerId String?
   zusatzAnsprechpartner   Nutzer? @relation("ZusatzAnsprechpartner", fields: [zusatzAnsprechpartnerId], references: [id], onDelete: SetNull)
-
-  kommentareErlaubt Boolean @default(true)
-  // Darf der Kunde auf dieser Seite freigeben? Freigaben hängen am einzelnen
-  // Post, nicht am Link.
-  freigabenErlaubt  Boolean @default(true)
-  konzepteMitzeigen Boolean @default(false)
 
   aufrufe          Int       @default(0)
   zuletztGeoeffnet DateTime?
@@ -501,6 +503,7 @@ model Export {
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt
 
+  @@unique([kundeId, zeitraumVon])
   @@index([kundeId])
   @@map("export")
 }

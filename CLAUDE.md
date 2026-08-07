@@ -194,6 +194,13 @@ npm run check   # Typecheck + Tests
   Zutritt hat. Erwähnte bekommen eine eigene Meldung und sind vom allgemeinen
   Verteiler ausgenommen — zwei Mails zum selben Kommentar liest niemand gern.
   In Mail, Push und PDF steht schlichtes `@Name` (`alsKlartext`).
+- **Eine Freigabe ist immer ein ganzer Monat.** Gewählt wird der Monat, nicht
+  Von und Bis; je Kunde und Monat gibt es genau eine (`@@unique`). Der Kunde
+  wechselt über die Monatsleiste zwischen ihnen — bis dahin war ein Link eine
+  Sackgasse. Was früher je Link einstellbar war, ist entfallen: Kommentare
+  sind immer erlaubt, Freigaben richten sich nach `Kunde.freigabenNoetig`,
+  Konzepte werden immer gezeigt, und eine Ablauffrist gibt es nicht mehr.
+  Heißt in der Oberfläche **Freigaben**, nicht mehr Export.
 - **Export ist eine Live-Sicht, kein Schnappschuss.** Änderungen an Posts
   erscheinen sofort im Freigabe-Link.
 - **Feed-Vorschau extern vs. intern.** Der Kunde sieht ältere/veröffentlichte
@@ -213,6 +220,12 @@ npm run check   # Typecheck + Tests
   sie zusammen (`upload-sitzung.ts`). Nebenbei gibt es dadurch einen echten
   Fortschrittsbalken. Bewusst **ohne** Wiederaufnahme nach Verbindungsabriss
   wie in Klappe: Preroll lädt Reels, keine 40-GB-Rushes.
+- **Fünf Phasen intern, vier beim Kunden.** Entwurf → Konzept → Vorschau →
+  Final, dazu berechnet „Gepostet". **`ENTWURF` verlässt das Haus nie:** in
+  keiner Freigabe, in keinem Raster, ohne Gegenstück in der Kunden-Zeitleiste
+  (`postsImZeitraum` siebt ihn aus). Neu angelegte Posts starten dort. Das
+  ersetzt den früheren Schalter „Konzepte mitzeigen" am Link — ob ein Beitrag
+  vorzeigbar ist, hängt am Beitrag, nicht am Monat.
 - **Vier Stufen beim Kunden, „Gepostet" wird berechnet.** Konzept → Vorschau
   → Final → Gepostet. Die letzte steht **nicht** in der Datenbank: Final plus
   Termin in der Vergangenheit ergibt „Gepostet" (`abgeleiteteStufe`). Ein

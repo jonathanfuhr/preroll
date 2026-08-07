@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerGast } from '@/lib/auth'
 import { zeitraumText } from '@/lib/benachrichtigungen'
 import { prisma } from '@/lib/db'
-import { istAbgelaufen, postsImZeitraum } from '@/lib/export-sicht'
+import { postsImZeitraum } from '@/lib/export-sicht'
 import { freigabeFortschritt } from '@/lib/freigabe'
 import { formatiereTag } from '@/lib/datum'
 import { thumbUrl } from '@/lib/urls'
@@ -57,13 +57,12 @@ export default async function PortalSeite() {
     const sichtbar = postsImZeitraum(exp.kunde.posts, {
       zeitraumVon: exp.zeitraumVon,
       zeitraumBis: exp.zeitraumBis,
-      konzepteMitzeigen: exp.konzepteMitzeigen,
     })
-    return { exp, stand: freigabeFortschritt(sichtbar), abgelaufen: istAbgelaufen(exp.gueltigBis) }
+    return { exp, stand: freigabeFortschritt(sichtbar) }
   })
 
-  const offen = mitStand.filter((e) => !e.stand.vollstaendig && !e.abgelaufen)
-  const erledigt = mitStand.filter((e) => e.stand.vollstaendig || e.abgelaufen)
+  const offen = mitStand.filter((e) => !e.stand.vollstaendig)
+  const erledigt = mitStand.filter((e) => e.stand.vollstaendig)
 
   return (
     <div className="min-h-screen">
@@ -107,7 +106,7 @@ export default async function PortalSeite() {
                     {gruppe.titel}
                   </h2>
                   <div className="grid gap-3">
-                    {gruppe.liste.map(({ exp, stand, abgelaufen }) => {
+                    {gruppe.liste.map(({ exp, stand }) => {
                       return (
                         <Karte key={exp.id} className="p-5">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -139,10 +138,6 @@ export default async function PortalSeite() {
                                 <span className="rounded-[3px] bg-final-flaeche px-2.5 py-1 text-[11.5px] font-medium text-final">
                                   freigegeben
                                 </span>
-                              ) : abgelaufen ? (
-                                <span className="rounded-[3px] bg-konzept-flaeche px-2.5 py-1 text-[11.5px] font-medium text-konzept">
-                                  abgelaufen
-                                </span>
                               ) : (
                                 <span className="rounded-[3px] bg-vorschau-flaeche px-2.5 py-1 text-[11.5px] font-medium text-vorschau">
                                   {stand.gesamt > 0
@@ -151,7 +146,7 @@ export default async function PortalSeite() {
                                 </span>
                               )}
 
-                              {!abgelaufen && (
+                              {(
                                 <Link
                                   href={`/f/${exp.token}`}
                                   className="rounded-[5px] border border-rahmen-3 px-3.5 py-1.5 text-[12.5px] font-medium text-tinte hover:border-rahmen-4"
@@ -164,10 +159,8 @@ export default async function PortalSeite() {
 
                           <p className="mt-3 text-[11.5px] text-stiller">
                             {stand.vollstaendig
-                              ? 'Alle Beiträge dieses Zeitraums sind freigegeben.'
-                              : exp.gueltigBis
-                                ? `Rückmeldung erbeten bis ${formatiereTag(exp.gueltigBis)}`
-                                : 'Ohne Frist'}
+                              ? 'Alle Beiträge dieses Monats sind freigegeben.'
+                              : 'Ihre Rückmeldung steht noch aus.'}
                           </p>
                         </Karte>
                       )
