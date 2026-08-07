@@ -151,7 +151,12 @@ function UngeplantSpalte({ eintraege }: { eintraege: Kalendereintrag[] }) {
   return (
     <div
       ref={setNodeRef}
-      className={`w-[228px] shrink-0 self-start rounded-md border p-3 transition-colors ${
+      /*
+        Am Telefon steht die Spalte über dem Kalender statt daneben: Bei
+        375 px blieben dem Monat sonst 95 px — sieben Spalten in der Breite
+        eines Daumens.
+      */
+      className={`w-full shrink-0 self-start rounded-md border p-3 transition-colors md:w-[228px] ${
         isOver ? 'border-akzent bg-akzent-zart' : 'border-rahmen bg-flaeche'
       }`}
     >
@@ -273,7 +278,13 @@ export function KalenderPlanung({
       <div className="flex flex-wrap items-start gap-5">
         <UngeplantSpalte eintraege={ungeplant} />
 
-        <div className="min-w-[520px] flex-1">
+        {/*
+          Sieben Spalten brauchen ihre 520 px. Am Telefon rollt der Kalender
+          deshalb waagerecht in seiner Karte — schmaler wären die Tage nur
+          noch Striche, und die Woche als Ganzes ist der Sinn der Ansicht.
+        */}
+        <div className="min-w-0 flex-1 overflow-x-auto pb-1">
+        <div className="min-w-[520px]">
           <div className="mb-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-1">
               <button
@@ -337,6 +348,7 @@ export function KalenderPlanung({
               </div>
             ))}
           </div>
+        </div>
         </div>
       </div>
 

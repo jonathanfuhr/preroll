@@ -79,11 +79,11 @@ export function SzenenplanUebertragen({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-tinte/25 px-6 py-10"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-tinte/25 px-3 py-6 sm:px-6 sm:py-10"
       onClick={schliessen}
     >
       <div
-        className="w-full max-w-[760px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl"
+        className="w-full max-w-[760px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-4">

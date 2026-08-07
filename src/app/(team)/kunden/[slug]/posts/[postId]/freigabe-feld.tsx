@@ -90,8 +90,8 @@ export function FreigabeFeld({
       )}
 
       {dialog && offen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6">
-          <div className="w-full max-w-[440px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-3 sm:px-6">
+          <div className="w-full max-w-[440px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6">
             <h3 className="text-[16px] font-semibold">{STUFE_TEXT[offen]}-Freigabe eintragen</h3>
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-leise">
               Für den Fall, dass der Kunde außerhalb der Export-Seite zugestimmt hat. Der Eintrag

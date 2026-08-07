@@ -10,7 +10,7 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { thumbUrl } from '@/lib/urls'
 import { Benutzermenue, Glocke } from '@/components/kopfleiste'
 import { Brotkrumen, BrotkrumenSpeicher } from '@/components/brotkrumen'
-import { Seitenleiste } from '@/components/seitenleiste'
+import { Navigationsknopf, Seitenleiste } from '@/components/seitenleiste'
 
 async function abmelden() {
   'use server'
@@ -87,25 +87,27 @@ export default async function TeamLayout({
     if (slug) jeKunde[slug] = (jeKunde[slug] ?? 0) + eintrag._count
   }
 
+  const navigation = {
+    kunden: kunden.map((k) => ({
+      id: k.id,
+      slug: k.slug,
+      name: k.name,
+      logo: thumbUrl(k.logoId),
+    })),
+    favoriten: favoriten.map((f) => ({
+      id: f.kunde.id,
+      slug: f.kunde.slug,
+      name: f.kunde.name,
+      logo: thumbUrl(f.kunde.logoId),
+    })),
+    offeneKommentare: jeKunde,
+    umschalten: favoritUmschalten,
+  }
+
   return (
     <BrotkrumenSpeicher>
       <div className="flex min-h-screen">
-        <Seitenleiste
-          kunden={kunden.map((k) => ({
-            id: k.id,
-            slug: k.slug,
-            name: k.name,
-            logo: thumbUrl(k.logoId),
-          }))}
-          favoriten={favoriten.map((f) => ({
-            id: f.kunde.id,
-            slug: f.kunde.slug,
-            name: f.kunde.name,
-            logo: thumbUrl(f.kunde.logoId),
-          }))}
-          offeneKommentare={jeKunde}
-          umschalten={favoritUmschalten}
-        />
+        <Seitenleiste {...navigation} />
 
         {/*
           Arbeitsfläche hell wie in den Mockups: Der Inhalt steht auf Weiß,
@@ -113,10 +115,13 @@ export default async function TeamLayout({
           Karten — wirkt schwerer und war nie so gezeichnet.
         */}
         <div className="min-w-0 flex-1 bg-flaeche">
-          <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between gap-6 border-b border-rahmen bg-flaeche/95 px-8 backdrop-blur">
-            <Brotkrumen
-              kunden={kunden.map((k) => ({ slug: k.slug, name: k.name }))}
-            />
+          <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between gap-3 border-b border-rahmen bg-flaeche/95 px-4 backdrop-blur md:gap-6 md:px-8">
+            <div className="flex min-w-0 items-center gap-2">
+              <Navigationsknopf {...navigation} />
+              <Brotkrumen
+                kunden={kunden.map((k) => ({ slug: k.slug, name: k.name }))}
+              />
+            </div>
 
             <div className="flex items-center gap-2">
               <Glocke
@@ -148,7 +153,7 @@ export default async function TeamLayout({
             Deshalb im ganzen Backend, nicht nur in den Einstellungen.
           */}
           {einstellungen.instagramFehler && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-8 py-2.5 text-[12.5px] text-akzent-dunkel">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-4 py-2.5 text-[12.5px] text-akzent-dunkel md:px-8">
               <strong className="font-semibold">Instagram-Sitzung abgelaufen</strong>
               <span className="text-akzent-dunkel/80">
                 Videos von Instagram lassen sich bis zur Erneuerung nicht laden.
@@ -161,7 +166,7 @@ export default async function TeamLayout({
             </div>
           )}
 
-          <main className="px-8 py-8">{children}</main>
+          <main className="px-4 py-6 md:px-8 md:py-8">{children}</main>
         </div>
       </div>
     </BrotkrumenSpeicher>

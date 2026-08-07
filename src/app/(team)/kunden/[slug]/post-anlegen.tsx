@@ -65,8 +65,8 @@ export function PostAnlegen({ kundeId }: { kundeId: string }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6">
-      <div className="w-full max-w-[520px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-3 sm:px-6">
+      <div className="w-full max-w-[520px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6">
         <h3 className="mb-1 text-[16px] font-semibold">Neuer Post</h3>
         <p className="mb-5 text-[12.5px] leading-relaxed text-leise">
           Termin, Caption und Medien kommen im nächsten Schritt.

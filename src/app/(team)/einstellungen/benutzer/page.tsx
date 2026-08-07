@@ -98,7 +98,7 @@ export default async function BenutzerSeite({
               hinweis={`Redirect-URI im Entra Admin Center: ${env.appUrl}/api/auth/m365/callback`}
               defaultChecked={e.m365LoginErlaubt}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Verzeichnis-ID (Tenant)">
                 <Eingabe name="m365TenantId" defaultValue={e.m365TenantId ?? ''} />
               </Feld>

@@ -24,7 +24,7 @@ export default async function WorkspaceSeite({
       <Abschnitt titel="Workspace" hinweis="Name und Akzentfarbe erscheinen in der Oberfläche und in Mails.">
         <Karte className="p-5">
           <form action={workspaceSpeichern} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Name">
                 <Eingabe name="workspaceName" defaultValue={e.workspaceName} />
               </Feld>

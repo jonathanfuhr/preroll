@@ -84,7 +84,7 @@ export default async function FreigabenSeite({
             text="Eine Freigabe zeigt dem Kunden einen ganzen Monat — Kalender, Feed-Vorschau und jeden Beitrag im iPhone-Rahmen. Als Live-Sicht, nicht als Schnappschuss."
           />
         ) : (
-          <div className="grid gap-4">
+          <div className="grid min-w-0 gap-4">
             {freigaben.map((exp) => (
               <ExportKarte
                 key={exp.id}

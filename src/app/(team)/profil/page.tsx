@@ -49,7 +49,7 @@ export default async function ProfilSeite({
           </div>
 
           <form action={profilSpeichern} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Name">
                 <Eingabe name="name" defaultValue={nutzer.name} required />
               </Feld>
@@ -57,7 +57,7 @@ export default async function ProfilSeite({
                 <Eingabe name="email" type="email" defaultValue={nutzer.email} required />
               </Feld>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Position">
                 <Eingabe name="position" defaultValue={nutzer.position ?? ''} placeholder="Projektleitung" />
               </Feld>
@@ -91,7 +91,7 @@ export default async function ProfilSeite({
             <Feld beschriftung="Bisheriges Passwort">
               <Eingabe name="alt" type="password" required autoComplete="current-password" />
             </Feld>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Neues Passwort" hinweis={passwortRegelText()}>
                 <Eingabe name="neu" type="password" required autoComplete="new-password" />
               </Feld>

@@ -54,7 +54,7 @@ export function MailFelder({
       </Feld>
 
       {transport !== 'DEAKTIVIERT' && transport !== 'GOOGLE' && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Feld beschriftung="Absender-Name">
             <Eingabe name="mailVonName" defaultValue={e.mailVonName ?? ''} placeholder="THD Video" />
           </Feld>
@@ -121,7 +121,7 @@ export function MailFelder({
             onChange={(ev) => setSicher(ev.target.checked)}
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Feld beschriftung="Benutzer">
               <Eingabe name="smtpBenutzer" defaultValue={e.smtpBenutzer ?? ''} />
             </Feld>
@@ -143,7 +143,7 @@ export function MailFelder({
             <code className="font-mono">Mail.Send</code> und erteilter Administratorzustimmung.
             Gesendet wird aus dem angegebenen Postfach.
           </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Feld beschriftung="Verzeichnis-ID (Tenant)">
               <Eingabe name="msTenantId" defaultValue={e.msTenantId ?? ''} />
             </Feld>
@@ -171,7 +171,7 @@ export function MailFelder({
             <code className="font-mono">gmail.send</code>. Das Refresh-Token wird einmalig für das
             sendende Konto erzeugt und hier hinterlegt.
           </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Feld beschriftung="Client-ID">
               <Eingabe name="googleClientId" defaultValue={e.googleClientId ?? ''} />
             </Feld>

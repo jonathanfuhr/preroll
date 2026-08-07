@@ -159,13 +159,27 @@ export function Postliste({
         <Leerzustand titel="Nichts gefunden" text="Andere Suche oder anderer Filter." />
       ) : (
         <Karte className="overflow-hidden">
-          <table className="w-full border-collapse text-[13px]">
+          {/*
+            Neun Spalten passen auf kein Telefon. Statt sie dort wegzulassen
+            — und jemanden vor einer Liste sitzen zu lassen, die weniger
+            zeigt als der Rechner — rollt die Tabelle waagerecht in ihrer
+            Karte. Die Seite selbst bleibt dabei stehen.
+          */}
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] border-collapse text-[13px] md:min-w-[820px]">
             <thead>
               <tr className="border-b border-rahmen bg-flaeche-leise text-left">
+                {/*
+                  Die KW steht am Telefon nicht mit: Sie lässt sich aus dem
+                  Datum daneben ablesen, und die 55 px entscheiden darüber,
+                  ob der Titel ohne Rollen im Bild ist.
+                */}
                 {['', 'KW', 'Datum', 'Typ', 'Titel', 'Status', 'Wer', 'Kommentare', ''].map((kopf, i) => (
                   <th
                     key={i}
-                    className="px-3 py-2.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still"
+                    className={`px-3 py-2.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still ${
+                      kopf === 'KW' ? 'hidden md:table-cell' : ''
+                    }`}
                   >
                     {kopf}
                   </th>
@@ -189,28 +203,31 @@ export function Postliste({
                     key={zeile.id}
                     className="border-b border-rahmen last:border-b-0 hover:bg-flaeche-leise"
                   >
-                    <td className="w-14 px-3 py-2">
+                    <td className="w-11 px-2 py-2 md:w-14 md:px-3">
                       <Link href={`/kunden/${slug}/posts/${zeile.id}`} className="block">
                         {zeile.bild ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={zeile.bild}
                             alt=""
-                            className="aspect-[3/4] w-9 rounded-[3px] object-cover"
+                            className="aspect-[3/4] w-7 rounded-[3px] object-cover md:w-9"
                           />
                         ) : (
-                          <span className="schraffur block aspect-[3/4] w-9 rounded-[3px] border border-dashed border-rahmen-3" />
+                          <span className="schraffur block aspect-[3/4] w-7 rounded-[3px] border border-dashed border-rahmen-3 md:w-9" />
                         )}
                       </Link>
                     </td>
-                    <td className="px-3 py-2 font-mono text-[11.5px] text-still">
+                    <td className="hidden px-3 py-2 font-mono text-[11.5px] text-still md:table-cell">
                       {zeile.postenAm ? kalenderwoche(zeile.postenAm) : '—'}
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 text-tinte-3">
                       {zeile.postenAm ? (
                         <>
                           {DATUM.format(zeile.postenAm)}
-                          <span className="ml-1.5 text-still">{UHRZEIT.format(zeile.postenAm)}</span>
+                          {/* Am Telefon zweizeilig — nebeneinander kosten sie 55 px, die dem Titel fehlen. */}
+                          <span className="block text-still md:ml-1.5 md:inline">
+                            {UHRZEIT.format(zeile.postenAm)}
+                          </span>
                         </>
                       ) : (
                         <span className="text-stiller">ungeplant</span>
@@ -248,6 +265,7 @@ export function Postliste({
               </tbody>
             ))}
           </table>
+          </div>
         </Karte>
       )}
     </>

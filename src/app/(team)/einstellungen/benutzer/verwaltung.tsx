@@ -76,7 +76,12 @@ export function NutzerZeile({ nutzer }: { nutzer: NutzerDaten }) {
   const [offen, setOffen] = useState(false)
 
   return (
-    <Karte className={`p-4 ${nutzer.aktiv ? '' : 'opacity-60'}`}>
+    /*
+      `min-w-0`, weil ein Rasterfeld sonst nicht unter seine Mindestbreite
+      geht: Die lange Mailzeile mit den betreuten Kunden schob die Karte am
+      Telefon über den Rand hinaus, statt sich abschneiden zu lassen.
+    */
+    <Karte className={`min-w-0 p-4 ${nutzer.aktiv ? '' : 'opacity-60'}`}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3.5">
           {nutzer.foto ? (
@@ -103,7 +108,7 @@ export function NutzerZeile({ nutzer }: { nutzer: NutzerDaten }) {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <RolleInZeile nutzer={nutzer} />
           <Knopf klein art="leise" onClick={() => setOffen((v) => !v)}>
             {offen ? 'Schließen' : 'Bearbeiten'}
@@ -115,7 +120,7 @@ export function NutzerZeile({ nutzer }: { nutzer: NutzerDaten }) {
         <div className="mt-4 grid gap-5 border-t border-rahmen pt-4">
           {/* Die Rolle fehlt hier bewusst — sie steht oben in der Zeile. */}
           <form action={nutzerSpeichern.bind(null, nutzer.id)} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Name">
                 <Eingabe name="name" defaultValue={nutzer.name} required />
               </Feld>
@@ -124,7 +129,7 @@ export function NutzerZeile({ nutzer }: { nutzer: NutzerDaten }) {
               </Feld>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Position" hinweis="Steht im Kontakt-Fuß der Export-Seite.">
                 <Eingabe
                   name="position"
@@ -208,11 +213,11 @@ export function NutzerAnlegen() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-tinte/25 px-6 py-10"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-tinte/25 px-3 py-6 sm:px-6 sm:py-10"
       onClick={() => setOffen(false)}
     >
       <div
-        className="w-full max-w-[520px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl"
+        className="w-full max-w-[520px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-start justify-between gap-4">
@@ -234,7 +239,7 @@ export function NutzerAnlegen() {
         </div>
 
         <form ref={formular} action={nutzerAnlegen} className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Feld beschriftung="Name">
               <Eingabe name="name" required autoFocus placeholder="Vor- und Nachname" />
             </Feld>
@@ -243,7 +248,7 @@ export function NutzerAnlegen() {
             </Feld>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Feld beschriftung="Rolle">
               <RollenWahl name="rolle" />
             </Feld>
@@ -252,7 +257,7 @@ export function NutzerAnlegen() {
             </Feld>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Feld beschriftung="Telefon">
               <Eingabe name="telefon" />
             </Feld>

@@ -338,6 +338,20 @@ Die **Arbeitsfläche des Backends ist weiß**, die Seitenleiste leicht getönt
 Kontrast zum Hintergrund. Umgekehrt (graue Fläche, weiße Karten) wirkt
 schwerer und war nie so gezeichnet.
 
+**Das Backend ist Desktop-first, aber nicht Desktop-only.** Unterwegs
+schaut jemand nach, was ansteht, oder schiebt einen Beitrag weiter — das
+muss gehen. Ab **`md` (768 px)** steht die Seitenleiste am Rand, darunter
+liegt derselbe Inhalt in einer **Schublade** hinter dem Knopf in der
+Kopfzeile (`Navigationsknopf`); 224 px feste Leiste ließen von 390 px
+nichts übrig. Was breiter ist als der Bildschirm — **Post-Tabelle und
+Monatskalender** — rollt **waagerecht in seiner Karte**, nie die Seite.
+Spalten werden dabei nicht weggelassen, nur umsortiert nach Wichtigkeit:
+Die KW steht am Telefon nicht mit (sie ist aus dem Datum ablesbar), die
+Uhrzeit rutscht unter das Datum, und das Vorschaubild wird kleiner —
+zusammen genug, damit **Datum, Typ und Titel ohne Rollen im Bild sind**.
+Zweispaltige Formulare stapeln unter `sm`. Dialoge tragen am Telefon
+schmalere Ränder (`px-3`, `p-5`).
+
 Die Kundenseite wird oft am Telefon geöffnet. Was dort anders läuft:
 Karussells lassen sich **wischen** (nur waagerecht, sonst blättert jedes
 Scrollen), die Statusleiste steht **mittig** und öffnet ihre Erklärung per

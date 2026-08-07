@@ -64,8 +64,8 @@ export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlba
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6">
-      <div className="w-full max-w-[460px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-3 sm:px-6">
+      <div className="w-full max-w-[460px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6">
         <h3 className="mb-5 text-[16px] font-semibold">Neue Freigabe</h3>
 
         {/* Schließt nach dem Anlegen — ein Dialog, der stehen bleibt, sieht
@@ -127,8 +127,8 @@ export function ExportKarte({
   return (
     <Karte className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
             <h3 className="text-[14.5px] font-semibold">{exp.titel ?? exp.monatTitel}</h3>
             {exp.stand.vollstaendig ? (
               <span className="rounded-[3px] bg-final-flaeche px-2 py-0.5 text-[11px] font-medium text-final">
@@ -149,7 +149,7 @@ export function ExportKarte({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={`/f/${exp.token}`}
             target="_blank"

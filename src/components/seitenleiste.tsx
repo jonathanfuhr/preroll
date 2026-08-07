@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import type { ReactNode } from 'react'
 
 /**
@@ -135,17 +135,37 @@ function Punkt({
   )
 }
 
-export function Seitenleiste({
-  kunden,
-  favoriten,
-  offeneKommentare,
-  umschalten,
-}: {
+export type Navigationsdaten = {
   kunden: KundeEintrag[]
   /** Angeheftete Kunden dieses Nutzers — stehen dauerhaft in der Leiste. */
   favoriten: KundeEintrag[]
   offeneKommentare: Record<string, number>
   umschalten: (kundeId: string) => Promise<void>
+}
+
+/**
+ * Die Leiste am Rand — ab `md` (768 px) immer da. Darunter bliebe für die
+ * Arbeitsfläche zu wenig übrig; dort steckt derselbe Inhalt in der Schublade
+ * hinter dem Knopf in der Kopfzeile (`Navigationsknopf`).
+ */
+export function Seitenleiste(daten: Navigationsdaten) {
+  return (
+    <aside className="sticky top-0 hidden h-screen w-[224px] shrink-0 flex-col border-r border-rahmen bg-flaeche-leise pb-6 pt-[26px] md:flex">
+      <Navigationsinhalt {...daten} />
+      <div className="flex-1" />
+    </aside>
+  )
+}
+
+function Navigationsinhalt({
+  kunden,
+  favoriten,
+  offeneKommentare,
+  umschalten,
+  aufAuswahl,
+}: Navigationsdaten & {
+  /** In der Schublade schließt jeder Sprung sie wieder. */
+  aufAuswahl?: () => void
 }) {
   const pfad = usePathname()
   const slug = offenerKunde(pfad, kunden)
@@ -153,7 +173,7 @@ export function Seitenleiste({
   const basis = kunde ? `/kunden/${kunde.slug}` : ''
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[224px] shrink-0 flex-col border-r border-rahmen bg-flaeche-leise pb-6 pt-[26px]">
+    <div onClick={aufAuswahl}>
       <div className="px-[22px] pb-[30px]">
         <Link href="/kunden" className="text-[12px] uppercase tracking-[0.24em] text-tinte">
           preroll
@@ -220,8 +240,57 @@ export function Seitenleiste({
           </Punkt>
         </div>
       </nav>
+    </div>
+  )
+}
 
-      <div className="flex-1" />
-    </aside>
+/**
+ * Am Telefon steht die Navigation hinter einem Knopf in der Kopfzeile. Als
+ * feste Leiste bliebe vom Bildschirm nichts übrig — 224 px von 390.
+ *
+ * Geschlossen wird beim Sprung: Ein Overlay, das nach dem Klick noch über
+ * der Zielseite liegt, fühlt sich an wie ein hängengebliebener Klick.
+ */
+export function Navigationsknopf(daten: Navigationsdaten) {
+  const [offen, setOffen] = useState(false)
+  const pfad = usePathname()
+
+  // Auch die Rücktaste des Browsers schließt sie — sonst bleibt sie offen,
+  // während sich die Seite darunter schon geändert hat.
+  useEffect(() => setOffen(false), [pfad])
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOffen(true)}
+        aria-label="Navigation öffnen"
+        aria-expanded={offen}
+        className="-ml-1.5 shrink-0 rounded-[5px] p-2 text-tinte-3 transition-colors hover:bg-flaeche-tief hover:text-tinte md:hidden"
+      >
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+          {[4, 9, 14].map((y) => (
+            <line key={y} x1="1.5" y1={y} x2="16.5" y2={y} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          ))}
+        </svg>
+      </button>
+
+      {offen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div
+            className="flex h-full w-[264px] max-w-[82vw] flex-col overflow-y-auto border-r border-rahmen bg-flaeche-leise pb-6 pt-[26px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Navigationsinhalt {...daten} aufAuswahl={() => setOffen(false)} />
+          </div>
+          <button
+            type="button"
+            aria-label="Navigation schließen"
+            onClick={() => setOffen(false)}
+            className="h-full flex-1 bg-tinte/25"
+          />
+        </div>
+      )}
+    </>
   )
 }

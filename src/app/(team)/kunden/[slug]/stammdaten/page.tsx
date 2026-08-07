@@ -66,7 +66,7 @@ export default async function StammdatenSeite({
           <form id="kennzahlen-holen" action={kennzahlenHolen.bind(null, kunde.id, slug)} />
 
           <form action={kundeSpeichern.bind(null, kunde.id)} className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Feld beschriftung="Name">
                 <Eingabe name="name" defaultValue={kunde.name} required />
               </Feld>

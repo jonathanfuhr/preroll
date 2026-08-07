@@ -39,14 +39,14 @@ export default async function KommentareSeite({
 
   return (
     <div className="max-w-[880px]">
-      <div className="mb-6 flex items-end justify-between gap-6">
-        <div>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 md:gap-6">
+        <div className="min-w-0">
           <h1 className="text-[24px] font-semibold tracking-[-0.02em]">Kommentare</h1>
           <p className="mt-1 text-[13px] text-leise">
             Rückmeldungen aus allen Freigabe-Links, neueste zuerst.
           </p>
         </div>
-        <div className="flex overflow-hidden rounded-[5px] border border-rahmen-3">
+        <div className="flex shrink-0 overflow-hidden rounded-[5px] border border-rahmen-3">
           {[
             { href: '/kommentare', text: 'Offen', aktiv: nurOffene },
             { href: '/kommentare?status=alle', text: 'Alle', aktiv: !nurOffene },

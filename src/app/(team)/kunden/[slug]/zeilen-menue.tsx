@@ -85,11 +85,11 @@ export function ZeilenMenue({ postId, status }: { postId: string; status: PostSt
 
       {statusDialog && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-3 sm:px-6"
           onClick={() => setStatusDialog(false)}
         >
           <div
-            className="w-full max-w-[380px] rounded-md border border-rahmen bg-flaeche p-6 shadow-xl"
+            className="w-full max-w-[380px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="mb-1 text-[15px] font-semibold">Status wechseln</h3>

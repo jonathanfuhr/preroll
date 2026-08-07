@@ -159,7 +159,8 @@ export function Benutzermenue({
         onClick={() => setOffen((v) => !v)}
         className="flex items-center gap-2.5 rounded-[5px] py-1 pl-2 pr-1.5 transition-colors hover:bg-flaeche-tief"
       >
-        <span className="text-right">
+        {/* Am Telefon genügt das Bild — der Name steht im Menü darunter. */}
+        <span className="hidden text-right sm:block">
           <span className="block text-[12.5px] font-medium leading-tight text-tinte">{name}</span>
           <span className="block text-[10.5px] leading-tight text-still">{workspace}</span>
         </span>
