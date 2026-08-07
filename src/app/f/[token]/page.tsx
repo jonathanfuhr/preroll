@@ -15,7 +15,7 @@ import { medienUrl, thumbUrl } from '@/lib/urls'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
 import { Monatskalender, monateImZeitraum, type Kalendereintrag } from '@/components/kalender'
-import { Monatsleiste, type Monatseintrag } from '@/components/monatsleiste'
+import { Monatsleiste, MonatsleisteMobil, type Monatseintrag } from '@/components/monatsleiste'
 import { PostSektion } from '@/components/post-sektion'
 import { Freigabefortschritt, KommentarBereich, PostFreigabe } from './interaktion'
 
@@ -180,7 +180,16 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   ) : null
 
   return (
-    <div className="min-h-screen">
+    /*
+      Wie im Backend: Die Monatsleiste steht am linken Bildschirmrand, über
+      die volle Höhe, und bleibt beim Scrollen stehen. Am Telefon gibt es
+      dafür keinen Platz — dort wird daraus eine waagerechte Reihe unter der
+      Kopfzeile (`MonatsleisteMobil`).
+    */
+    <div className="flex min-h-screen">
+      <Monatsleiste monate={monate} aktiv={token} mitFreigaben={mitFreigaben} />
+
+      <div className="min-w-0 flex-1">
       {alsTeam && (
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 bg-tinte px-5 py-2 text-center text-[12px] text-white">
           <strong className="font-medium">Vorschau</strong>
@@ -194,11 +203,14 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         </div>
       )}
 
+      <MonatsleisteMobil monate={monate} aktiv={token} mitFreigaben={mitFreigaben} />
+
       <ExportTopbar
         kunde={exp.kunde.name}
         logo={thumbUrl(exp.kunde.logoId)}
         titel={exp.titel ?? `Content-Plan ${zeitraum}`}
         aktion={freigabeleiste}
+        ohneMarke={monate.length > 1}
       />
 
       <ExportHero
@@ -216,12 +228,6 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         ]}
         aktionMobil={freigabeleiste}
       />
-
-      {monate.length > 1 && (
-        <div className="mx-auto max-w-[1440px] px-5 pb-6 md:px-[72px]">
-          <Monatsleiste monate={monate} aktiv={token} mitFreigaben={mitFreigaben} />
-        </div>
-      )}
 
       {/* ---------------------------------------- Kalender + Feed-Vorschau */}
       <div className="mx-auto grid max-w-[1440px] items-start gap-8 px-5 pb-12 md:px-[72px] md:pb-16 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -366,6 +372,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
           agenturWebsite={einstellungen.agenturWebsite}
         />
       )}
+      </div>
     </div>
   )
 }

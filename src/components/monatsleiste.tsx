@@ -9,15 +9,16 @@ export type Monatseintrag = {
 }
 
 /**
- * Alle Monate eines Kunden — die Leiste, über die er zwischen seinen
+ * Alle Monate eines Kunden — die Seitenleiste, über die er zwischen seinen
  * Freigaben wechselt.
  *
  * Bis hierher war ein Link eine Sackgasse: Wer den Plan vom Juli noch einmal
  * sehen wollte, musste die alte Mail suchen. Da jede Freigabe genau einen
  * Monat umfasst, ist die Liste der Monate zugleich die Navigation.
  *
- * Auf dem Telefon wird daraus eine waagerechte Reihe — eine Seitenleiste
- * neben 375 px Inhalt gibt es nicht.
+ * Gebaut wie die Seitenleiste im Backend: am Bildschirmrand, über die volle
+ * Höhe, beim Scrollen stehenbleibend. Am Telefon gibt es dafür keinen Platz —
+ * dort wird daraus eine waagerechte Reihe über dem Inhalt.
  */
 export function Monatsleiste({
   monate,
@@ -33,43 +34,84 @@ export function Monatsleiste({
   if (monate.length < 2) return null
 
   return (
+    <aside
+      aria-label="Monate"
+      className="sticky top-0 hidden h-screen w-[200px] shrink-0 flex-col border-r border-rahmen bg-flaeche-leise pt-[26px] lg:flex"
+    >
+      {/* Dieselbe Marke an derselben Stelle wie im Backend — nur ohne Link,
+          der Kunde hat hier keinen Ort, an den er zurückkönnte. */}
+      <div className="px-[22px] pb-[30px] text-[12px] uppercase tracking-[0.24em] text-tinte">
+        preroll
+      </div>
+
+      <div className="px-5 pb-3 text-[10.5px] uppercase tracking-[0.14em] text-still">
+        Alle Monate
+      </div>
+
+      <nav className="grid gap-0.5 overflow-y-auto px-3">
+        {monate.map((monat) => (
+          <Eintrag key={monat.token} monat={monat} aktiv={aktiv} mitFreigaben={mitFreigaben} />
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+/** Dieselben Monate als waagerechte Reihe — für Telefon und Tablet. */
+export function MonatsleisteMobil({
+  monate,
+  aktiv,
+  mitFreigaben,
+}: {
+  monate: Monatseintrag[]
+  aktiv: string
+  mitFreigaben: boolean
+}) {
+  if (monate.length < 2) return null
+
+  return (
     <nav
       aria-label="Monate"
-      className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:gap-1 lg:overflow-visible lg:pb-0"
+      className="flex gap-1.5 overflow-x-auto border-b border-rahmen bg-flaeche-leise px-4 py-2 lg:hidden"
     >
-      <span className="hidden pb-1 text-[10.5px] uppercase tracking-[0.14em] text-still lg:block">
-        Alle Monate
-      </span>
-
-      {monate.map((monat) => {
-        const hier = monat.token === aktiv
-        const fertig = mitFreigaben && monat.gesamt > 0 && monat.erledigt === monat.gesamt
-
-        return (
-          <Link
-            key={monat.token}
-            href={`/f/${monat.token}`}
-            aria-current={hier ? 'page' : undefined}
-            className={`flex shrink-0 items-center gap-2 rounded-[5px] border px-3 py-2 text-[12.5px] transition-colors lg:justify-between ${
-              hier
-                ? 'border-rahmen-4 bg-flaeche font-medium text-tinte'
-                : 'border-transparent text-leise hover:border-rahmen-3 hover:text-tinte'
-            }`}
-          >
-            <span className="whitespace-nowrap">{monat.titel}</span>
-
-            {mitFreigaben && (
-              <span
-                aria-hidden
-                title={fertig ? 'alle freigegeben' : `${monat.erledigt} von ${monat.gesamt}`}
-                className={`block size-[7px] shrink-0 rounded-full ${
-                  fertig ? 'bg-final' : 'bg-vorschau'
-                }`}
-              />
-            )}
-          </Link>
-        )
-      })}
+      {monate.map((monat) => (
+        <Eintrag key={monat.token} monat={monat} aktiv={aktiv} mitFreigaben={mitFreigaben} />
+      ))}
     </nav>
+  )
+}
+
+function Eintrag({
+  monat,
+  aktiv,
+  mitFreigaben,
+}: {
+  monat: Monatseintrag
+  aktiv: string
+  mitFreigaben: boolean
+}) {
+  const hier = monat.token === aktiv
+  const fertig = mitFreigaben && monat.gesamt > 0 && monat.erledigt === monat.gesamt
+
+  return (
+    <Link
+      href={`/f/${monat.token}`}
+      aria-current={hier ? 'page' : undefined}
+      className={`flex shrink-0 items-center gap-2.5 rounded-[5px] px-3 py-2.5 text-[13px] transition-colors lg:justify-between ${
+        hier
+          ? 'bg-flaeche font-medium text-tinte shadow-[0_1px_2px_rgba(28,22,16,.06)]'
+          : 'text-leise hover:text-tinte'
+      }`}
+    >
+      <span className="whitespace-nowrap">{monat.titel}</span>
+
+      {mitFreigaben && (
+        <span
+          aria-hidden
+          title={fertig ? 'alle freigegeben' : `${monat.erledigt} von ${monat.gesamt} freigegeben`}
+          className={`block size-[7px] shrink-0 rounded-full ${fertig ? 'bg-final' : 'bg-vorschau'}`}
+        />
+      )}
+    </Link>
   )
 }

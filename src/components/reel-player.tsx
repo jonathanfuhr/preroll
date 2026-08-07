@@ -86,14 +86,21 @@ export function ReelRahmen({
 
   return (
     <Kontext.Provider value={{ video, laeuft, zeigeThumbnail, schalte, thumbnail, quelle }}>
-      <div className="relative">
+      {/* Mobil sitzt der Ton-Knopf oben — dafür braucht es dort Luft. */}
+      <div className={`relative ${quelle ? 'pt-11 sm:pt-0' : ''}`}>
         {quelle && (
           <button
             type="button"
             onClick={() => setStumm((s) => !s)}
             aria-label={stumm ? 'Ton einschalten' : 'Stummschalten'}
             title={stumm ? 'Ton einschalten' : 'Stummschalten'}
-            className="absolute -left-11 top-2 z-30 flex size-9 items-center justify-center rounded-full border border-rahmen bg-flaeche text-tinte shadow-sm transition-colors hover:border-rahmen-4"
+            /*
+              Am Telefon über dem Rahmen, sonst links daneben. Neben dem
+              Gerät ist links kein Platz — auf 375 px steht der Rahmen selbst
+              schon fast an der Kante, und der Knopf rutschte aus dem Bild.
+              Innen kann er nicht sitzen: Der Schirm ist `overflow: hidden`.
+            */
+            className="absolute top-0 right-0 z-30 flex size-9 items-center justify-center rounded-full border border-rahmen bg-flaeche text-tinte shadow-sm transition-colors hover:border-rahmen-4 sm:-left-11 sm:right-auto sm:top-2"
           >
             {stumm ? <StummZeichen /> : <TonZeichen />}
           </button>

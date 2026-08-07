@@ -13,19 +13,26 @@ export function ExportTopbar({
   logo,
   titel,
   aktion,
+  ohneMarke,
 }: {
   kunde: string
   logo: string | null
   titel: string
   aktion: ReactNode
+  /** Steht links die Monatsleiste, trägt sie die Marke — hier wäre sie doppelt. */
+  ohneMarke?: boolean
 }) {
   return (
     <div className="sticky top-0 z-40 border-b border-rahmen bg-flaeche/95 backdrop-blur">
       {/* Desktop */}
       <div className="mx-auto hidden h-[68px] max-w-[1440px] items-center justify-between px-10 md:flex">
         <div className="flex items-center gap-5">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-still">preroll</span>
-          <span aria-hidden className="block h-[22px] w-px bg-rahmen-2" />
+          {!ohneMarke && (
+            <>
+              <span className="text-[11px] uppercase tracking-[0.24em] text-still">preroll</span>
+              <span aria-hidden className="block h-[22px] w-px bg-rahmen-2" />
+            </>
+          )}
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logo} alt="" className="size-7 rounded-full bg-flaeche-tief object-cover" />
