@@ -1,6 +1,6 @@
 import type { PostTyp, Verhaeltnis } from '@prisma/client'
-import Link from 'next/link'
 import { KarussellFlaeche } from './karussell-blaettern'
+import { Sprung } from './sprung'
 import { flaechenHoehe, VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { ReelFlaeche, ReelRahmen } from './reel-player'
 import type { ReactNode } from 'react'
@@ -553,9 +553,9 @@ export function IPhoneFeed({
 function Kachelrahmen({ href, children }: { href?: string; children: ReactNode }) {
   const klassen = 'relative block aspect-[3/4] overflow-hidden bg-flaeche-tief'
   return href ? (
-    <Link href={href} className={klassen}>
+    <Sprung href={href} className={klassen}>
       {children}
-    </Link>
+    </Sprung>
   ) : (
     <div className={klassen}>{children}</div>
   )

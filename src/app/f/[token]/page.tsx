@@ -166,6 +166,9 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     href: `#post-${p.id}`,
   }))
 
+  // Wer eine Sektion auf dieser Seite hat — nur diese Kacheln werden anklickbar.
+  const imZeitraum = new Set(sektionen.map((p) => p.id))
+
   const zeitraum = zeitraumText(exp.zeitraumVon, exp.zeitraumBis)
   const kwSpanne = sektionen.length
     ? `KW ${kalenderwoche(sektionen[0].postenAm)}–${kalenderwoche(sektionen.at(-1)!.postenAm)}`
@@ -264,11 +267,18 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
             beitraege={exp.kunde.beitraege}
             follower={exp.kunde.follower}
             gefolgt={exp.kunde.gefolgt}
+            /*
+              Kacheln des Zeitraums springen zu ihrem Beitrag weiter unten —
+              dieselbe Sprungmarke wie im Kalender. Die älteren, schon
+              veröffentlichten Kacheln darunter bleiben stumm: Zu ihnen gibt
+              es auf dieser Seite nichts, wohin man springen könnte.
+            */
             kacheln={kacheln.map((p) => ({
               id: p.id,
               typ: p.typ,
               titel: p.titel,
               bild: thumbUrl(rasterMedium(p)),
+              href: imZeitraum.has(p.id) ? `#post-${p.id}` : undefined,
             }))}
           />
           <p className="mt-4 max-w-[344px] text-[11.5px] leading-[1.65] text-leiser">

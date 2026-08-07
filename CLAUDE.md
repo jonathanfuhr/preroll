@@ -221,6 +221,16 @@ npm run check   # Typecheck + Tests
   Heißt in der Oberfläche **Freigaben**, nicht mehr Export.
 - **Export ist eine Live-Sicht, kein Schnappschuss.** Änderungen an Posts
   erscheinen sofort im Freigabe-Link.
+- **Sprungmarken sind schlichte `<a>`, kein `next/link`.** Kalender und
+  Feed-Kacheln der Kundenseite zeigen mit `#post-<id>` auf den Beitrag
+  weiter unten. Über `next/link` behandelt der Router den Klick als
+  Navigation: Er springt zwar zur Marke, setzt danach aber die Rollposition
+  zurück auf 0 — man landet wieder ganz oben. `Sprung` (`sprung.tsx`)
+  wählt anhand des `#` das Richtige. Gerollt wird sanft
+  (`scroll-behavior`), außer bei `prefers-reduced-motion`: Zwischen Kachel
+  und Beitrag liegt schnell ein ganzer Bildschirm, und ohne Bewegung wirkt
+  das wie ein Seitenwechsel. Verlinkt sind nur Kacheln **des Zeitraums** —
+  zu den älteren gibt es auf der Seite nichts, wohin man springen könnte.
 - **Feed-Vorschau extern vs. intern.** Der Kunde sieht ältere/veröffentlichte
   Posts und die freigegebenen des Zeitraums — nichts, was zeitlich **nach** dem
   letzten Post des Zeitraums liegt. Intern sind alle Posts sichtbar, inkl. der

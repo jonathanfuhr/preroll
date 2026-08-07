@@ -1,5 +1,5 @@
 import type { PostTyp, Verhaeltnis } from '@prisma/client'
-import Link from 'next/link'
+import { Sprung } from './sprung'
 import { monatsbeginn } from '@/lib/datum'
 import { kalenderwoche } from '@/lib/format'
 import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
@@ -164,9 +164,9 @@ export function Monatskalender({
                         />
                       )
                       return eintrag.href ? (
-                        <Link key={eintrag.id} href={eintrag.href} title={beschriftung} className="block">
+                        <Sprung key={eintrag.id} href={eintrag.href} title={beschriftung} className="block">
                           {punkt}
-                        </Link>
+                        </Sprung>
                       ) : (
                         <span key={eintrag.id} title={beschriftung} className="block">
                           {punkt}
@@ -194,14 +194,14 @@ export function Monatskalender({
                       )
 
                       return eintrag.href ? (
-                        <Link
+                        <Sprung
                           key={eintrag.id}
                           href={eintrag.href}
                           className="block shrink-0 rounded-[3px] px-0.5 py-[3px] transition-colors hover:bg-flaeche-tief"
                           title={beschriftung}
                         >
                           {inhalt}
-                        </Link>
+                        </Sprung>
                       ) : (
                         <span
                           key={eintrag.id}

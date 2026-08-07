@@ -62,6 +62,19 @@
     font-family: var(--font-sans);
   }
 
+  /*
+   * Sprungmarken rollen, statt zu springen. Auf der Kundenseite liegt
+   * zwischen einer Kachel im Geräterahmen und ihrem Beitrag gut ein
+   * Bildschirm — ohne Bewegung wirkt das wie ein Seitenwechsel, und man
+   * weiß nicht, wo man gelandet ist. Wer Bewegung abbestellt hat, bekommt
+   * weiterhin den harten Sprung.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
   body {
     margin: 0;
   }
