@@ -1,6 +1,6 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
-import { mkdir, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { Medium } from '@prisma/client'
 import sharp from 'sharp'
@@ -58,7 +58,7 @@ async function schreibe(relativ: string, inhalt: Buffer): Promise<void> {
 }
 
 /**
- * Vorschaubild fürs Raster. Bei 9:16-Medien wird der mittige 4:5-Ausschnitt
+ * Vorschaubild fürs Raster. Bei 9:16-Medien wird der mittige 3:4-Ausschnitt
  * genommen — genau wie Instagram Reels im Profilraster zeigt.
  */
 async function erzeugeThumbnail(
@@ -76,6 +76,33 @@ async function erzeugeThumbnail(
       .toBuffer()
     await schreibe(relativ, daten)
     return relativ
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Vorschaubild eines bestehenden Mediums neu erzeugen.
+ *
+ * Nötig, wenn sich der Rasterausschnitt ändert — wie beim Wechsel von 4:5
+ * auf 3:4. Vorschaubilder entstehen sonst nur beim Upload; ohne diesen Weg
+ * bliebe alles Ältere im alten Zuschnitt liegen.
+ *
+ * Gibt den neuen Pfad zurück, ohne den alten anzufassen: Das Umhängen und
+ * Löschen macht der Aufrufer, in dieser Reihenfolge. Bricht es dazwischen
+ * ab, ist nichts verloren — nur eine verwaiste Datei zu viel.
+ */
+export async function erneuereVorschaubild(medium: {
+  pfad: string
+  breite: number
+  hoehe: number
+  mimeTyp: string
+}): Promise<string | null> {
+  if (istVideo(medium.mimeTyp) || !medium.breite || !medium.hoehe) return null
+
+  try {
+    const inhalt = await readFile(absoluterPfad(medium.pfad))
+    return await erzeugeThumbnail(inhalt, medium.breite, medium.hoehe)
   } catch {
     return null
   }
@@ -177,6 +204,11 @@ export async function trenneGesamtbildAuf(opts: {
   }
 
   return slides
+}
+
+/** Eine abgelegte Datei entfernen. Fehlt sie schon, ist das kein Fehler. */
+export async function loescheDatei(relativ: string): Promise<void> {
+  await unlink(absoluterPfad(relativ)).catch(() => {})
 }
 
 export async function loescheMedium(medium: Medium): Promise<void> {

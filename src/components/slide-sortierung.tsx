@@ -61,7 +61,7 @@ function SortierbarerSlide({
       <img
         src={slide.url}
         alt={`Slide ${nummer}`}
-        className={`aspect-[4/5] w-full rounded-[3px] border object-cover ${
+        className={`aspect-[3/4] w-full rounded-[3px] border object-cover ${
           beweglich ? 'border-akzent/40' : 'border-rahmen'
         }`}
         draggable={false}

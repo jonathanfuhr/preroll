@@ -194,10 +194,10 @@ export function Postliste({
                           <img
                             src={zeile.bild}
                             alt=""
-                            className="aspect-[4/5] w-9 rounded-[3px] object-cover"
+                            className="aspect-[3/4] w-9 rounded-[3px] object-cover"
                           />
                         ) : (
-                          <span className="schraffur block aspect-[4/5] w-9 rounded-[3px] border border-dashed border-rahmen-3" />
+                          <span className="schraffur block aspect-[3/4] w-9 rounded-[3px] border border-dashed border-rahmen-3" />
                         )}
                       </Link>
                     </td>

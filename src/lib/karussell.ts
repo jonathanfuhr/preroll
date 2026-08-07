@@ -4,12 +4,12 @@ import { VERHAELTNIS } from './format'
  * Auftrennen eines durchgehenden Karussell-Motivs in einzelne Slides.
  *
  * Regeln aus dem Konzept:
- *  - Slide-Standardformat ist 1080 × 1350 (4:5).
- *  - Ist die Breite ein eindeutiges Vielfaches der Höhe im 4:5-Raster, wird die
+ *  - Slide-Standardformat ist 1080 × 1440 (3:4).
+ *  - Ist die Breite ein eindeutiges Vielfaches der Höhe im 3:4-Raster, wird die
  *    Slide-Anzahl automatisch erkannt und gleichmäßig aufgetrennt.
  *  - Geht die Rechnung nicht glatt auf, gibt es bewusst keine manuellen
  *    Schnittkanten, sondern eine Fehlermeldung.
- *  - Ein Slide darf nie schmaler als 4:5 werden (Instagram-Grenze).
+ *  - Ein Slide darf nie schmaler als 3:4 werden (sonst beschneidet Instagram).
  *  - Die Anzahl bleibt überschreibbar, solange das Ergebnis aufgeht.
  */
 
@@ -19,12 +19,12 @@ export type Auftrennung =
       anzahl: number
       slideBreite: number
       slideHoehe: number
-      /** true, wenn jeder Slide exakt 4:5 misst. */
+      /** true, wenn jeder Slide exakt 3:4 misst. */
       exakt: boolean
     }
   | { ok: false; fehler: string }
 
-/** Slide-Anzahl, bei der jeder Slide exakt 4:5 misst — oder null. */
+/** Slide-Anzahl, bei der jeder Slide exakt 3:4 misst — oder null. */
 export function erkenneSlideAnzahl(breite: number, hoehe: number): number | null {
   if (breite <= 0 || hoehe <= 0) return null
   const exakt = breite / (hoehe * VERHAELTNIS.hochkant)
@@ -34,7 +34,7 @@ export function erkenneSlideAnzahl(breite: number, hoehe: number): number | null
   return Math.abs(exakt - gerundet) < 0.002 ? gerundet : null
 }
 
-/** Mehr Slides als das ergäbe Streifen schmaler als 4:5. */
+/** Mehr Slides als das ergäbe Streifen schmaler als 3:4. */
 export function maximaleSlideAnzahl(breite: number, hoehe: number): number {
   if (breite <= 0 || hoehe <= 0) return 0
   return Math.floor(breite / (hoehe * VERHAELTNIS.hochkant) + 0.002)
@@ -56,9 +56,9 @@ export function berechneAuftrennung(
     return {
       ok: false,
       fehler:
-        `Die Bildbreite passt nicht ins 4:5-Raster: ${breite} × ${hoehe} px ergibt keine ` +
+        `Die Bildbreite passt nicht ins 3:4-Raster: ${breite} × ${hoehe} px ergibt keine ` +
         'ganze Zahl an Slides. Bitte die Bildgröße prüfen — ein Gesamtbild sollte ein ' +
-        'Vielfaches von 1080 × 1350 px sein.',
+        'Vielfaches von 1080 × 1440 px sein.',
     }
   }
 
@@ -70,7 +70,7 @@ export function berechneAuftrennung(
     return {
       ok: false,
       fehler:
-        `Bei ${anzahl} Slides wäre jeder Slide schmaler als 4:5 — das lässt Instagram ` +
+        `Bei ${anzahl} Slides wäre jeder Slide schmaler als 3:4 — das lässt Instagram ` +
         'nicht zu. Bitte weniger Slides wählen.',
     }
   }
@@ -110,8 +110,8 @@ export function schnittfenster(
 }
 
 /**
- * Mittiger 4:5-Ausschnitt eines 9:16-Thumbnails — so zeigt Instagram
- * Reels im Profilraster.
+ * Mittiger 3:4-Ausschnitt eines 9:16-Thumbnails — so zeigt Instagram Reels
+ * im Profilraster. Das Raster ist seit 2025 3:4, vorher quadratisch.
  */
 export function mittigerAusschnitt(
   breite: number,

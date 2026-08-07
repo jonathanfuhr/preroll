@@ -37,13 +37,35 @@ export async function GET(
     return new Response('Datei fehlt', { status: 404 })
   }
 
+  const istVorschau = variante === 'thumb' && Boolean(medium.thumbPfad)
+
   const kopfzeilen = new Headers({
     'content-type': typ,
     'content-length': String(groesse),
-    // Der Inhalt unter einer Kennung ändert sich nie — Medien werden ersetzt,
-    // nicht überschrieben.
-    'cache-control': 'private, max-age=31536000, immutable',
+    /*
+      Das Original unter einer Kennung ändert sich nie — Medien werden
+      ersetzt, nicht überschrieben. Das Vorschaubild schon: Ändert sich der
+      Rasterausschnitt, wird es neu erzeugt und liegt unter derselben
+      Adresse. Mit `immutable` hätte es danach niemand je zu sehen bekommen.
+
+      Deshalb dort ein kurzer Vorrat plus Kennzeichen: Der Browser fragt
+      nach, bekommt fast immer ein 304 zurück und lädt nur, wenn wirklich
+      neu zugeschnitten wurde.
+    */
+    'cache-control': istVorschau
+      ? 'private, max-age=300, must-revalidate'
+      : 'private, max-age=31536000, immutable',
   })
+
+  if (istVorschau) {
+    // Der Pfad trägt bei jedem Neuzuschnitt einen neuen Zufallsnamen — er
+    // ist damit genau das Kennzeichen, das sich ändern muss.
+    const kennzeichen = `"${medium.thumbPfad}"`
+    if (anfrage.headers.get('if-none-match') === kennzeichen) {
+      return new Response(null, { status: 304, headers: { etag: kennzeichen } })
+    }
+    kopfzeilen.set('etag', kennzeichen)
+  }
 
   // Videos brauchen Bereichsanfragen, damit im Browser gespult werden kann.
   const bereich = anfrage.headers.get('range')

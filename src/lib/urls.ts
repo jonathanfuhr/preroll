@@ -3,7 +3,7 @@ export function medienUrl(mediumId: string | null | undefined): string | null {
   return mediumId ? `/api/medien/${mediumId}` : null
 }
 
-/** Vorschaubild (mittiger 4:5-Ausschnitt) eines Mediums. */
+/** Vorschaubild (mittiger 3:4-Ausschnitt) eines Mediums. */
 export function thumbUrl(mediumId: string | null | undefined): string | null {
   return mediumId ? `/api/medien/${mediumId}?v=thumb` : null
 }

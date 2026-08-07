@@ -183,7 +183,7 @@ export function PostSektion({
   const eckdaten = [
     {
       t: 'Format',
-      w: post.typ === 'REEL' ? 'Reel · 9:16' : post.typ === 'KARUSSELL' ? 'Karussell · 4:5' : 'Beitrag · 4:5',
+      w: post.typ === 'REEL' ? 'Reel · 9:16' : post.typ === 'KARUSSELL' ? 'Karussell · 3:4' : 'Beitrag · 3:4',
     },
     ...(post.laenge ? [{ t: 'Länge', w: post.laenge }] : []),
     ...(post.ziel ? [{ t: 'Ziel', w: post.ziel }] : []),
@@ -272,7 +272,7 @@ export function PostSektion({
                     src={bild}
                     alt={`Slide ${i + 1}`}
                     className="min-w-0 flex-1 object-cover"
-                    style={{ aspectRatio: '4 / 5' }}
+                    style={{ aspectRatio: '3 / 4' }}
                   />
                 ))}
               </div>

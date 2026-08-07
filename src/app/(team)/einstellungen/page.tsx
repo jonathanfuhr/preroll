@@ -1,6 +1,11 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
-import { instagramSitzungSpeichern, kennzahlenSpeichern, workspaceSpeichern } from './aktionen'
+import {
+  instagramSitzungSpeichern,
+  kennzahlenSpeichern,
+  vorschaubilderNeuErzeugen,
+  workspaceSpeichern,
+} from './aktionen'
 
 export const metadata = { title: 'Workspace — Preroll' }
 
@@ -9,9 +14,9 @@ const DATUM = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
 export default async function WorkspaceSeite({
   searchParams,
 }: {
-  searchParams: Promise<{ ig?: string; meldung?: string }>
+  searchParams: Promise<{ ig?: string; meldung?: string; thumbs?: string }>
 }) {
-  const { ig, meldung } = await searchParams
+  const { ig, meldung, thumbs } = await searchParams
   const e = await ladeEinstellungen()
 
   return (
@@ -145,6 +150,36 @@ export default async function WorkspaceSeite({
                 Speichern und prüfen
               </Knopf>
             </div>
+          </form>
+        </Karte>
+      </Abschnitt>
+
+      <Abschnitt
+        titel="Vorschaubilder"
+        hinweis="Der Ausschnitt fürs Profilraster — seit Instagrams Umstellung 3:4 statt 4:5."
+      >
+        <Karte className="p-5">
+          {thumbs && (
+            <div className="mb-4">
+              <Hinweis>
+                {thumbs === '0'
+                  ? 'Nichts zu tun — alle Vorschaubilder waren bereits im aktuellen Zuschnitt.'
+                  : `${thumbs} Vorschaubilder neu zugeschnitten.`}
+              </Hinweis>
+            </div>
+          )}
+
+          <p className="mb-4 text-[12px] leading-relaxed text-leise">
+            Vorschaubilder entstehen beim Upload. Ändert sich der Zuschnitt — wie beim Wechsel
+            von 4:5 auf 3:4 —, tragen ältere Bilder noch den alten und stünden im Raster
+            seitlich beschnitten. Dieser Knopf schneidet alle neu. Die Originale bleiben
+            unangetastet; er lässt sich gefahrlos mehrfach drücken.
+          </p>
+
+          <form action={vorschaubilderNeuErzeugen} className="flex justify-end">
+            <Knopf klein type="submit">
+              Vorschaubilder neu zuschneiden
+            </Knopf>
           </form>
         </Karte>
       </Abschnitt>

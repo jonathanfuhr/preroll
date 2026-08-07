@@ -65,7 +65,7 @@ export default async function PostSeite({
   )
 
   // Das Original, nicht das Vorschaubild: Letzteres ist der mittige
-  // 4:5-Ausschnitt fürs Raster. In der 9:16-Fläche würde es ein zweites Mal
+  // 3:4-Ausschnitt fürs Raster. In der 9:16-Fläche würde es ein zweites Mal
   // beschnitten — vom Bild bliebe die Mitte der Mitte.
   const thumbnailUrl = medienUrl(thumbnail[0])
 

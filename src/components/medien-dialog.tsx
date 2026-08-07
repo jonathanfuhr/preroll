@@ -182,7 +182,7 @@ function KarussellInhalt({
             {
               wert: 'einzeln' as const,
               titel: 'Mehrere Einzelbilder',
-              text: 'Fertige 4:5-Grafiken. So viele, wie das Karussell haben soll — die Reihenfolge lässt sich danach ziehen.',
+              text: 'Fertige 3:4-Grafiken. So viele, wie das Karussell haben soll — die Reihenfolge lässt sich danach ziehen.',
             },
             {
               wert: 'gesamt' as const,
@@ -215,7 +215,7 @@ function KarussellInhalt({
       {weg === 'einzeln' ? (
         <Ablage
           titel="Slides hierher ziehen"
-          hinweis="Erwartet werden 4:5-Grafiken, üblicherweise 1080 × 1350 px."
+          hinweis="Erwartet werden 3:4-Grafiken, üblicherweise 1080 × 1440 px."
           mehrere
           akzeptiert="image/jpeg,image/png,image/webp"
           laeuft={laeuft}
@@ -239,13 +239,13 @@ function KarussellInhalt({
             <>
               {erkannt ? (
                 <Hinweis>
-                  <strong>{erkannt} Slides erkannt</strong> — das Bild geht glatt im 4:5-Raster auf.
+                  <strong>{erkannt} Slides erkannt</strong> — das Bild geht glatt im 3:4-Raster auf.
                 </Hinweis>
               ) : (
                 <Fehler>
-                  Die Bildbreite passt nicht ins 4:5-Raster: {masse.breite} × {masse.hoehe} px ergibt
+                  Die Bildbreite passt nicht ins 3:4-Raster: {masse.breite} × {masse.hoehe} px ergibt
                   keine ganze Zahl an Slides. Bitte die Bildgröße prüfen — ein Gesamtbild sollte ein
-                  Vielfaches von 1080 × 1350 px sein.
+                  Vielfaches von 1080 × 1440 px sein.
                 </Fehler>
               )}
 
@@ -271,7 +271,7 @@ function KarussellInhalt({
               {probe?.ok && (
                 <p className="text-[11.5px] text-leiser">
                   Ergibt {probe.anzahl} Slides à {probe.slideBreite} × {probe.slideHoehe} px
-                  {!probe.exakt && ' — breiter als 4:5'}.
+                  {!probe.exakt && ' — breiter als 3:4'}.
                 </p>
               )}
             </>
@@ -463,7 +463,7 @@ export function MedienDialog({
                 ? 'Zwei Sachen, zwei Wege: Das Video kann hochgeladen, aus Klappe geholt oder von einem Link geladen werden — das Thumbnail wird hochgeladen.'
                 : typ === 'KARUSSELL'
                   ? 'Einzelne Slides oder ein Gesamtbild, das aufgetrennt wird.'
-                  : 'Ein Bild im Verhältnis 4:5.'}
+                  : 'Ein Bild im Verhältnis 3:4.'}
             </p>
           </div>
           <button
@@ -481,7 +481,7 @@ export function MedienDialog({
             postId={postId}
             rolle="MEDIUM"
             titel="Grafik hierher ziehen"
-            hinweis="Erwartet: 4:5, üblicherweise 1080 × 1350 px."
+            hinweis="Erwartet: 3:4, üblicherweise 1080 × 1440 px."
             fertig={schliessen}
           />
         )}
@@ -560,7 +560,7 @@ export function MedienDialog({
                     postId={postId}
                     rolle="THUMBNAIL"
                     titel="Thumbnail hierher ziehen"
-                    hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 4:5-Ausschnitt gezeigt."
+                    hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 3:4-Ausschnitt gezeigt."
                     fertig={() => setThumbErsetzen(false)}
                   />
                   {thumbnailAutomatisch && (

@@ -87,7 +87,7 @@ export default async function BibliothekSeite({
 
             return (
               <Karte key={medium.id} className="overflow-hidden">
-                <div className="aspect-[4/5] bg-flaeche-tief">
+                <div className="aspect-[3/4] bg-flaeche-tief">
                   {medium.mimeTyp.startsWith('video/') ? (
                     <div className="schraffur flex h-full w-full items-center justify-center font-mono text-[10px] text-leiser">
                       Video

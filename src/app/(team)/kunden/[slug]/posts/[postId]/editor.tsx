@@ -300,7 +300,7 @@ export function PostEditor({
               </Feld>
               <Feld beschriftung={post.typ === 'REEL' ? 'Format' : 'Seitenverhältnis'}>
                 <div className="rounded-[5px] border border-rahmen bg-flaeche-leise px-3 py-[7px] text-[13px] text-leise">
-                  {post.typ === 'REEL' ? 'Reel · 9:16' : `${TYP_TEXT[post.typ]} · 4:5`}
+                  {post.typ === 'REEL' ? 'Reel · 9:16' : `${TYP_TEXT[post.typ]} · 3:4`}
                 </div>
               </Feld>
               {post.typ === 'REEL' && (

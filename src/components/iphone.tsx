@@ -185,7 +185,7 @@ function ErsetzenKnopf({ aufKlick }: { aufKlick: () => void }) {
   )
 }
 
-// ----------------------------------------------------------------- Beitrag 4:5
+// ----------------------------------------------------------------- Beitrag 3:4
 
 export function IPhoneBeitrag({
   kunde,
@@ -204,7 +204,7 @@ export function IPhoneBeitrag({
     <Geraet>
       <Statusleiste />
       <Kopfzeile name={kunde} logo={logo} />
-      <div className="relative h-[400px] w-[320px] shrink-0 border-y border-grund">
+      <div className="relative h-[427px] w-[320px] shrink-0 border-y border-grund">
         {bild ? (
           <>
             {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
@@ -212,7 +212,7 @@ export function IPhoneBeitrag({
             <img src={bild} alt="" className="h-full w-full object-cover" />
           </>
         ) : (
-          <Platzhalter text="Grafik 4:5 · 1080 × 1350" aufKlick={aufUpload} />
+          <Platzhalter text="Grafik 3:4 · 1080 × 1440" aufKlick={aufUpload} />
         )}
       </div>
       <Aktionsleiste />
@@ -221,7 +221,7 @@ export function IPhoneBeitrag({
   )
 }
 
-// --------------------------------------------------------------- Karussell 4:5
+// --------------------------------------------------------------- Karussell 3:4
 
 export function IPhoneKarussell({
   kunde,
@@ -396,7 +396,7 @@ function RasterIcon({ aktiv }: { aktiv?: boolean }) {
 /**
  * Profilraster im Geräterahmen — Mockup 3d. Zeigt, wie das Instagram-Profil
  * nach der geplanten Periode aussieht: drei Kacheln je Reihe im Verhältnis
- * 4:5, neueste oben links.
+ * 3:4, neueste oben links.
  */
 export function IPhoneFeed({
   kunde,
@@ -507,7 +507,7 @@ export function IPhoneFeed({
 
 /** Kachel im Profilraster — verlinkt, wenn ein Ziel mitkommt. */
 function Kachelrahmen({ href, children }: { href?: string; children: ReactNode }) {
-  const klassen = 'relative block aspect-[4/5] overflow-hidden bg-flaeche-tief'
+  const klassen = 'relative block aspect-[3/4] overflow-hidden bg-flaeche-tief'
   return href ? (
     <Link href={href} className={klassen}>
       {children}

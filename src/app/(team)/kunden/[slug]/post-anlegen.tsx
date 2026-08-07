@@ -38,8 +38,8 @@ function IconReel() {
 }
 
 const TYPEN: Array<{ wert: PostTyp; titel: string; text: string; Icon: () => React.ReactElement }> = [
-  { wert: 'BEITRAG', titel: 'Beitrag', text: 'Ein Bild · 4:5', Icon: IconBeitrag },
-  { wert: 'KARUSSELL', titel: 'Karussell', text: 'Mehrere Slides · 4:5', Icon: IconKarussell },
+  { wert: 'BEITRAG', titel: 'Beitrag', text: 'Ein Bild · 3:4', Icon: IconBeitrag },
+  { wert: 'KARUSSELL', titel: 'Karussell', text: 'Mehrere Slides · 3:4', Icon: IconKarussell },
   { wert: 'REEL', titel: 'Reel', text: 'Video · 9:16', Icon: IconReel },
 ]
 

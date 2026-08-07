@@ -101,12 +101,23 @@ npm run check   # Typecheck + Tests
 
 ## Fachliche Regeln, die leicht verloren gehen
 
-- **Seitenverhältnisse.** Beiträge und Karussell-Slides 4:5, Reels und
-  Reel-Thumbnails 9:16. Abweichungen werden **gewarnt, nicht blockiert** — der
+- **Seitenverhältnisse.** Beiträge und Karussell-Slides **3:4**
+  (1080 × 1440), Reels und Reel-Thumbnails 9:16. Abweichungen werden **gewarnt, nicht blockiert** — der
   Hinweis nennt erkanntes und erwartetes Format.
+- **Instagrams Profilraster ist 3:4, nicht 4:5.** Seit der Umstellung 2025
+  beschneidet Instagram dort jedes 4:5-Bild seitlich. Weil dieses Werkzeug
+  im Raster plant, ist **3:4 (1080 × 1440) das erwartete Format** für
+  Beiträge und Slides — dann ist der Ausschnitt im Raster das ganze Bild.
+  Der Preis ist bewusst gewählt: Anderswo gilt 4:5 weiter als Standard, im
+  Feed werden beide unbeschnitten gezeigt.
 - **Reel-Thumbnails im Raster.** In allen Grid-/Feed-Ansichten wird vom
-  9:16-Thumbnail der **mittige 4:5-Ausschnitt** gezeigt, wie bei Instagram.
-  Diesen Ausschnitt liefert `thumbUrl()` als fertige Datei. Überall dort, wo
+  9:16-Thumbnail der **mittige 3:4-Ausschnitt** gezeigt, wie bei Instagram.
+  Das ist die Stelle, an der der Zuschnitt wirklich etwas tut.
+  Diesen Ausschnitt liefert `thumbUrl()` als fertige Datei. Er entsteht beim
+  Upload — ändert sich das Zielformat, müssen Bestandsbilder über
+  **Einstellungen → Vorschaubilder** neu zugeschnitten werden. Dieselbe
+  Adresse trägt dann anderen Inhalt, deshalb ist die Vorschau-Variante
+  **nicht** `immutable` gecacht, sondern kurzlebig mit ETag. Überall dort, wo
   das Thumbnail in voller Höhe steht — Geräterahmen, Medien-Dialog —, gehört
   deshalb `medienUrl()` hin: Das 4:5-Bild in eine 9:16-Fläche gelegt wird ein
   zweites Mal beschnitten, und übrig bleibt die Mitte der Mitte.

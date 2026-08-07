@@ -7,7 +7,7 @@ export type FeedKachel = {
   typ: PostTyp
   status: PostStatus
   titel: string
-  /** Bereits mittig auf 4:5 beschnittenes Vorschaubild. */
+  /** Bereits mittig auf 3:4 beschnittenes Vorschaubild. */
   bild: string | null
   href?: string
 }
@@ -32,9 +32,9 @@ function KarussellMarker() {
 }
 
 /**
- * Instagram-Profilraster: drei Kacheln je Reihe im Verhältnis 4:5, neueste
+ * Instagram-Profilraster: drei Kacheln je Reihe im Verhältnis 3:4, neueste
  * oben links. Reel-Thumbnails liegen im 9:16-Format vor — gezeigt wird davon
- * der mittige 4:5-Ausschnitt, den `Medium.thumbPfad` bereits enthält.
+ * der mittige 3:4-Ausschnitt, den `Medium.thumbPfad` bereits enthält.
  */
 export function FeedRaster({
   kacheln,
@@ -74,7 +74,7 @@ export function FeedRaster({
           </>
         )
 
-        const klassen = 'relative block aspect-[4/5] overflow-hidden bg-flaeche-tief'
+        const klassen = 'relative block aspect-[3/4] overflow-hidden bg-flaeche-tief'
 
         return kachel.href ? (
           <Link

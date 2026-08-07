@@ -1,8 +1,19 @@
 import type { MediumRolle, PostTyp } from '@prisma/client'
 
-/** Erwartete Seitenverhältnisse laut Konzept. */
+/**
+ * Erwartete Seitenverhältnisse.
+ *
+ * **Hochkant ist 3:4 (1080 × 1440), nicht mehr 4:5.** Instagram hat das
+ * Profilraster 2025 von quadratisch auf 3:4 umgestellt; ein 4:5-Bild wird
+ * dort seither links und rechts beschnitten. Wer im Raster plant — und
+ * genau das tut dieses Werkzeug —, gestaltet deshalb gleich in 3:4: Der
+ * Ausschnitt im Raster ist dann das ganze Bild.
+ *
+ * Der Preis ist bewusst in Kauf genommen: 4:5 gilt anderswo weiter als
+ * Standard. Im Feed werden beide unbeschnitten gezeigt, im Raster nur 3:4.
+ */
 export const VERHAELTNIS = {
-  hochkant: 4 / 5, // Beiträge und Karussell-Slides
+  hochkant: 3 / 4, // Beiträge, Karussell-Slides und der Rasterausschnitt
   reel: 9 / 16, // Reels und Reel-Thumbnails
 } as const
 
@@ -65,7 +76,7 @@ export function pruefeFormat(
   const ist = breite / hoehe
   if (Math.abs(ist - erwartet) <= erwartet * TOLERANZ) return null
 
-  const erwartetText = erwartet === VERHAELTNIS.reel ? '9:16' : '4:5'
+  const erwartetText = erwartet === VERHAELTNIS.reel ? '9:16' : '3:4'
   const erkanntText = verhaeltnisText(breite, hoehe)
 
   return {

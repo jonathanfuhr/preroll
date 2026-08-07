@@ -9,8 +9,8 @@ import {
 } from './format'
 
 describe('pruefeFormat', () => {
-  it('lässt ein korrektes 4:5-Beitragsbild durch', () => {
-    expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1350)).toBeNull()
+  it('lässt ein korrektes 3:4-Beitragsbild durch', () => {
+    expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1440)).toBeNull()
   })
 
   it('lässt ein korrektes 9:16-Reel durch', () => {
@@ -24,17 +24,17 @@ describe('pruefeFormat', () => {
   it('warnt bei quadratischem Beitragsbild', () => {
     const hinweis = pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1080)
     expect(hinweis).not.toBeNull()
-    expect(hinweis?.erwartet).toBe('4:5')
+    expect(hinweis?.erwartet).toBe('3:4')
     expect(hinweis?.erkannt).toBe('1:1')
   })
 
-  it('warnt bei einem 4:5-Bild im Reel', () => {
-    const hinweis = pruefeFormat('REEL', 'MEDIUM', 1080, 1350)
+  it('warnt bei einem 3:4-Bild im Reel', () => {
+    const hinweis = pruefeFormat('REEL', 'MEDIUM', 1080, 1440)
     expect(hinweis?.erwartet).toBe('9:16')
   })
 
   it('verträgt ein Prozent Abweichung', () => {
-    expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1345)).toBeNull()
+    expect(pruefeFormat('BEITRAG', 'MEDIUM', 1080, 1434)).toBeNull()
   })
 
   it('gibt bei fehlenden Maßen keinen Hinweis', () => {
@@ -44,7 +44,7 @@ describe('pruefeFormat', () => {
 
 describe('verhaeltnisText', () => {
   it('kürzt gängige Verhältnisse', () => {
-    expect(verhaeltnisText(1080, 1350)).toBe('4:5')
+    expect(verhaeltnisText(1080, 1440)).toBe('3:4')
     expect(verhaeltnisText(1080, 1920)).toBe('9:16')
     expect(verhaeltnisText(1920, 1080)).toBe('16:9')
   })

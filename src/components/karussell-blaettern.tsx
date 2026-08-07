@@ -46,7 +46,7 @@ export function KarussellFlaeche({
   return (
     <>
       <div
-        className="group relative h-[400px] w-[320px] shrink-0 touch-pan-y border-y border-grund"
+        className="group relative h-[427px] w-[320px] shrink-0 touch-pan-y border-y border-grund"
         onTouchStart={(e) => {
           start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
         }}
@@ -66,7 +66,7 @@ export function KarussellFlaeche({
           */
           <span className="schraffur flex h-full w-full flex-col items-center justify-center">
             <span className="rounded-[3px] bg-white/85 px-2.5 py-1 font-mono text-[11px] text-leiser">
-              Slide {aktiv + 1} · 4:5
+              Slide {aktiv + 1} · 3:4
             </span>
             {aufUpload && (
               <span className="mt-2 rounded-[5px] bg-akzent px-3 py-1.5 text-[11.5px] font-medium text-white">
