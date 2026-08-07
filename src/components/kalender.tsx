@@ -15,6 +15,12 @@ export type Kalendereintrag = {
   postenAm: Date | null
   /** Sprungmarke oder Link auf den Post. */
   href?: string
+  /**
+   * Überschreibt die Typfarbe des Punktes. Gesetzt nur im Kalender über alle
+   * Kunden, wo der Punkt für den Kunden steht statt für den Typ — dort ist die
+   * Frage „von wem" wichtiger als „was".
+   */
+  farbe?: string
 }
 
 export const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
@@ -168,7 +174,7 @@ export function Monatskalender({
                         <span
                           aria-hidden
                           className="block size-[9px] rounded-full"
-                          style={{ background: TYP_FARBE[eintrag.typ] }}
+                          style={{ background: eintrag.farbe ?? TYP_FARBE[eintrag.typ] }}
                         />
                       )
                       return eintrag.href ? (
@@ -194,7 +200,7 @@ export function Monatskalender({
                           <span
                             aria-hidden
                             className="block size-[6px] shrink-0 rounded-full"
-                            style={{ background: TYP_FARBE[eintrag.typ] }}
+                            style={{ background: eintrag.farbe ?? TYP_FARBE[eintrag.typ] }}
                           />
                           {!kompakt && (
                             <span className="min-w-0 flex-1 truncate text-[9.5px] leading-none text-tinte-3">

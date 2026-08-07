@@ -2,17 +2,26 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import type { PostTyp } from '@prisma/client'
+import type { PostStatus } from '@prisma/client'
+import { PHASEN, PHASE_TEXT } from '@/lib/status'
 import { Monatskalender, type Kalendereintrag } from './kalender'
-import { TYP_TEXT, TypPunkt } from './ui'
 
 /**
  * Der Kalender über **alle** Kunden.
  *
- * Gezeigt wird derselbe Monatskalender wie beim Kunden (`Monatskalender`) —
- * dieselbe Ansicht, nur mit mehr darin. Ein drittes Kalender-Bauteil hätte
- * denselben Fehler dreimal zu beheben; gezogen wird hier ohnehin nicht, das
- * bleibt beim einzelnen Kunden, wo die Ungeplant-Spalte hingehört.
+ * Gezeichnet wird mit demselben `Monatskalender` wie beim Kunden — dieselbe
+ * Ansicht, nur mit mehr darin. Ein drittes Kalender-Bauteil hätte denselben
+ * Fehler dreimal zu beheben; gezogen wird hier ohnehin nicht, das bleibt beim
+ * einzelnen Kunden, wo die Ungeplant-Spalte hingehört.
+ *
+ * Zwei Unterschiede zu den Kundenkalendern, beide mit Absicht:
+ *
+ * 1. **Der Punkt steht für den Kunden, nicht für den Typ.** Wer über zwanzig
+ *    Kunden schaut, sucht zuerst „wo liegt etwas von Café Morgenrot" — der Typ
+ *    steht im Tooltip. Die Farben kommen aus `kundenFarbe`.
+ * 2. **Voreingestellt sind nur Finals.** Der Kalender beantwortet die Frage
+ *    „was geht raus", nicht „woran wird gerade gearbeitet". Wer die frühen
+ *    Phasen sehen will, hakt sie an.
  *
  * Gefiltert wird **im Browser** auf den bereits geladenen Zeilen, wie in der
  * Post-Liste: Ein Rundgang zum Server je Häkchen wäre spürbar langsamer, und
@@ -24,19 +33,84 @@ import { TYP_TEXT, TypPunkt } from './ui'
 export type GesamtEintrag = Kalendereintrag & {
   kundeSlug: string
   kundeName: string
+  status: PostStatus
 }
 
-export type KundenZeile = { slug: string; name: string }
+export type KundenZeile = { slug: string; name: string; farbe: string }
 
 /**
- * Gespeichert werden die **abgewählten** Kunden, nicht die ausgewählten.
+ * Gespeichert werden bei den Kunden die **abgewählten**, beim Status die
+ * **ausgewählten**.
  *
- * Der Unterschied fällt erst später auf: Käme ein neuer Kunde dazu, wäre er
- * bei gespeicherter Auswahl unsichtbar, ohne dass jemand ihn abgewählt hätte
- * — und niemand sucht den Fehler in einem Filter, den er vor Wochen gesetzt
- * hat. So ist neu immer sichtbar.
+ * Der Unterschied ist kein Versehen: Käme ein neuer Kunde dazu, wäre er bei
+ * gespeicherter Auswahl unsichtbar, ohne dass jemand ihn abgewählt hätte — und
+ * niemand sucht den Fehler in einem Filter, den er vor Wochen gesetzt hat. Die
+ * Phasen dagegen sind ein fester, abgeschlossener Satz; dort ist die Auswahl
+ * die ehrlichere Ablage, weil die Voreinstellung nicht „alle" ist.
  */
-const SPEICHER = 'preroll:kalender:abgewaehlt'
+const SPEICHER_KUNDEN = 'preroll:kalender:abgewaehlt'
+const SPEICHER_STATUS = 'preroll:kalender:status'
+
+const VOREINSTELLUNG: PostStatus[] = ['FINAL']
+
+/** Passend zu den Etiketten im Rest des Werkzeugs — Entwurf bleibt farblos. */
+const STATUS_PUNKT: Record<PostStatus, string> = {
+  ENTWURF: 'bg-still',
+  KONZEPT: 'bg-konzept',
+  VORSCHAU: 'bg-vorschau',
+  FINAL: 'bg-final',
+}
+
+function lies<T>(schluessel: string, ersatz: T): T {
+  try {
+    const roh = localStorage.getItem(schluessel)
+    return roh ? (JSON.parse(roh) as T) : ersatz
+  } catch {
+    // Ein kaputter Eintrag darf die Seite nicht mitnehmen.
+    return ersatz
+  }
+}
+
+function schreibe(schluessel: string, wert: unknown) {
+  try {
+    localStorage.setItem(schluessel, JSON.stringify(wert))
+  } catch {
+    // Privates Fenster oder volle Ablage: Der Filter gilt dann bis zum
+    // Neuladen. Kein Grund, etwas zu melden.
+  }
+}
+
+function Kasten({
+  an,
+  umschalten,
+  punkt,
+  name,
+  anzahl,
+}: {
+  an: boolean
+  umschalten: () => void
+  punkt: React.ReactNode
+  name: string
+  anzahl: number
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2 rounded-[4px] px-1 py-1 transition-colors hover:bg-flaeche-tief">
+      <input
+        type="checkbox"
+        checked={an}
+        onChange={umschalten}
+        className="size-[13px] shrink-0 accent-akzent"
+      />
+      {punkt}
+      <span className="min-w-0 flex-1 truncate text-[11.5px] text-tinte-3">{name}</span>
+      <span
+        className={`shrink-0 font-mono text-[10.5px] ${anzahl > 0 ? 'text-leise' : 'text-stiller'}`}
+      >
+        {anzahl}
+      </span>
+    </label>
+  )
+}
 
 export function GesamtKalender({
   monat,
@@ -57,37 +131,38 @@ export function GesamtKalender({
   // Server nicht, und ein Unterschied zwischen beiden Läufen wäre ein
   // Hydrationsbruch.
   const [abgewaehlt, setAbgewaehlt] = useState<string[]>([])
+  const [phasen, setPhasen] = useState<PostStatus[]>(VOREINSTELLUNG)
 
   useEffect(() => {
-    try {
-      const roh = localStorage.getItem(SPEICHER)
-      if (roh) setAbgewaehlt(JSON.parse(roh) as string[])
-    } catch {
-      // Ein kaputter Eintrag darf die Seite nicht mitnehmen — dann eben alle.
-    }
+    setAbgewaehlt(lies<string[]>(SPEICHER_KUNDEN, []))
+    setPhasen(lies<PostStatus[]>(SPEICHER_STATUS, VOREINSTELLUNG))
   }, [])
 
-  function merke(neu: string[]) {
+  function merkeKunden(neu: string[]) {
     setAbgewaehlt(neu)
-    try {
-      localStorage.setItem(SPEICHER, JSON.stringify(neu))
-    } catch {
-      // Privates Fenster oder volle Ablage: Der Filter gilt dann nur bis zum
-      // Neuladen. Kein Grund, etwas zu melden.
-    }
+    schreibe(SPEICHER_KUNDEN, neu)
   }
 
-  function umschalten(slug: string) {
-    merke(abgewaehlt.includes(slug) ? abgewaehlt.filter((s) => s !== slug) : [...abgewaehlt, slug])
+  function merkePhasen(neu: PostStatus[]) {
+    setPhasen(neu)
+    schreibe(SPEICHER_STATUS, neu)
   }
 
   const versteckt = new Set(abgewaehlt)
-  const sichtbar = eintraege.filter((e) => !versteckt.has(e.kundeSlug))
+  const anPhasen = new Set(phasen)
 
-  const anzahlJeKunde = new Map<string, number>()
-  for (const e of eintraege) {
-    anzahlJeKunde.set(e.kundeSlug, (anzahlJeKunde.get(e.kundeSlug) ?? 0) + 1)
-  }
+  const nachKunde = eintraege.filter((e) => !versteckt.has(e.kundeSlug))
+  const nachPhase = eintraege.filter((e) => anPhasen.has(e.status))
+  const sichtbar = nachKunde.filter((e) => anPhasen.has(e.status))
+
+  // Die Zahlen zeigen, was ein Häkchen brächte: beim Kunden gezählt wird, was
+  // die Phasenwahl ohnehin durchlässt — und umgekehrt. Sonst verspricht eine
+  // 7 neben einem Kunden sieben Beiträge, von denen dann einer erscheint.
+  const jeKunde = new Map<string, number>()
+  for (const e of nachPhase) jeKunde.set(e.kundeSlug, (jeKunde.get(e.kundeSlug) ?? 0) + 1)
+
+  const jePhase = new Map<PostStatus, number>()
+  for (const e of nachKunde) jePhase.set(e.status, (jePhase.get(e.status) ?? 0) + 1)
 
   const monatsName = new Intl.DateTimeFormat('de-DE', {
     month: 'long',
@@ -102,12 +177,40 @@ export function GesamtKalender({
         Monat sonst 95 px für sieben Tage.
       */}
       <div className="w-full shrink-0 self-start rounded-md border border-rahmen bg-flaeche p-3 md:w-[228px]">
-        <div className="flex items-baseline justify-between gap-2">
+        {/*
+          Die Phasen stehen oben, obwohl die Kunden der eigentliche Filter
+          sind: Voreingestellt ist „nur Final", und wer sich wundert, warum so
+          wenig dasteht, soll den Grund sehen, bevor er scrollt.
+        */}
+        <h3 className="text-[12.5px] font-medium text-tinte">Phase</h3>
+        <div className="mt-2 grid gap-0.5">
+          {PHASEN.map((phase) => (
+            <Kasten
+              key={phase}
+              an={anPhasen.has(phase)}
+              umschalten={() =>
+                merkePhasen(
+                  anPhasen.has(phase) ? phasen.filter((p) => p !== phase) : [...phasen, phase],
+                )
+              }
+              punkt={
+                <span
+                  aria-hidden
+                  className={`block size-[7px] shrink-0 rounded-full ${STATUS_PUNKT[phase]}`}
+                />
+              }
+              name={PHASE_TEXT[phase]}
+              anzahl={jePhase.get(phase) ?? 0}
+            />
+          ))}
+        </div>
+
+        <div className="mt-3 flex items-baseline justify-between gap-2 border-t border-rahmen pt-3">
           <h3 className="text-[12.5px] font-medium text-tinte">Kunden</h3>
           <div className="flex items-center gap-2 text-[11px]">
             <button
               type="button"
-              onClick={() => merke([])}
+              onClick={() => merkeKunden([])}
               disabled={abgewaehlt.length === 0}
               className="text-leise underline underline-offset-2 hover:text-tinte disabled:no-underline disabled:opacity-40"
             >
@@ -115,7 +218,7 @@ export function GesamtKalender({
             </button>
             <button
               type="button"
-              onClick={() => merke(kunden.map((k) => k.slug))}
+              onClick={() => merkeKunden(kunden.map((k) => k.slug))}
               disabled={abgewaehlt.length === kunden.length}
               className="text-leise underline underline-offset-2 hover:text-tinte disabled:no-underline disabled:opacity-40"
             >
@@ -127,33 +230,31 @@ export function GesamtKalender({
         {/*
           Gedeckelt und rollend: Bei zwanzig Kunden schöbe die Liste den
           Kalender sonst aus dem Bild, und der ist der Grund, warum jemand
-          hier ist.
+          hier ist. Die Liste ist zugleich die Legende zu den Punkten.
         */}
-        <div className="mt-2.5 grid max-h-[260px] gap-0.5 overflow-y-auto">
-          {kunden.map((k) => {
-            const anzahl = anzahlJeKunde.get(k.slug) ?? 0
-            return (
-              <label
-                key={k.slug}
-                className="flex cursor-pointer items-center gap-2 rounded-[4px] px-1 py-1 transition-colors hover:bg-flaeche-tief"
-              >
-                <input
-                  type="checkbox"
-                  checked={!versteckt.has(k.slug)}
-                  onChange={() => umschalten(k.slug)}
-                  className="size-[13px] shrink-0 accent-akzent"
-                />
-                <span className="min-w-0 flex-1 truncate text-[11.5px] text-tinte-3">{k.name}</span>
+        <div className="mt-2 grid max-h-[260px] gap-0.5 overflow-y-auto">
+          {kunden.map((k) => (
+            <Kasten
+              key={k.slug}
+              an={!versteckt.has(k.slug)}
+              umschalten={() =>
+                merkeKunden(
+                  versteckt.has(k.slug)
+                    ? abgewaehlt.filter((s) => s !== k.slug)
+                    : [...abgewaehlt, k.slug],
+                )
+              }
+              punkt={
                 <span
-                  className={`shrink-0 font-mono text-[10.5px] ${
-                    anzahl > 0 ? 'text-leise' : 'text-stiller'
-                  }`}
-                >
-                  {anzahl}
-                </span>
-              </label>
-            )
-          })}
+                  aria-hidden
+                  className="block size-[7px] shrink-0 rounded-full"
+                  style={{ background: k.farbe }}
+                />
+              }
+              name={k.name}
+              anzahl={jeKunde.get(k.slug) ?? 0}
+            />
+          ))}
         </div>
 
         {kunden.length === 0 && (
@@ -167,41 +268,30 @@ export function GesamtKalender({
       */}
       <div className="min-w-0 flex-1 overflow-x-auto pb-1">
         <div className="min-w-[520px]">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Link
-                  href={vorher}
-                  aria-label="Vorheriger Monat"
-                  className="flex size-7 items-center justify-center rounded-[5px] border border-rahmen-3 bg-flaeche text-[13px] text-leise transition-colors hover:text-tinte"
-                >
-                  ‹
-                </Link>
-                <Link
-                  href={naechster}
-                  aria-label="Nächster Monat"
-                  className="flex size-7 items-center justify-center rounded-[5px] border border-rahmen-3 bg-flaeche text-[13px] text-leise transition-colors hover:text-tinte"
-                >
-                  ›
-                </Link>
-              </div>
-              <h2 className="text-[15px] font-semibold capitalize text-tinte">{monatsName}</h2>
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="flex items-center gap-1">
               <Link
-                href={heute}
-                className="text-[11.5px] text-leise underline underline-offset-2 hover:text-tinte"
+                href={vorher}
+                aria-label="Vorheriger Monat"
+                className="flex size-7 items-center justify-center rounded-[5px] border border-rahmen-3 bg-flaeche text-[13px] text-leise transition-colors hover:text-tinte"
               >
-                heute
+                ‹
+              </Link>
+              <Link
+                href={naechster}
+                aria-label="Nächster Monat"
+                className="flex size-7 items-center justify-center rounded-[5px] border border-rahmen-3 bg-flaeche text-[13px] text-leise transition-colors hover:text-tinte"
+              >
+                ›
               </Link>
             </div>
-
-            <div className="flex items-center gap-3.5">
-              {(['REEL', 'KARUSSELL', 'BEITRAG'] as PostTyp[]).map((typ) => (
-                <span key={typ} className="flex items-center gap-1.5 text-[10.5px] text-leiser">
-                  <TypPunkt typ={typ} groesse={6} />
-                  {TYP_TEXT[typ]}
-                </span>
-              ))}
-            </div>
+            <h2 className="text-[15px] font-semibold capitalize text-tinte">{monatsName}</h2>
+            <Link
+              href={heute}
+              className="text-[11.5px] text-leise underline underline-offset-2 hover:text-tinte"
+            >
+              heute
+            </Link>
           </div>
 
           <div className="overflow-hidden rounded-md border border-rahmen bg-flaeche">
@@ -213,9 +303,7 @@ export function GesamtKalender({
               ? 'In diesem Monat ist nichts geplant.'
               : sichtbar.length === eintraege.length
                 ? `${eintraege.length} Beiträge in diesem Monat.`
-                : `${sichtbar.length} von ${eintraege.length} Beiträgen — ${abgewaehlt.length} ${
-                    abgewaehlt.length === 1 ? 'Kunde' : 'Kunden'
-                  } ausgeblendet.`}
+                : `${sichtbar.length} von ${eintraege.length} Beiträgen dieses Monats.`}
           </p>
         </div>
       </div>

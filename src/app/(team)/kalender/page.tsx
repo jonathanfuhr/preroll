@@ -7,6 +7,7 @@ import {
   ausMonatsschluessel,
   versetzterMonat,
 } from '@/lib/kalender-monat'
+import { kundenFarbe } from '@/lib/kunde-farbe'
 import { postPfad } from '@/lib/urls'
 import { wochenDesMonats } from '@/components/kalender'
 import { GesamtKalender, type GesamtEintrag } from '@/components/kalender-gesamt'
@@ -64,6 +65,7 @@ export default async function KalenderSeite({
         typ: true,
         verhaeltnis: true,
         titel: true,
+        status: true,
         postenAm: true,
         kunde: { select: { slug: true, name: true } },
       },
@@ -74,6 +76,9 @@ export default async function KalenderSeite({
     id: p.id,
     typ: p.typ,
     verhaeltnis: p.verhaeltnis,
+    status: p.status,
+    // Anders als in den Kundenkalendern steht der Punkt hier für den Kunden.
+    farbe: kundenFarbe(p.kunde.slug),
     // Der Kundenname steht vorn: In einer Ansicht über alle Kunden ist die
     // erste Frage, wessen Beitrag da liegt — der Titel sagt das nicht.
     titel: `${p.kunde.name} · ${p.titel}`,
@@ -94,15 +99,16 @@ export default async function KalenderSeite({
           Hinweis, der in die falsche Richtung zeigt, ist schlechter als keiner.
         */}
         <p className="mt-1 text-[12.5px] text-leise">
-          Alle terminierten Beiträge aller Kunden. Über die Kästchen lässt sich einschränken, wer
-          dabei ist — die Auswahl bleibt für den nächsten Besuch stehen.
+          Alle terminierten Beiträge aller Kunden. Voreingestellt stehen nur die freigegebenen da —
+          Phase und Kunden lassen sich über die Kästchen dazunehmen, und die Auswahl bleibt für den
+          nächsten Besuch stehen. Die Punkte tragen hier die Farbe des Kunden, nicht die des Typs.
         </p>
       </div>
 
       <GesamtKalender
         monat={monat}
         eintraege={eintraege}
-        kunden={kunden}
+        kunden={kunden.map((k) => ({ ...k, farbe: kundenFarbe(k.slug) }))}
         vorher={`/kalender?monat=${alsMonatsschluessel(versetzterMonat(monat, -1))}`}
         naechster={`/kalender?monat=${alsMonatsschluessel(versetzterMonat(monat, 1))}`}
         heute={`/kalender?monat=${alsMonatsschluessel(new Date(heute.getFullYear(), heute.getMonth(), 1))}`}
