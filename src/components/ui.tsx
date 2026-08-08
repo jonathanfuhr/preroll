@@ -1,7 +1,12 @@
 import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import type { ComponentProps, ReactNode } from 'react'
-import { anzeigePhase, ANZEIGEPHASE_TEXT, type Anzeigephase } from '@/lib/status'
+import {
+  anzeigePhase,
+  ANZEIGEPHASE_TEXT,
+  type Anzeigephase,
+  type Veroeffentlichungslage,
+} from '@/lib/status'
 import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
 
 // ------------------------------------------------------------------- Etiketten
@@ -19,6 +24,9 @@ const STATUS_STIL: Record<Anzeigephase, string> = {
     draußen".
   */
   GEPOSTET: 'bg-gepostet text-white',
+  // Rot wie jede Fehlermeldung, und voll wie „Gepostet": Auch das ist ein
+  // Endzustand — nur einer, der jemanden braucht.
+  FEHLGESCHLAGEN: 'bg-akzent text-white',
 }
 
 /**
@@ -30,17 +38,9 @@ const STATUS_STIL: Record<Anzeigephase, string> = {
  * und mal „Gepostet" sagt, wäre schlimmer als keins. So zwingt der Typ jede
  * Fundstelle, den Termin mitzugeben.
  */
-export function StatusBadge({
-  status,
-  postenAm,
-  klein,
-}: {
-  status: PostStatus
-  postenAm: Date | null
-  klein?: boolean
-}) {
-  const phase = anzeigePhase(status, postenAm)
-
+/** Etikett für eine bereits gerechnete Phase — etwa im Editor, wo der Server
+ *  sie ohnehin schon kennt. */
+export function PhasenBadge({ phase, klein }: { phase: Anzeigephase; klein?: boolean }) {
   return (
     <span
       className={`inline-flex items-center rounded-[3px] font-medium ${STATUS_STIL[phase]} ${
@@ -50,6 +50,26 @@ export function StatusBadge({
       {ANZEIGEPHASE_TEXT[phase]}
     </span>
   )
+}
+
+export function StatusBadge({
+  status,
+  postenAm,
+  veroeffentlichungen,
+  klein,
+}: {
+  status: PostStatus
+  postenAm: Date | null
+  /**
+   * Ein leeres Array heißt ausdrücklich „für diesen Beitrag postet Preroll
+   * nicht" — dann entscheidet die Uhr. Pflichtangabe aus demselben Grund wie
+   * `postenAm`: Wer sie vergisst, zeigt „Gepostet" für etwas, das gescheitert
+   * ist.
+   */
+  veroeffentlichungen: Veroeffentlichungslage
+  klein?: boolean
+}) {
+  return <PhasenBadge phase={anzeigePhase(status, postenAm, veroeffentlichungen)} klein={klein} />
 }
 
 /**

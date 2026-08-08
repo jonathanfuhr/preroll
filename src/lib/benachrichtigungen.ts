@@ -11,9 +11,12 @@ import {
   vorlageErwaehnung,
   vorlageFreigabe,
   vorlageNeuerKommentar,
+  vorlageVeroeffentlichungFehlgeschlagen,
+  vorlageZugangAbgelehnt,
 } from './mail/vorlagen'
+import { PLATTFORM_TEXT } from './plattformen'
 import { sendePush } from './push'
-import { empfaenger } from './rollen'
+import { empfaenger, hoertBeiAllenKundenMit } from './rollen'
 
 /**
  * Benachrichtigungen gehen drei Wege: als Meldung in der Glocke, als E-Mail
@@ -362,6 +365,141 @@ export async function meldeInstagramAbgelaufen(grund: string): Promise<void> {
           betreff: `Preroll: ${titel}`,
           text: `${text}\n\n${url}`,
         }),
+        `Mail an ${nutzer.email}`,
+      )
+    }
+    if (nutzer.pushBenachrichtigungen) {
+      await stilleZustellung(
+        sendePush({ nutzerId: nutzer.id }, { titel, text, url }),
+        `Push an ${nutzer.email}`,
+      )
+    }
+  }
+}
+
+// -------------------------------------------------------- Veröffentlichungen
+
+/**
+ * Ein Beitrag ist nicht rausgegangen.
+ *
+ * Geht an denselben Kreis wie jede andere Meldung dieses Kunden
+ * (`empfaenger` in `rollen.ts`: Administration und Projektmanagement hören
+ * überall mit, dazu der Hauptansprechpartner und betreuende Designer) — und
+ * zusätzlich an die Person, die für **diesen Beitrag** eingetragen ist. Sie
+ * steht sonst in keiner dieser Gruppen, ist aber die, die es angeht.
+ *
+ * Gemeldet wird **je Fehlschlag einmal**. Der Merker wird beim Wiederbeleben
+ * zurückgesetzt, damit ein erneuter Fehlschlag wieder meldet.
+ */
+export async function meldeVeroeffentlichungFehlgeschlagen(id: string): Promise<void> {
+  const zeile = await prisma.veroeffentlichung.findUnique({
+    where: { id },
+    include: {
+      post: {
+        select: {
+          id: true,
+          titel: true,
+          verantwortlichId: true,
+          kunde: { select: { id: true, name: true, slug: true } },
+        },
+      },
+    },
+  })
+  if (!zeile || zeile.gemeldetAm) return
+
+  // Erst den Merker setzen: Zwei gleichzeitige Läufe sollen nicht zweimal
+  // schreiben, und eine verpasste Mail ist besser als eine doppelte.
+  await prisma.veroeffentlichung.update({ where: { id }, data: { gemeldetAm: new Date() } })
+
+  const { post } = zeile
+  const kunde = post.kunde
+  const url = `${env.appUrl}/kunden/${kunde.slug}/posts/${post.id}`
+  const plattform = PLATTFORM_TEXT[zeile.plattform]
+  const termin = formatiereTag(zeile.geplantFuer, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const grund = zeile.meldung ?? 'Ohne nähere Angabe.'
+
+  const ziele = await empfaengerFuerKunden(kunde.id)
+
+  // Die verantwortliche Person des Beitrags kommt dazu, falls sie nicht
+  // ohnehin schon dabei ist.
+  if (post.verantwortlichId && !ziele.some((z) => z.id === post.verantwortlichId)) {
+    const verantwortlich = await prisma.nutzer.findFirst({
+      where: { id: post.verantwortlichId, aktiv: true },
+    })
+    if (verantwortlich) ziele.push(verantwortlich)
+  }
+
+  await verteile(
+    ziele,
+    {
+      art: 'VEROEFFENTLICHUNG',
+      titel: `Nicht veröffentlicht — ${kunde.name}`,
+      text: `${plattform} · ${post.titel}: ${grund}`,
+      url,
+      kundeId: kunde.id,
+      postId: post.id,
+    },
+    (an) =>
+      vorlageVeroeffentlichungFehlgeschlagen(an, kunde.name, post.titel, plattform, termin, grund, url),
+  )
+}
+
+/**
+ * Der Meta-Zugang wird abgelehnt.
+ *
+ * Eine Meldung statt einer je Beitrag: Ein totes Token lässt jeden fälligen
+ * Beitrag scheitern, und zwanzig Mails über dieselbe Ursache liest niemand.
+ * Empfänger sind die Rollen, die bei allen Kunden mithören — Administration
+ * (sie erneuert) und Projektmanagement (es weiß, was liegenbleibt).
+ */
+export async function meldeZugangAbgelehnt(zugangId: string): Promise<void> {
+  const zugang = await prisma.plattformZugang.findUnique({
+    where: { id: zugangId },
+    include: {
+      kunden: {
+        where: { archiviert: false, postenAktiv: true },
+        orderBy: { name: 'asc' },
+        select: { name: true },
+      },
+    },
+  })
+  if (!zugang || !zugang.fehler || zugang.gemeldetAm) return
+
+  await prisma.plattformZugang.update({
+    where: { id: zugangId },
+    data: { gemeldetAm: new Date() },
+  })
+
+  const ziele = (await prisma.nutzer.findMany({ where: { aktiv: true } })).filter((n) =>
+    hoertBeiAllenKundenMit(n.rolle),
+  )
+  if (ziele.length === 0) return
+
+  const namen = zugang.kunden.map((k) => k.name)
+  const url = `${env.appUrl}/einstellungen/veroeffentlichen`
+  const titel = 'Meta-Zugang erneuern'
+  const text =
+    namen.length === 0
+      ? zugang.fehler
+      : `${zugang.fehler} Betrifft ${namen.join(', ')}.`
+
+  await stilleZustellung(
+    prisma.benachrichtigung.createMany({
+      data: ziele.map((nutzer) => ({ nutzerId: nutzer.id, art: 'WARTUNG' as const, titel, text, url })),
+    }),
+    'Zugangsmeldung anlegen',
+  )
+
+  for (const nutzer of ziele) {
+    if (nutzer.mailBenachrichtigungen) {
+      await stilleZustellung(
+        sendeMail(vorlageZugangAbgelehnt(nutzer.email, zugang.fehler, namen, url)),
         `Mail an ${nutzer.email}`,
       )
     }

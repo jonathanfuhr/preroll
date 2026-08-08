@@ -39,9 +39,11 @@ export default async function PostSeite({
       where: { postId },
       orderBy: { plattform: 'asc' },
       select: {
+        id: true,
         plattform: true,
         stand: true,
         geplantFuer: true,
+        erledigtAm: true,
         meldung: true,
         versuche: true,
       },
@@ -89,6 +91,23 @@ export default async function PostSeite({
   // drei. Was gerade dort steht, entscheidet `reelVideoQuelle`.
   const videoQuelle = post.typ === 'REEL' ? reelVideoQuelle(post) : null
 
+  /*
+    Wie viele andere Beiträge zur selben Minute rausgehen sollen. Preroll
+    postet sie nacheinander; gezählt wird nur, wo es überhaupt selbst
+    veröffentlicht — bei Kunden, die von Hand posten, ist die Zahl belanglos.
+  */
+  const gleichzeitig =
+    post.postenAm && post.kunde.postenAktiv
+      ? await prisma.post.count({
+          where: {
+            id: { not: post.id },
+            status: 'FINAL',
+            postenAm: post.postenAm,
+            kunde: { postenAktiv: true, archiviert: false },
+          },
+        })
+      : 0
+
   return (
     <>
       <BrotkrumeSetzen stufen={[{ text: post.titel }]} />
@@ -99,10 +118,11 @@ export default async function PostSeite({
         </Link>
       </div>
 
-      <VeroeffentlichungStandLeiste zeilen={veroeffentlichungen} />
+      <VeroeffentlichungStandLeiste zeilen={veroeffentlichungen} slug={slug} postId={postId} />
 
       <PostEditor
-        phase={anzeigePhase(post.status, post.postenAm)}
+        phase={anzeigePhase(post.status, post.postenAm, veroeffentlichungen)}
+        gleichzeitig={gleichzeitig}
         post={{
           id: post.id,
           typ: post.typ,

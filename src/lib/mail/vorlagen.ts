@@ -127,6 +127,69 @@ export function vorlageFreigabe(
   }
 }
 
+/**
+ * Ein Beitrag ist nicht rausgegangen.
+ *
+ * Betreff und erster Satz nennen Kunde und Beitrag — wer die Mail am Telefon
+ * in der Vorschau sieht, soll ohne Öffnen wissen, ob es dringend ist.
+ */
+export function vorlageVeroeffentlichungFehlgeschlagen(
+  an: string,
+  kunde: string,
+  beitrag: string,
+  plattform: string,
+  termin: string,
+  grund: string,
+  url: string,
+): Mail {
+  return {
+    an,
+    betreff: `Nicht veröffentlicht: ${beitrag} (${kunde})`,
+    text:
+      `Der Beitrag „${beitrag}" für ${kunde} sollte am ${termin} auf ${plattform} erscheinen ` +
+      `und ist nicht rausgegangen.\n\nGrund: ${grund}\n\n${url}`,
+    html: huelle(
+      'Beitrag nicht veröffentlicht',
+      `<p style="margin:0;"><strong>${beitrag}</strong> für <strong>${kunde}</strong> sollte am
+         <strong>${termin}</strong> auf <strong>${plattform}</strong> erscheinen — und ist nicht
+         rausgegangen.</p>
+       <p style="margin:16px 0 0;padding:12px 14px;background:#fbeceb;border-radius:5px;color:#8a1810;">${grund}</p>
+       ${knopf(url, 'Beitrag öffnen')}`,
+      'Im Beitrag steht ein Knopf „Erneut versuchen". Alternativ genügt es, ihm einen neuen Termin zu geben.',
+    ),
+  }
+}
+
+/**
+ * Der Meta-Zugang wird abgelehnt. Eine Mail statt einer je Beitrag: Die
+ * Ursache ist dieselbe, und zwanzig Mails über dasselbe tote Token liest
+ * niemand.
+ */
+export function vorlageZugangAbgelehnt(
+  an: string,
+  grund: string,
+  kunden: string[],
+  url: string,
+): Mail {
+  const betroffen =
+    kunden.length === 0
+      ? 'Zurzeit veröffentlicht Preroll für keinen Kunden — es geht also nichts verloren.'
+      : `Betroffen: ${kunden.join(', ')}. Für diese Kunden geht bis zur Erneuerung nichts raus.`
+
+  return {
+    an,
+    betreff: 'Preroll: Meta-Zugang erneuern',
+    text: `Meta lehnt den hinterlegten Zugang ab.\n\n${grund}\n\n${betroffen}\n\n${url}`,
+    html: huelle(
+      'Meta-Zugang erneuern',
+      `<p style="margin:0;">Meta lehnt den hinterlegten Zugang ab.</p>
+       <p style="margin:16px 0 0;padding:12px 14px;background:#fbeceb;border-radius:5px;color:#8a1810;">${grund}</p>
+       <p style="margin:16px 0 0;">${betroffen}</p>
+       ${knopf(url, 'Einstellungen öffnen')}`,
+    ),
+  }
+}
+
 export function vorlageTestmail(an: string, transport: string): Mail {
   return {
     an,

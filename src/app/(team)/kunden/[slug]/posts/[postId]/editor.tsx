@@ -13,7 +13,7 @@ import {
 } from '@/components/download-fortschritt'
 import { kalenderwoche } from '@/lib/format'
 import type { Anzeigephase } from '@/lib/status'
-import { StatusBadge } from '@/components/ui'
+import { PhasenBadge } from '@/components/ui'
 import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
@@ -92,6 +92,7 @@ const STATUS_AKTIV: Record<PostStatus, string> = {
 export function PostEditor({
   post,
   phase,
+  gleichzeitig,
   szenen,
   customFelder,
   slides,
@@ -120,6 +121,8 @@ export function PostEditor({
    * Termin genau zwischen Serverlauf und Hydration verstreicht.
    */
   phase: Anzeigephase
+  /** Wie viele **andere** Beiträge zur selben Minute veröffentlicht werden. */
+  gleichzeitig: number
   szenen: Szene[]
   customFelder: CustomFeld[]
   slides: Array<{ id: string; url: string }>
@@ -265,8 +268,8 @@ export function PostEditor({
             */}
             <span className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-still">
               Status
-              {phase === 'GEPOSTET' && (
-                <StatusBadge status={post.status} postenAm={new Date(post.postenAm!)} klein />
+              {(phase === 'GEPOSTET' || phase === 'FEHLGESCHLAGEN') && (
+                <PhasenBadge phase={phase} klein />
               )}
             </span>
             <div className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]">
@@ -322,7 +325,20 @@ export function PostEditor({
               >
                 <Eingabe name="postenAm" type="date" defaultValue={datum} />
               </Feld>
-              <Feld beschriftung="Uhrzeit">
+              <Feld
+                beschriftung="Uhrzeit"
+                /*
+                  Preroll veröffentlicht nacheinander, nicht gleichzeitig.
+                  Kein Grund umzuplanen — zwei Kunden teilen sich ohne Weiteres
+                  eine Minute —, aber wer es weiß, wundert sich später nicht
+                  über einen Beitrag, der ein paar Minuten zu spät erschien.
+                */
+                hinweis={
+                  gleichzeitig > 0
+                    ? `Zu diesem Termin stehen ${gleichzeitig + 1} Beiträge an. Preroll postet sie nacheinander — die letzten erscheinen einige Minuten später.`
+                    : undefined
+                }
+              >
                 <Eingabe name="uhrzeit" type="time" defaultValue={uhrzeit} required />
               </Feld>
               <Feld

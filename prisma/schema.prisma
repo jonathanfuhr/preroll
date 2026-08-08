@@ -623,6 +623,8 @@ enum BenachrichtigungArt {
   EINLADUNG
   /** Etwas am Werkzeug selbst braucht Aufmerksamkeit, etwa eine abgelaufene Sitzung. */
   WARTUNG
+  /** Ein Beitrag ist nicht rausgegangen. */
+  VEROEFFENTLICHUNG
 }
 
 /**
@@ -718,6 +720,12 @@ model PlattformZugang {
   geprueftAm DateTime?
   /** Leer heißt: Die letzte Prüfung lief durch. */
   fehler     String?
+  /**
+   * Damit die Meldung an die Administration je Ausfall nur einmal rausgeht.
+   * Ein toter Zugang lässt sonst jeden fälligen Beitrag scheitern — und jeder
+   * davon schriebe eine Mail über dieselbe Ursache.
+   */
+  gemeldetAm DateTime?
 
   kunden Kunde[]
 
@@ -764,6 +772,8 @@ model Veroeffentlichung {
 
   uebergebenAm DateTime?
   erledigtAm   DateTime?
+  /** Wann über diesen Fehlschlag benachrichtigt wurde — je Fehlschlag einmal. */
+  gemeldetAm   DateTime?
 
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt

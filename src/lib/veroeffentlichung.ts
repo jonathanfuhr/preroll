@@ -2,6 +2,10 @@ import 'server-only'
 import type { Plattform } from '@prisma/client'
 import { prisma } from './db'
 import { posteAufFacebook, posteAufInstagram, type MetaFehler } from './meta'
+import {
+  meldeVeroeffentlichungFehlgeschlagen,
+  meldeZugangAbgelehnt,
+} from './benachrichtigungen'
 import { medienFuerPost } from './veroeffentlichung-medien'
 
 export { medienFuerPost } from './veroeffentlichung-medien'
@@ -104,13 +108,36 @@ export async function gleicheVeroeffentlichungenAb(jetzt = new Date()): Promise<
         continue
       }
 
-      if (
-        vorhanden.stand === 'GEPLANT' &&
-        vorhanden.geplantFuer.getTime() !== post.postenAm.getTime()
-      ) {
+      const verschoben = vorhanden.geplantFuer.getTime() !== post.postenAm.getTime()
+
+      if (vorhanden.stand === 'GEPLANT' && verschoben) {
         await prisma.veroeffentlichung.update({
           where: { id: vorhanden.id },
           data: { geplantFuer: post.postenAm },
+        })
+      }
+
+      /*
+        Ein neuer Termin auf einem gescheiterten Beitrag heißt: Jemand hat den
+        Fehlschlag gesehen und etwas dagegen getan. Das ist die natürlichste
+        Wiederholung, die es gibt — Problem beheben, Beitrag auf einen neuen
+        Termin ziehen, fertig. Der Versuchszähler beginnt von vorn, und der
+        Meldungs-Merker fällt weg, damit ein erneuter Fehlschlag wieder meldet.
+
+        Nur bei **verschobenem** Termin: Sonst bliebe eine gescheiterte Zeile
+        in einer Endlosschleife aus Wiederbeleben und Scheitern hängen.
+      */
+      if (vorhanden.stand === 'FEHLGESCHLAGEN' && verschoben) {
+        await prisma.veroeffentlichung.update({
+          where: { id: vorhanden.id },
+          data: {
+            stand: 'GEPLANT',
+            geplantFuer: post.postenAm,
+            versuche: 0,
+            meldung: null,
+            erledigtAm: null,
+            gemeldetAm: null,
+          },
         })
       }
     }
@@ -239,12 +266,21 @@ async function notiereFehlschlag(id: string, fehler: MetaFehler): Promise<void> 
     },
   })
 
+  if (!endgueltig) return
+
   if (fehler.zugangHin && zeile.post.kunde.metaZugangId) {
+    // Am Zugang notiert, nicht am Beitrag: Betroffen sind alle Kunden, die
+    // daran hängen — und gemeldet wird deshalb der Zugang, einmal, statt
+    // jeder liegengebliebene Beitrag einzeln.
     await prisma.plattformZugang.update({
       where: { id: zeile.post.kunde.metaZugangId },
       data: { fehler: fehler.text, geprueftAm: new Date() },
     })
+    await meldeZugangAbgelehnt(zeile.post.kunde.metaZugangId).catch(() => {})
+    return
   }
+
+  await meldeVeroeffentlichungFehlgeschlagen(id).catch(() => {})
 }
 
 /** Eine bereits auf `LAEUFT` gesetzte Zeile tatsächlich veröffentlichen. */

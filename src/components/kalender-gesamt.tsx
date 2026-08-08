@@ -53,10 +53,12 @@ const SPEICHER_KUNDEN = 'preroll:kalender:abgewaehlt'
 const SPEICHER_STATUS = 'preroll:kalender:status'
 
 /**
- * Freigegeben heißt beides: Was noch auf seinen Termin wartet, und was schon
- * draußen ist. Nur `FINAL` ließe einen vergangenen Monat leer aussehen.
+ * Freigegeben heißt alles drei: Was noch auf seinen Termin wartet, was schon
+ * draußen ist — und was rausgehen sollte und nicht ging. Nur `FINAL` ließe
+ * einen vergangenen Monat leer aussehen, und Fehlschläge will man sehen, ohne
+ * sie erst anzuhaken.
  */
-const VOREINSTELLUNG: Anzeigephase[] = ['FINAL', 'GEPOSTET']
+const VOREINSTELLUNG: Anzeigephase[] = ['FINAL', 'GEPOSTET', 'FEHLGESCHLAGEN']
 
 /** Passend zu den Etiketten im Rest des Werkzeugs — Entwurf bleibt farblos. */
 const STATUS_PUNKT: Record<Anzeigephase, string> = {
@@ -65,6 +67,7 @@ const STATUS_PUNKT: Record<Anzeigephase, string> = {
   VORSCHAU: 'bg-vorschau',
   FINAL: 'bg-final',
   GEPOSTET: 'bg-gepostet',
+  FEHLGESCHLAGEN: 'bg-akzent',
 }
 
 function lies<T>(schluessel: string, ersatz: T): T {

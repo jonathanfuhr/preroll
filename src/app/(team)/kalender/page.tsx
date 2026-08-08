@@ -68,6 +68,7 @@ export default async function KalenderSeite({
         titel: true,
         status: true,
         postenAm: true,
+        veroeffentlichungen: { select: { stand: true } },
         kunde: { select: { slug: true, name: true } },
       },
     }),
@@ -77,7 +78,7 @@ export default async function KalenderSeite({
     id: p.id,
     typ: p.typ,
     verhaeltnis: p.verhaeltnis,
-    phase: anzeigePhase(p.status, p.postenAm, heute),
+    phase: anzeigePhase(p.status, p.postenAm, p.veroeffentlichungen, heute),
     // Anders als in den Kundenkalendern steht der Punkt hier für den Kunden.
     farbe: kundenFarbe(p.kunde.slug),
     // Der Kundenname steht vorn: In einer Ansicht über alle Kunden ist die

@@ -47,8 +47,16 @@ export default async function TeamLayout({
   // Zeitplaner; die Arbeit im Backend ist der Takt.
   void wacheUeberKennzahlen()
 
-  const [einstellungen, kunden, favoriten, meldungen, ungelesen, offeneKommentare, metaZugang] =
-    await Promise.all([
+  const [
+    einstellungen,
+    kunden,
+    favoriten,
+    meldungen,
+    ungelesen,
+    offeneKommentare,
+    metaZugang,
+    fehlgeschlagen,
+  ] = await Promise.all([
       ladeEinstellungen(),
       prisma.kunde.findMany({
         where: { archiviert: false },
@@ -84,6 +92,17 @@ export default async function TeamLayout({
             orderBy: { name: 'asc' },
             select: { name: true },
           },
+        },
+      }),
+      /*
+        Nur die der letzten Woche: Ein Fehlschlag von vor drei Monaten, den
+        niemand mehr nachholen wird, gehört nicht als rotes Band über jede
+        Seite. In den Einstellungen steht er weiter.
+      */
+      prisma.veroeffentlichung.count({
+        where: {
+          stand: 'FEHLGESCHLAGEN',
+          geplantFuer: { gte: new Date(Date.now() - 7 * 24 * 3600_000) },
         },
       }),
     ])
@@ -201,6 +220,31 @@ export default async function TeamLayout({
                   Jetzt nachsehen
                 </Link>
               )}
+            </div>
+          )}
+
+          {/*
+            Ein Beitrag, der nicht rausging, fällt sonst erst auf, wenn ihn
+            jemand zufällig öffnet. Anders als der tote Zugang betrifft das
+            einzelne Beiträge — deshalb führt der Weg in die Liste, nicht in
+            die Einstellungen des Zugangs.
+          */}
+          {fehlgeschlagen > 0 && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-4 py-2.5 text-[12.5px] text-akzent-dunkel md:px-8">
+              <strong className="font-semibold">
+                {fehlgeschlagen === 1
+                  ? 'Ein Beitrag ist nicht rausgegangen'
+                  : `${fehlgeschlagen} Beiträge sind nicht rausgegangen`}
+              </strong>
+              <span className="text-akzent-dunkel/80">
+                Aus den letzten sieben Tagen. Sie gehen von allein nicht mehr raus.
+              </span>
+              <Link
+                href="/einstellungen/veroeffentlichen"
+                className="font-medium underline underline-offset-2"
+              >
+                Ansehen
+              </Link>
             </div>
           )}
 

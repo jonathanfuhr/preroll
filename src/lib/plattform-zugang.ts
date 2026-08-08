@@ -42,6 +42,8 @@ export async function speichereMetaToken(
     token,
     geprueftAm: jetzt,
     fehler: geprueft.ok ? null : geprueft.fehler.text,
+    // Ein geheilter Zugang darf beim nächsten Ausfall wieder melden.
+    gemeldetAm: geprueft.ok ? null : undefined,
   }
 
   if (vorhanden) {
@@ -66,7 +68,11 @@ export async function pruefeMetaZugang(): Promise<
   const geprueft = await holeSeiten(zugang.token)
   await prisma.plattformZugang.update({
     where: { id: zugang.id },
-    data: { geprueftAm: new Date(), fehler: geprueft.ok ? null : geprueft.fehler.text },
+    data: {
+      geprueftAm: new Date(),
+      fehler: geprueft.ok ? null : geprueft.fehler.text,
+      gemeldetAm: geprueft.ok ? null : undefined,
+    },
   })
 
   return geprueft.ok ? { ok: true, seiten: geprueft.daten } : { ok: false, fehler: geprueft.fehler.text }
