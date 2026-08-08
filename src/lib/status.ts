@@ -27,17 +27,49 @@ export const STUFE_TEXT: Record<Stufe, string> = {
   GEPOSTET: 'Gepostet',
 }
 
+/**
+ * Dieselbe Rechnung fürs Backend — fünf Werte statt vier, weil der Entwurf
+ * hier dazugehört.
+ *
+ * „Gepostet" gab es lange nur beim Kunden. Intern stand ein Beitrag von der
+ * Freigabe bis in alle Ewigkeit auf „Final", und ein Monatsrückblick sah aus,
+ * als warte alles noch auf seinen Termin. Gerechnet wird deshalb an **einer**
+ * Stelle, und `abgeleiteteStufe` ist nur noch die Kundensicht darauf.
+ *
+ * Weiterhin **nicht gespeichert**: Ein fünfter Wert in `PostStatus` müsste von
+ * irgendwem gesetzt werden und stünde falsch, sobald ein Termin nachträglich
+ * verschoben wird. So ergibt ein Termin in der Zukunft automatisch wieder
+ * „Final" — was der Sache entspricht.
+ */
+export const ANZEIGEPHASEN = ['ENTWURF', 'KONZEPT', 'VORSCHAU', 'FINAL', 'GEPOSTET'] as const
+export type Anzeigephase = (typeof ANZEIGEPHASEN)[number]
+
+export const ANZEIGEPHASE_TEXT: Record<Anzeigephase, string> = {
+  ENTWURF: 'Entwurf',
+  KONZEPT: 'Konzept',
+  VORSCHAU: 'Vorschau',
+  FINAL: 'Final',
+  GEPOSTET: 'Gepostet',
+}
+
+export function anzeigePhase(
+  status: PostStatus,
+  postenAm: Date | null,
+  jetzt = new Date(),
+): Anzeigephase {
+  if (status !== 'FINAL' || !postenAm) return status
+  return postenAm <= jetzt ? 'GEPOSTET' : 'FINAL'
+}
+
 export function abgeleiteteStufe(
   status: PostStatus,
   postenAm: Date | null,
   jetzt = new Date(),
 ): Stufe {
+  const phase = anzeigePhase(status, postenAm, jetzt)
   // Entwürfe erreichen den Kunden nie; steht hier doch einer, ist die erste
   // Stufe die ehrlichste Antwort.
-  if (status === 'ENTWURF') return 'KONZEPT'
-  if (status !== 'FINAL') return status
-  if (!postenAm) return 'FINAL'
-  return postenAm <= jetzt ? 'GEPOSTET' : 'FINAL'
+  return phase === 'ENTWURF' ? 'KONZEPT' : phase
 }
 
 /**

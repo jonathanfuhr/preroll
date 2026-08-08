@@ -8,6 +8,7 @@ import {
   versetzterMonat,
 } from '@/lib/kalender-monat'
 import { kundenFarbe } from '@/lib/kunde-farbe'
+import { anzeigePhase } from '@/lib/status'
 import { postPfad } from '@/lib/urls'
 import { wochenDesMonats } from '@/components/kalender'
 import { GesamtKalender, type GesamtEintrag } from '@/components/kalender-gesamt'
@@ -76,7 +77,7 @@ export default async function KalenderSeite({
     id: p.id,
     typ: p.typ,
     verhaeltnis: p.verhaeltnis,
-    status: p.status,
+    phase: anzeigePhase(p.status, p.postenAm, heute),
     // Anders als in den Kundenkalendern steht der Punkt hier für den Kunden.
     farbe: kundenFarbe(p.kunde.slug),
     // Der Kundenname steht vorn: In einer Ansicht über alle Kunden ist die
@@ -99,9 +100,10 @@ export default async function KalenderSeite({
           Hinweis, der in die falsche Richtung zeigt, ist schlechter als keiner.
         */}
         <p className="mt-1 text-[12.5px] text-leise">
-          Alle terminierten Beiträge aller Kunden. Voreingestellt stehen nur die freigegebenen da —
-          Phase und Kunden lassen sich über die Kästchen dazunehmen, und die Auswahl bleibt für den
-          nächsten Besuch stehen. Die Punkte tragen hier die Farbe des Kunden, nicht die des Typs.
+          Alle terminierten Beiträge aller Kunden. Voreingestellt stehen die freigegebenen da —
+          Final und Gepostet; die früheren Phasen lassen sich über die Kästchen dazunehmen, und die
+          Auswahl bleibt für den nächsten Besuch stehen. Die Punkte tragen hier die Farbe des
+          Kunden, nicht die des Typs.
         </p>
       </div>
 

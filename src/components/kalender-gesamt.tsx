@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import type { PostStatus } from '@prisma/client'
-import { PHASEN, PHASE_TEXT } from '@/lib/status'
+import { ANZEIGEPHASEN, ANZEIGEPHASE_TEXT, type Anzeigephase } from '@/lib/status'
 import { Monatskalender, type Kalendereintrag } from './kalender'
 
 /**
@@ -19,9 +18,10 @@ import { Monatskalender, type Kalendereintrag } from './kalender'
  * 1. **Der Punkt steht für den Kunden, nicht für den Typ.** Wer über zwanzig
  *    Kunden schaut, sucht zuerst „wo liegt etwas von Café Morgenrot" — der Typ
  *    steht im Tooltip. Die Farben kommen aus `kundenFarbe`.
- * 2. **Voreingestellt sind nur Finals.** Der Kalender beantwortet die Frage
- *    „was geht raus", nicht „woran wird gerade gearbeitet". Wer die frühen
- *    Phasen sehen will, hakt sie an.
+ * 2. **Voreingestellt sind nur die freigegebenen Phasen** — Final und
+ *    Gepostet. Der Kalender beantwortet die Frage „was geht raus und was ist
+ *    raus", nicht „woran wird gerade gearbeitet". Wer die frühen Phasen sehen
+ *    will, hakt sie an.
  *
  * Gefiltert wird **im Browser** auf den bereits geladenen Zeilen, wie in der
  * Post-Liste: Ein Rundgang zum Server je Häkchen wäre spürbar langsamer, und
@@ -33,7 +33,8 @@ import { Monatskalender, type Kalendereintrag } from './kalender'
 export type GesamtEintrag = Kalendereintrag & {
   kundeSlug: string
   kundeName: string
-  status: PostStatus
+  /** Am Server gerechnet — „Gepostet" hängt an der Uhr. */
+  phase: Anzeigephase
 }
 
 export type KundenZeile = { slug: string; name: string; farbe: string }
@@ -51,14 +52,19 @@ export type KundenZeile = { slug: string; name: string; farbe: string }
 const SPEICHER_KUNDEN = 'preroll:kalender:abgewaehlt'
 const SPEICHER_STATUS = 'preroll:kalender:status'
 
-const VOREINSTELLUNG: PostStatus[] = ['FINAL']
+/**
+ * Freigegeben heißt beides: Was noch auf seinen Termin wartet, und was schon
+ * draußen ist. Nur `FINAL` ließe einen vergangenen Monat leer aussehen.
+ */
+const VOREINSTELLUNG: Anzeigephase[] = ['FINAL', 'GEPOSTET']
 
 /** Passend zu den Etiketten im Rest des Werkzeugs — Entwurf bleibt farblos. */
-const STATUS_PUNKT: Record<PostStatus, string> = {
+const STATUS_PUNKT: Record<Anzeigephase, string> = {
   ENTWURF: 'bg-still',
   KONZEPT: 'bg-konzept',
   VORSCHAU: 'bg-vorschau',
   FINAL: 'bg-final',
+  GEPOSTET: 'bg-gepostet',
 }
 
 function lies<T>(schluessel: string, ersatz: T): T {
@@ -131,11 +137,11 @@ export function GesamtKalender({
   // Server nicht, und ein Unterschied zwischen beiden Läufen wäre ein
   // Hydrationsbruch.
   const [abgewaehlt, setAbgewaehlt] = useState<string[]>([])
-  const [phasen, setPhasen] = useState<PostStatus[]>(VOREINSTELLUNG)
+  const [phasen, setPhasen] = useState<Anzeigephase[]>(VOREINSTELLUNG)
 
   useEffect(() => {
     setAbgewaehlt(lies<string[]>(SPEICHER_KUNDEN, []))
-    setPhasen(lies<PostStatus[]>(SPEICHER_STATUS, VOREINSTELLUNG))
+    setPhasen(lies<Anzeigephase[]>(SPEICHER_STATUS, VOREINSTELLUNG))
   }, [])
 
   function merkeKunden(neu: string[]) {
@@ -143,7 +149,7 @@ export function GesamtKalender({
     schreibe(SPEICHER_KUNDEN, neu)
   }
 
-  function merkePhasen(neu: PostStatus[]) {
+  function merkePhasen(neu: Anzeigephase[]) {
     setPhasen(neu)
     schreibe(SPEICHER_STATUS, neu)
   }
@@ -152,8 +158,8 @@ export function GesamtKalender({
   const anPhasen = new Set(phasen)
 
   const nachKunde = eintraege.filter((e) => !versteckt.has(e.kundeSlug))
-  const nachPhase = eintraege.filter((e) => anPhasen.has(e.status))
-  const sichtbar = nachKunde.filter((e) => anPhasen.has(e.status))
+  const nachPhase = eintraege.filter((e) => anPhasen.has(e.phase))
+  const sichtbar = nachKunde.filter((e) => anPhasen.has(e.phase))
 
   // Die Zahlen zeigen, was ein Häkchen brächte: beim Kunden gezählt wird, was
   // die Phasenwahl ohnehin durchlässt — und umgekehrt. Sonst verspricht eine
@@ -161,8 +167,8 @@ export function GesamtKalender({
   const jeKunde = new Map<string, number>()
   for (const e of nachPhase) jeKunde.set(e.kundeSlug, (jeKunde.get(e.kundeSlug) ?? 0) + 1)
 
-  const jePhase = new Map<PostStatus, number>()
-  for (const e of nachKunde) jePhase.set(e.status, (jePhase.get(e.status) ?? 0) + 1)
+  const jePhase = new Map<Anzeigephase, number>()
+  for (const e of nachKunde) jePhase.set(e.phase, (jePhase.get(e.phase) ?? 0) + 1)
 
   const monatsName = new Intl.DateTimeFormat('de-DE', {
     month: 'long',
@@ -179,12 +185,13 @@ export function GesamtKalender({
       <div className="w-full shrink-0 self-start rounded-md border border-rahmen bg-flaeche p-3 md:w-[228px]">
         {/*
           Die Phasen stehen oben, obwohl die Kunden der eigentliche Filter
-          sind: Voreingestellt ist „nur Final", und wer sich wundert, warum so
-          wenig dasteht, soll den Grund sehen, bevor er scrollt.
+          sind: Voreingestellt sind nur Final und Gepostet, und wer sich
+          wundert, warum so wenig dasteht, soll den Grund sehen, bevor er
+          scrollt.
         */}
         <h3 className="text-[12.5px] font-medium text-tinte">Phase</h3>
         <div className="mt-2 grid gap-0.5">
-          {PHASEN.map((phase) => (
+          {ANZEIGEPHASEN.map((phase) => (
             <Kasten
               key={phase}
               an={anPhasen.has(phase)}
@@ -199,7 +206,7 @@ export function GesamtKalender({
                   className={`block size-[7px] shrink-0 rounded-full ${STATUS_PUNKT[phase]}`}
                 />
               }
-              name={PHASE_TEXT[phase]}
+              name={ANZEIGEPHASE_TEXT[phase]}
               anzahl={jePhase.get(phase) ?? 0}
             />
           ))}

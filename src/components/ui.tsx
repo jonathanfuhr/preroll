@@ -1,34 +1,53 @@
 import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import Link from 'next/link'
 import type { ComponentProps, ReactNode } from 'react'
+import { anzeigePhase, ANZEIGEPHASE_TEXT, type Anzeigephase } from '@/lib/status'
 import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
 
 // ------------------------------------------------------------------- Etiketten
 
-const STATUS_TEXT: Record<PostStatus, string> = {
-  ENTWURF: 'Entwurf',
-  KONZEPT: 'Konzept',
-  VORSCHAU: 'Vorschau',
-  FINAL: 'Final',
-}
-
-const STATUS_STIL: Record<PostStatus, string> = {
+const STATUS_STIL: Record<Anzeigephase, string> = {
   // Ein Entwurf hat keine eigene Farbe — er ist noch nichts, was jemand
   // beurteilen soll.
   ENTWURF: 'bg-flaeche-tief text-still',
   KONZEPT: 'bg-konzept-flaeche text-konzept',
   VORSCHAU: 'bg-vorschau-flaeche text-vorschau',
   FINAL: 'bg-final-flaeche text-final',
+  /*
+    Gepostet bleibt in der Familie von Final, aber als volle Fläche: Das
+    zarte Etikett heißt „freigegeben, wartet auf den Termin", das volle „ist
+    draußen".
+  */
+  GEPOSTET: 'bg-gepostet text-white',
 }
 
-export function StatusBadge({ status, klein }: { status: PostStatus; klein?: boolean }) {
+/**
+ * Die Phase eines Beitrags als Etikett.
+ *
+ * `postenAm` ist **Pflicht**, obwohl es nur für „Gepostet" gebraucht wird:
+ * Ohne den Termin lässt sich ein veröffentlichter Beitrag nicht von einem
+ * wartenden unterscheiden, und ein Etikett, das je nach Aufrufer mal „Final"
+ * und mal „Gepostet" sagt, wäre schlimmer als keins. So zwingt der Typ jede
+ * Fundstelle, den Termin mitzugeben.
+ */
+export function StatusBadge({
+  status,
+  postenAm,
+  klein,
+}: {
+  status: PostStatus
+  postenAm: Date | null
+  klein?: boolean
+}) {
+  const phase = anzeigePhase(status, postenAm)
+
   return (
     <span
-      className={`inline-flex items-center rounded-[3px] font-medium ${STATUS_STIL[status]} ${
+      className={`inline-flex items-center rounded-[3px] font-medium ${STATUS_STIL[phase]} ${
         klein ? 'px-1.5 py-0.5 text-[9.5px]' : 'px-2 py-1 text-[11px]'
       }`}
     >
-      {STATUS_TEXT[status]}
+      {ANZEIGEPHASE_TEXT[phase]}
     </span>
   )
 }

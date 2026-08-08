@@ -26,12 +26,15 @@ export function FreigabeFeld({
   postId,
   offen,
   erledigt,
+  gepostet,
   freigaben,
   vorschlagName,
 }: {
   postId: string
   offen: Freigabestufe | null
   erledigt: boolean
+  /** Ändert nur die Wortwahl: „steht auf Final" gegen „ist gepostet". */
+  gepostet: boolean
   freigaben: FreigabeZeile[]
   vorschlagName: string | null
 }) {
@@ -69,8 +72,9 @@ export function FreigabeFeld({
 
       {!offen ? (
         <Hinweis>
-          Dieser Beitrag steht auf Final — Konzept und Vorschau sind durch, es steht keine Freigabe
-          mehr aus.
+          {gepostet
+            ? 'Dieser Beitrag ist gepostet — Konzept und Vorschau sind durch, es steht keine Freigabe mehr aus.'
+            : 'Dieser Beitrag steht auf Final — Konzept und Vorschau sind durch, es steht keine Freigabe mehr aus.'}
         </Hinweis>
       ) : erledigt ? (
         <Hinweis>

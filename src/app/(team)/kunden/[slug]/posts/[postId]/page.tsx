@@ -6,6 +6,7 @@ import { darfBearbeiten } from '@/lib/kommentar-rechte'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
+import { anzeigePhase } from '@/lib/status'
 import { klappeEingerichtet } from '@/lib/klappe'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { reelVideoQuelle } from '@/lib/reel-video'
@@ -101,6 +102,7 @@ export default async function PostSeite({
       <VeroeffentlichungStandLeiste zeilen={veroeffentlichungen} />
 
       <PostEditor
+        phase={anzeigePhase(post.status, post.postenAm)}
         post={{
           id: post.id,
           typ: post.typ,

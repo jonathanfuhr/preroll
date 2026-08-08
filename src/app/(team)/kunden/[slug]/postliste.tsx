@@ -253,7 +253,7 @@ export function Postliste({
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <StatusBadge status={zeile.status} />
+                      <StatusBadge status={zeile.status} postenAm={zeile.postenAm} />
                     </td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.wer ?? '—'}</td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.kommentare || '—'}</td>

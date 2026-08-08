@@ -110,6 +110,7 @@ export default async function PostsSeite({
               typ: post.typ,
             verhaeltnis: post.verhaeltnis,
               status: post.status,
+              postenAm: post.postenAm,
               titel: post.titel,
               bild: thumbUrl(rasterMedium(post)),
               href: `/kunden/${slug}/posts/${post.id}`,

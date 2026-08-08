@@ -12,6 +12,8 @@ import {
   type Downloadstand,
 } from '@/components/download-fortschritt'
 import { kalenderwoche } from '@/lib/format'
+import type { Anzeigephase } from '@/lib/status'
+import { StatusBadge } from '@/components/ui'
 import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
@@ -89,6 +91,7 @@ const STATUS_AKTIV: Record<PostStatus, string> = {
 
 export function PostEditor({
   post,
+  phase,
   szenen,
   customFelder,
   slides,
@@ -111,6 +114,12 @@ export function PostEditor({
   freigabe,
 }: {
   post: PostDaten
+  /**
+   * Am Server gerechnet, nicht hier: „Gepostet" hängt an der aktuellen Zeit,
+   * und wer das im Browser bestimmt, riskiert einen Hydrationsbruch, wenn der
+   * Termin genau zwischen Serverlauf und Hydration verstreicht.
+   */
+  phase: Anzeigephase
   szenen: Szene[]
   customFelder: CustomFeld[]
   slides: Array<{ id: string; url: string }>
@@ -248,7 +257,18 @@ export function PostEditor({
               Dateien als ZIP
             </a>
 
-            <span className="text-[11px] uppercase tracking-[0.1em] text-still">Status</span>
+            {/*
+              Der Umschalter zeigt die vier Phasen, die sich setzen lassen.
+              „Gepostet" steht daneben statt als fünfter Knopf: Es wird aus
+              Final plus vergangenem Termin berechnet und lässt sich nicht
+              anklicken — ein Knopf, der nichts tut, wäre eine Falle.
+            */}
+            <span className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-still">
+              Status
+              {phase === 'GEPOSTET' && (
+                <StatusBadge status={post.status} postenAm={new Date(post.postenAm!)} klein />
+              )}
+            </span>
             <div className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]">
               {STATUS.map((status) => (
                 <form key={status} action={postStatusSetzen.bind(null, post.id, status)}>
@@ -449,6 +469,7 @@ export function PostEditor({
           postId={post.id}
           offen={freigabe.offen}
           erledigt={freigabe.erledigt}
+          gepostet={phase === 'GEPOSTET'}
           freigaben={freigabe.zeilen}
           vorschlagName={freigabe.vorschlagName}
         />

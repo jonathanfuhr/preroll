@@ -154,7 +154,11 @@ export function Kundenuebersicht({
                       {kunde.naechsterTermin ? (
                         <span className="flex items-center gap-2">
                           {kunde.naechsterStatus && (
-                            <StatusBadge status={kunde.naechsterStatus} klein />
+                            <StatusBadge
+                              status={kunde.naechsterStatus}
+                              postenAm={kunde.naechsterTermin}
+                              klein
+                            />
                           )}
                           {DATUM.format(kunde.naechsterTermin)}
                         </span>
