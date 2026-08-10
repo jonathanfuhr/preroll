@@ -15,6 +15,12 @@ export type Kalendereintrag = {
   postenAm: Date | null
   /** Sprungmarke oder Link auf den Post. */
   href?: string
+  /**
+   * Überschreibt die Typfarbe des Punktes. Gesetzt nur im Kalender über alle
+   * Kunden, wo der Punkt für den Kunden steht statt für den Typ — dort ist die
+   * Frage „von wem" wichtiger als „was".
+   */
+  farbe?: string
 }
 
 export const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
@@ -66,12 +72,20 @@ export function Monatskalender({
   eintraege,
   kompakt,
   ohneRahmen,
+  ohneTypname,
 }: {
   monat: Date
   eintraege: Kalendereintrag[]
   kompakt?: boolean
   /** Wenn der Kalender schon in einer Karte mit eigener Kopfzeile sitzt. */
   ohneRahmen?: boolean
+  /**
+   * Lässt „Reel · " vor dem Titel weg — nur in der Anzeige, im Tooltip bleibt
+   * es. Für den Kalender über alle Kunden: Dort steht der Kundenname vorn, und
+   * neben ihm ist das Typwort verschenkter Platz, weil der farbige Punkt es
+   * ohnehin sagt.
+   */
+  ohneTypname?: boolean
 }) {
   const wochen = wochenDesMonats(monat)
 
@@ -160,7 +174,7 @@ export function Monatskalender({
                         <span
                           aria-hidden
                           className="block size-[9px] rounded-full"
-                          style={{ background: TYP_FARBE[eintrag.typ] }}
+                          style={{ background: eintrag.farbe ?? TYP_FARBE[eintrag.typ] }}
                         />
                       )
                       return eintrag.href ? (
@@ -178,16 +192,19 @@ export function Monatskalender({
                   <div className="mt-1 hidden min-h-0 flex-1 flex-col gap-[3px] overflow-hidden sm:flex">
                     {sichtbar.map((eintrag) => {
                       const beschriftung = `${postBezeichnung(eintrag.typ, eintrag.verhaeltnis ?? standardVerhaeltnis(eintrag.typ))} · ${eintrag.titel}`
+                      // Der Tooltip trägt immer alles; gekürzt wird nur, was
+                      // in der Zelle steht.
+                      const anzeige = ohneTypname ? eintrag.titel : beschriftung
                       const inhalt = (
                         <span className="flex min-w-0 items-center gap-1.5">
                           <span
                             aria-hidden
                             className="block size-[6px] shrink-0 rounded-full"
-                            style={{ background: TYP_FARBE[eintrag.typ] }}
+                            style={{ background: eintrag.farbe ?? TYP_FARBE[eintrag.typ] }}
                           />
                           {!kompakt && (
                             <span className="min-w-0 flex-1 truncate text-[9.5px] leading-none text-tinte-3">
-                              {beschriftung}
+                              {anzeige}
                             </span>
                           )}
                         </span>

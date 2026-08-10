@@ -235,7 +235,14 @@ function Navigationsinhalt({
           </>
         )}
 
-        <div className="mt-1.5">
+        {/*
+          Die beiden Ansichten über alle Kunden hinweg, abgesetzt von der
+          Kundenliste darüber — sie gehören keinem einzelnen.
+        */}
+        <div className="mt-1.5 grid gap-0.5">
+          <Punkt href="/kalender" aktiv={pfad.startsWith('/kalender')}>
+            Kalender
+          </Punkt>
           <Punkt href="/bibliothek" aktiv={pfad.startsWith('/bibliothek')}>
             Bibliothek
           </Punkt>

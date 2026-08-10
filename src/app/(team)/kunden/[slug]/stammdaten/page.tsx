@@ -15,21 +15,24 @@ import {
 } from '../aktionen'
 import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
 import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
+import { ladeMetaZugang, metaSeiten } from '@/lib/plattform-zugang'
+import { metaKanalZuordnen } from '../veroeffentlichen-aktionen'
 import { AworkProjektWahl } from './awork-projekt'
 import { BetreuungFormular } from './betreuung'
 import { CustomFeldFormular } from './custom-felder'
 import { KlappeProjektWahl } from './klappe-projekt'
 import { LogoAblage } from './logo'
+import { VeroeffentlichenWahl } from './veroeffentlichen'
 
 export default async function StammdatenSeite({
   params,
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ kennzahlen?: string; meldung?: string }>
+  searchParams: Promise<{ kennzahlen?: string; meta?: string; meldung?: string }>
 }) {
   const { slug } = await params
-  const { kennzahlen: kennzahlenStand, meldung } = await searchParams
+  const { kennzahlen: kennzahlenStand, meta, meldung } = await searchParams
   const kunde = await ladeKunde(slug)
   const einstellungen = await ladeEinstellungen()
 
@@ -46,6 +49,12 @@ export default async function StammdatenSeite({
     aworkEingerichtet(),
     aworkProjekte().catch(() => []),
   ])
+
+  // Ohne Zugang gar nicht erst bei Meta nachfragen. Und ein Fehlschlag darf
+  // die Stammdaten nicht mitnehmen — sonst kommt niemand mehr an das
+  // Formular, in dem er die Zuordnung reparieren würde.
+  const metaZugang = await ladeMetaZugang()
+  const seiten = metaZugang ? await metaSeiten() : []
 
   return (
     <div className="max-w-[760px]">
@@ -173,6 +182,25 @@ export default async function StammdatenSeite({
               waehlbar: darfAnsprechpartnerSein(n.rolle),
               betreutMoeglich: n.rolle === 'DESIGNER',
             }))}
+          />
+        </Karte>
+      </Abschnitt>
+
+      <Abschnitt
+        titel="Veröffentlichen"
+        hinweis="Verbindet den Kunden mit seiner Facebook-Seite und dem daran hängenden Instagram-Konto. Beide bekommen denselben Inhalt."
+      >
+        <Karte className="p-5">
+          <VeroeffentlichenWahl
+            zuordnen={metaKanalZuordnen.bind(null, kunde.id, slug)}
+            zugangSteht={metaZugang !== null}
+            zugangFehler={metaZugang?.fehler ?? null}
+            postenAktiv={kunde.postenAktiv}
+            seitenId={kunde.fbSeitenId}
+            seitenName={kunde.fbSeitenName}
+            igName={kunde.igName}
+            seiten={seiten.map((s) => ({ id: s.id, name: s.name, igName: s.igName }))}
+            meldung={meta === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null}
           />
         </Karte>
       </Abschnitt>

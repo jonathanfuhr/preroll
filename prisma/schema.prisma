@@ -207,6 +207,32 @@ model Kunde {
   aworkProjektId    String?
   aworkProjektName  String?
 
+  /**
+   * Veröffentlicht Preroll für diesen Kunden selbst? Aus heißt: Der Plan wird
+   * wie bisher von Hand gepostet. Bewusst je Kunde und standardmäßig aus —
+   * ein Werkzeug, das ungefragt anfängt zu posten, wäre eine Zumutung.
+   */
+  postenAktiv Boolean @default(false)
+
+  /**
+   * Über welchen Zugang. Facebook und Instagram teilen sich einen: Das
+   * Instagram-Konto hängt an der Facebook-Seite, und der Seiten-Token bedient
+   * beide.
+   */
+  metaZugangId String?
+  metaZugang   PlattformZugang? @relation(fields: [metaZugangId], references: [id], onDelete: SetNull)
+
+  /**
+   * Aus `me/accounts` geholt. Der Seiten-Token stammt aus demselben Aufruf und
+   * läuft nicht ab, solange der Zugang dahinter lebt — deshalb liegt er hier
+   * und wird nicht bei jedem Posten neu besorgt.
+   */
+  fbSeitenId    String?
+  fbSeitenName  String?
+  fbSeitenToken String?
+  igKontoId     String?
+  igName        String?
+
   // Der Hauptansprechpartner steht auf jeder Export-Seite dieses Kunden und
   // bekommt jede Rückmeldung — auch wenn für einen Export zusätzlich jemand
   // anderes hinterlegt ist.
@@ -387,6 +413,7 @@ model Post {
   customWerte  CustomFeldWert[]
   kommentare   Kommentar[]
   freigaben    Freigabe[]
+  veroeffentlichungen Veroeffentlichung[]
 
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt
@@ -596,6 +623,8 @@ enum BenachrichtigungArt {
   EINLADUNG
   /** Etwas am Werkzeug selbst braucht Aufmerksamkeit, etwa eine abgelaufene Sitzung. */
   WARTUNG
+  /** Ein Beitrag ist nicht rausgegangen. */
+  VEROEFFENTLICHUNG
 }
 
 /**
@@ -639,6 +668,121 @@ model PushAbo {
   @@index([nutzerId])
   @@index([gastId])
   @@map("push_abo")
+}
+
+// ----------------------------------------------------------- Veröffentlichen
+
+/**
+ * Wohin ein Beitrag geht. Gebaut sind **Facebook und Instagram**; LinkedIn
+ * und YouTube stehen schon hier, damit sie später ohne Migration danebenpassen
+ * und `Veroeffentlichung` von Anfang an je Plattform zählt.
+ */
+enum Plattform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  YOUTUBE
+}
+
+/**
+ * Woher ein Zugang stammt. Gebaut ist `SYSTEMNUTZER` — ein Token aus dem
+ * Business Manager, das nicht abläuft und an keinem Menschen hängt. `PERSON`
+ * steht daneben für den Fall, dass ein Kunde keine Partnerfreigabe erteilt:
+ * Beide Wege münden in dieselben Seiten-Tokens, der Veröffentlichungscode
+ * unterscheidet sie nie.
+ */
+enum ZugangsArt {
+  SYSTEMNUTZER
+  PERSON
+}
+
+/**
+ * Ein Zugang, an dem mehrere Kunden hängen.
+ *
+ * Bewusst **kein** Feld an den Einstellungen und **kein** Token je Kunde: Ein
+ * Systemnutzer bedient alle Kunden, deren Assets ihm zugewiesen sind. Stirbt
+ * er, muss die Meldung sagen können, *welche* Kunden betroffen sind — das geht
+ * nur, wenn die Kunden auf ihn zeigen. Dieselbe Form trägt später LinkedIn
+ * (ein Zugang, viele Kunden) und YouTube (ein Zugang je Kanal).
+ */
+model PlattformZugang {
+  id          String     @id @default(cuid())
+  plattform   Plattform
+  art         ZugangsArt @default(SYSTEMNUTZER)
+  /** Menschenlesbar, steht in Fehlermeldungen: „Systemnutzer Preroll". */
+  bezeichnung String
+
+  /** Systemnutzer- bzw. Nutzer-Token. Verlässt den Server nie. */
+  token      String
+  /** Nur bei `PERSON` gesetzt — ein Systemnutzer-Token läuft nicht ab. */
+  gueltigBis DateTime?
+
+  geprueftAm DateTime?
+  /** Leer heißt: Die letzte Prüfung lief durch. */
+  fehler     String?
+  /**
+   * Damit die Meldung an die Administration je Ausfall nur einmal rausgeht.
+   * Ein toter Zugang lässt sonst jeden fälligen Beitrag scheitern — und jeder
+   * davon schriebe eine Mail über dieselbe Ursache.
+   */
+  gemeldetAm DateTime?
+
+  kunden Kunde[]
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@map("plattform_zugang")
+}
+
+/**
+ * Wie weit eine Veröffentlichung ist.
+ *
+ * `UEBERGEBEN` heißt: Die Plattform hat den Termin und schaltet selbst frei —
+ * Preroll ist fertig. Für Facebook und Instagram wird das **nicht** benutzt
+ * (siehe `veroeffentlichung.ts`); es steht für YouTube bereit, wo das Video
+ * lange vor dem Termin hochgeladen und mit `publishAt` scharfgestellt wird.
+ */
+enum VeroeffentlichungStand {
+  GEPLANT
+  LAEUFT
+  UEBERGEBEN
+  ERFOLGT
+  FEHLGESCHLAGEN
+}
+
+model Veroeffentlichung {
+  id        String                 @id @default(cuid())
+  postId    String
+  post      Post                   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  plattform Plattform
+  stand     VeroeffentlichungStand @default(GEPLANT)
+
+  /**
+   * Kopie von `Post.postenAm`. Steht hier, damit der Lauf nicht bei jedem
+   * Takt über die Posts joinen muss — und damit nachvollziehbar bleibt, für
+   * wann ein bereits erledigter Beitrag einmal geplant war.
+   */
+  geplantFuer DateTime
+
+  versuche Int     @default(0)
+  meldung  String?
+  /** Kennung des Beitrags auf der Plattform — für Rückfragen und Nachsehen. */
+  externeId String?
+
+  uebergebenAm DateTime?
+  erledigtAm   DateTime?
+  /** Wann über diesen Fehlschlag benachrichtigt wurde — je Fehlschlag einmal. */
+  gemeldetAm   DateTime?
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  // Ein Beitrag geht je Plattform genau einmal raus. Die Doppelpost-Sperre
+  // steht damit im Schema und nicht bloß im Code.
+  @@unique([postId, plattform])
+  @@index([stand, geplantFuer])
+  @@map("veroeffentlichung")
 }
 
 // ------------------------------------------------------------- Einstellungen
@@ -694,6 +838,15 @@ model Einstellungen {
   aworkAktiv     Boolean @default(false)
   aworkApiKey    String?
   aworkGeprueftAm DateTime?
+
+  /**
+   * Hauptschalter fürs Veröffentlichen. Steht neben dem Schalter je Kunde,
+   * weil es einen Ort geben muss, an dem sich alles auf einmal anhalten
+   * lässt — ohne bei zwanzig Kunden einzeln zu klicken.
+   */
+  veroeffentlichenAktiv Boolean   @default(false)
+  /** Wann der Zeitplaner zuletzt gelaufen ist — für die Einstellungsseite. */
+  veroeffentlichenLaufAm DateTime?
 
   // Mailversand — ein aktiver Transport, drei mögliche Wege.
   mailTransport MailTransport @default(DEAKTIVIERT)

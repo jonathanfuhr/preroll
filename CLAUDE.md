@@ -239,8 +239,13 @@ npm run check   # Typecheck + Tests
   `_Reel_Thumbnail`,
   `_Carousel_Slide1` … Da nie zwei Posts exakt zeitgleich erscheinen, sind sie
   ohne Zusatz eindeutig.
-- **Status-Farben.** Konzept grau, Vorschau orange, Final grün — überall
-  identisch. Post-Typen: Reel rot, Karussell blau, Beitrag grün.
+- **Status-Farben.** Konzept grau, Vorschau orange, Final grün, Gepostet
+  dunkelgrün und als **volle** Fläche statt zarter — überall identisch. Zwei
+  ähnlich helle Grüntöne wären schlechter zu unterscheiden als hell gegen
+  dunkel. Post-Typen: Reel rot, Karussell blau, Beitrag grün. **Ausnahme:** Im
+  Kalender über alle Kunden trägt der Punkt die **Kundenfarbe**
+  (`kundenFarbe`, aus dem Slug abgeleitet), nicht die Typfarbe — dort ist die
+  Frage „von wem" wichtiger als „was".
 - **Uploads laufen in 4-MB-Blöcken.** Vor Preroll hängt ein
   Cloudflare-Tunnel, der keine Anfrage über 100 MB durchlässt — ein Reel am
   Stück lief in einen Abbruch, der sich wie ein Hänger anfühlte. Der Browser
@@ -254,11 +259,21 @@ npm run check   # Typecheck + Tests
   (`postsImZeitraum` siebt ihn aus). Neu angelegte Posts starten dort. Das
   ersetzt den früheren Schalter „Konzepte mitzeigen" am Link — ob ein Beitrag
   vorzeigbar ist, hängt am Beitrag, nicht am Monat.
-- **Vier Stufen beim Kunden, „Gepostet" wird berechnet.** Konzept → Vorschau
-  → Final → Gepostet. Die letzte steht **nicht** in der Datenbank: Final plus
-  Termin in der Vergangenheit ergibt „Gepostet" (`abgeleiteteStufe`). Ein
-  fünfter Wert müsste nachgezogen werden und könnte falsch stehen. Bei Kunden
-  ohne Freigabepflicht fällt in den Erklärungen der Satz zur Freigabe weg.
+- **„Gepostet" wird berechnet, innen wie außen.** Final plus Termin in der
+  Vergangenheit ergibt „Gepostet". Die Stufe steht **nicht** in der Datenbank:
+  Ein fünfter Wert müsste nachgezogen werden und stünde falsch, sobald ein
+  Termin nachträglich verschoben wird — so ergibt ein Termin in der Zukunft
+  automatisch wieder „Final". Gerechnet wird an einer Stelle
+  (`anzeigePhase`); `abgeleiteteStufe` ist nur die Kundensicht darauf und
+  bildet zusätzlich `ENTWURF` auf Konzept ab. Beim Kunden sind es damit vier
+  Stufen (Konzept → Vorschau → Final → Gepostet), intern fünf.
+  **`StatusBadge` verlangt `postenAm` als Pflichtangabe** — ohne den Termin
+  ließe sich ein veröffentlichter Beitrag nicht von einem wartenden
+  unterscheiden, und der Typ zwingt jede Fundstelle, ihn mitzugeben. Setzen
+  lassen sich weiterhin nur die vier echten Phasen; im Editor steht „Gepostet"
+  deshalb als Etikett neben dem Umschalter, nicht als fünfter Knopf. Bei
+  Kunden ohne Freigabepflicht fällt in den Erklärungen der Satz zur Freigabe
+  weg.
 - **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
   beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
   „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim

@@ -3,6 +3,7 @@
 import type { PostStatus } from '@prisma/client'
 import Link from 'next/link'
 import { useMemo, useState, useTransition } from 'react'
+import type { Veroeffentlichungslage } from '@/lib/status'
 import { Karte, KnopfLink, Leerzustand, StatusBadge } from '@/components/ui'
 
 const DATUM = new Intl.DateTimeFormat('de-DE', {
@@ -21,6 +22,7 @@ export type Kundenkachel = {
   logo: string | null
   naechsterTermin: Date | null
   naechsterStatus: PostStatus | null
+  naechsterVeroeffentlichungen: Veroeffentlichungslage
   offenePosts: number
   offeneKommentare: number
   freigabeOffen: number
@@ -154,7 +156,12 @@ export function Kundenuebersicht({
                       {kunde.naechsterTermin ? (
                         <span className="flex items-center gap-2">
                           {kunde.naechsterStatus && (
-                            <StatusBadge status={kunde.naechsterStatus} klein />
+                            <StatusBadge
+                              status={kunde.naechsterStatus}
+                              postenAm={kunde.naechsterTermin}
+                              veroeffentlichungen={kunde.naechsterVeroeffentlichungen}
+                              klein
+                            />
                           )}
                           {DATUM.format(kunde.naechsterTermin)}
                         </span>

@@ -26,6 +26,7 @@ export default async function KundenSeite() {
         where: { postenAm: { gte: new Date() } },
         orderBy: { postenAm: 'asc' },
         take: 1,
+        include: { veroeffentlichungen: { select: { stand: true } } },
       },
       _count: {
         select: {
@@ -76,6 +77,7 @@ export default async function KundenSeite() {
     logo: thumbUrl(kunde.logoId),
     naechsterTermin: kunde.posts[0]?.postenAm ?? null,
     naechsterStatus: kunde.posts[0]?.status ?? null,
+    naechsterVeroeffentlichungen: kunde.posts[0]?.veroeffentlichungen ?? [],
     offenePosts: kunde._count.posts,
     offeneKommentare: kommentareJeKunde.get(kunde.id) ?? 0,
     freigabeOffen: freigabeJeKunde.get(kunde.id) ?? 0,

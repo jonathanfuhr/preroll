@@ -31,6 +31,8 @@ export async function ladePosts(kundeId: string) {
       medien: POST_MEDIEN,
       verantwortlich: true,
       freigaben: { select: { stufe: true } },
+      // Trägt die Phase: Ohne sie zeigte ein gescheitertes Posting „Gepostet".
+      veroeffentlichungen: { select: { stand: true } },
       _count: { select: { kommentare: true, szenen: true } },
     },
   })

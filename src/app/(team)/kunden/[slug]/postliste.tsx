@@ -1,6 +1,7 @@
 'use client'
 
 import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
+import type { Veroeffentlichungslage } from '@/lib/status'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { Karte, Leerzustand, StatusBadge, TypBadge } from '@/components/ui'
@@ -21,6 +22,7 @@ export type Postzeile = {
   titel: string
   kurzbeschreibung: string | null
   postenAm: Date | null
+  veroeffentlichungen: Veroeffentlichungslage
   bild: string | null
   slides: number
   wer: string | null
@@ -253,7 +255,11 @@ export function Postliste({
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <StatusBadge status={zeile.status} />
+                      <StatusBadge
+                        status={zeile.status}
+                        postenAm={zeile.postenAm}
+                        veroeffentlichungen={zeile.veroeffentlichungen}
+                      />
                     </td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.wer ?? '—'}</td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.kommentare || '—'}</td>

@@ -1,11 +1,15 @@
 import type { PostStatus, PostTyp } from '@prisma/client'
 import Link from 'next/link'
+import type { Veroeffentlichungslage } from '@/lib/status'
 import { StatusBadge } from './ui'
 
 export type FeedKachel = {
   id: string
   typ: PostTyp
   status: PostStatus
+  /** Nur damit „Final", „Gepostet" und „Fehlgeschlagen" zu trennen sind. */
+  postenAm: Date | null
+  veroeffentlichungen: Veroeffentlichungslage
   titel: string
   /** Bereits mittig auf 3:4 beschnittenes Vorschaubild. */
   bild: string | null
@@ -68,7 +72,12 @@ export function FeedRaster({
             {kachel.typ === 'KARUSSELL' && <KarussellMarker />}
             {statusZeigen && (
               <span className="absolute bottom-1.5 left-1.5">
-                <StatusBadge status={kachel.status} klein />
+                <StatusBadge
+                  status={kachel.status}
+                  postenAm={kachel.postenAm}
+                  veroeffentlichungen={kachel.veroeffentlichungen}
+                  klein
+                />
               </span>
             )}
           </>

@@ -6,12 +6,14 @@ import { darfBearbeiten } from '@/lib/kommentar-rechte'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
+import { anzeigePhase } from '@/lib/status'
 import { klappeEingerichtet } from '@/lib/klappe'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { BrotkrumeSetzen } from '@/components/brotkrumen'
 import { PostEditor } from './editor'
+import { VeroeffentlichungStandLeiste } from './veroeffentlichung-stand'
 
 export default async function PostSeite({
   params,
@@ -30,9 +32,22 @@ export default async function PostSeite({
   const betrachter = { art: 'nutzer' as const, id: ich?.id ?? '', rolle: ich?.rolle ?? 'EDITOR' }
   const erwaehnbar = await erwaehnbarePersonen(post.kundeId)
 
-  const [einstellungen, angebunden] = await Promise.all([
+  const [einstellungen, angebunden, veroeffentlichungen] = await Promise.all([
     ladeEinstellungen(),
     klappeEingerichtet(),
+    prisma.veroeffentlichung.findMany({
+      where: { postId },
+      orderBy: { plattform: 'asc' },
+      select: {
+        id: true,
+        plattform: true,
+        stand: true,
+        geplantFuer: true,
+        erledigtAm: true,
+        meldung: true,
+        versuche: true,
+      },
+    }),
   ])
 
   // Videoauswahl nur laden, wenn sie auch gebraucht wird.
@@ -76,6 +91,23 @@ export default async function PostSeite({
   // drei. Was gerade dort steht, entscheidet `reelVideoQuelle`.
   const videoQuelle = post.typ === 'REEL' ? reelVideoQuelle(post) : null
 
+  /*
+    Wie viele andere Beiträge zur selben Minute rausgehen sollen. Preroll
+    postet sie nacheinander; gezählt wird nur, wo es überhaupt selbst
+    veröffentlicht — bei Kunden, die von Hand posten, ist die Zahl belanglos.
+  */
+  const gleichzeitig =
+    post.postenAm && post.kunde.postenAktiv
+      ? await prisma.post.count({
+          where: {
+            id: { not: post.id },
+            status: 'FINAL',
+            postenAm: post.postenAm,
+            kunde: { postenAktiv: true, archiviert: false },
+          },
+        })
+      : 0
+
   return (
     <>
       <BrotkrumeSetzen stufen={[{ text: post.titel }]} />
@@ -86,7 +118,11 @@ export default async function PostSeite({
         </Link>
       </div>
 
+      <VeroeffentlichungStandLeiste zeilen={veroeffentlichungen} slug={slug} postId={postId} />
+
       <PostEditor
+        phase={anzeigePhase(post.status, post.postenAm, veroeffentlichungen)}
+        gleichzeitig={gleichzeitig}
         post={{
           id: post.id,
           typ: post.typ,

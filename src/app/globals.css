@@ -44,6 +44,13 @@
   --color-vorschau-flaeche: #fdf4e7;
   --color-final: #2f7a45;
   --color-final-flaeche: #eef6f0;
+  /*
+    Gepostet bleibt in der Familie von Final — es ist derselbe Weg, nur zu
+    Ende gegangen —, aber dunkler und als volle Fläche statt zarter. Zwei
+    ähnlich helle Grüntöne nebeneinander wären schlechter zu unterscheiden
+    als hell gegen dunkel.
+  */
+  --color-gepostet: #1e5c34;
 
   /* Post-Typen — auch die Punkte im Kalender */
   --color-typ-reel: #b00900;
