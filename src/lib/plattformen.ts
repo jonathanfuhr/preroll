@@ -87,6 +87,42 @@ export function zielPlattformen(
 }
 
 /**
+ * Was bei diesem Kunden überhaupt eingerichtet ist.
+ *
+ * **Nur das ist wählbar.** Eine Plattform ohne zugeordneten Kanal ließe sich
+ * zwar anhaken, aber nie bespielen — und ein Häkchen, das nichts bewirkt, ist
+ * eine Lüge im Formular. Statt hinterher zu warnen, kommt man gar nicht erst
+ * in den Zustand.
+ *
+ * Der Preis ist eine Kopplung: Ohne Meta-Zuordnung hat ein Kunde keine
+ * Plattformen, also auch keine Marken auf der Kundenseite. Wer nur planen und
+ * weiter von Hand posten will, ordnet die Seite trotzdem zu — `postenAktiv`
+ * bleibt davon unberührt.
+ */
+export function moeglichePlattformen(kanaele: {
+  fbSeitenId: string | null
+  igKontoId: string | null
+}): Plattform[] {
+  return zielPlattformen(GEBAUTE_PLATTFORMEN, kanaele)
+}
+
+/**
+ * Was bei diesem Kunden tatsächlich gilt: seine Wahl, beschnitten auf das,
+ * wofür ein Kanal da ist.
+ *
+ * Abgeleitet statt nachgeführt. Wird einem Kunden die Seite entzogen, muss
+ * nicht erst jemand seine Plattformliste aufräumen — sie schrumpft von
+ * selbst, und sobald der Kanal wieder da ist, steht die alte Wahl wieder.
+ */
+export function effektivePlattformen(kunde: {
+  plattformen: readonly Plattform[]
+  fbSeitenId: string | null
+  igKontoId: string | null
+}): Plattform[] {
+  return zielPlattformen(kunde.plattformen, kunde)
+}
+
+/**
  * Facebook und Instagram teilen sich einen Zugang: Das Instagram-Konto hängt
  * an der Facebook-Seite, und der Seiten-Token bedient beide. Wer später
  * LinkedIn ergänzt, bekommt hier einen eigenen Eintrag — die Zuordnung

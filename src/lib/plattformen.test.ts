@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  effektivePlattformen,
   GEBAUTE_PLATTFORMEN,
+  moeglichePlattformen,
   plattformenAusFormular,
   sortierePlattformen,
   zielPlattformen,
@@ -41,6 +43,34 @@ describe('zielPlattformen', () => {
   it('führt noch nicht gebaute Plattformen nicht als Ziel', () => {
     expect(zielPlattformen(['LINKEDIN', 'YOUTUBE'], BEIDE)).toEqual([])
     expect(zielPlattformen(['LINKEDIN', 'INSTAGRAM'], BEIDE)).toEqual(['INSTAGRAM'])
+  })
+})
+
+describe('moeglichePlattformen', () => {
+  it('sind die, für die ein Kanal zugeordnet ist', () => {
+    expect(moeglichePlattformen(BEIDE)).toEqual(['FACEBOOK', 'INSTAGRAM'])
+    expect(moeglichePlattformen(NUR_FB)).toEqual(['FACEBOOK'])
+    expect(moeglichePlattformen(KEINER)).toEqual([])
+  })
+})
+
+describe('effektivePlattformen', () => {
+  it('schneidet die Wahl des Kunden auf das Eingerichtete', () => {
+    expect(effektivePlattformen({ plattformen: ['FACEBOOK', 'INSTAGRAM'], ...NUR_FB })).toEqual([
+      'FACEBOOK',
+    ])
+  })
+
+  it('lässt eine Wahl stehen, die gerade keinen Kanal hat — sie kommt zurück', () => {
+    // Die Wahl bleibt in der Datenbank; wirksam ist sie nur mit Kanal. Wird
+    // die Seite wieder zugeordnet, steht die alte Wahl ohne Zutun wieder da.
+    const kunde = { plattformen: ['FACEBOOK', 'INSTAGRAM'] as const }
+    expect(effektivePlattformen({ ...kunde, ...KEINER })).toEqual([])
+    expect(effektivePlattformen({ ...kunde, ...BEIDE })).toEqual(['FACEBOOK', 'INSTAGRAM'])
+  })
+
+  it('gibt nichts, wenn der Kunde nichts gewählt hat', () => {
+    expect(effektivePlattformen({ plattformen: [], ...BEIDE })).toEqual([])
   })
 })
 

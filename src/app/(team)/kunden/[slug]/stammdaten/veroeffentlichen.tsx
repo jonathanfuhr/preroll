@@ -1,5 +1,5 @@
 import type { Plattform } from '@prisma/client'
-import { PLATTFORM_TEXT } from '@/lib/plattformen'
+import { moeglichePlattformen } from '@/lib/plattformen'
 import { PlattformWahl } from '@/components/plattform-wahl'
 import { Auswahl, Feld, Fehler, Hinweis, Knopf, Schalter, Warnung } from '@/components/ui'
 
@@ -16,11 +16,13 @@ export type MetaSeitenZeile = {
  * 1. **Wohin geht der Content dieses Kunden?** Das ist Planung. Sie gilt auch
  *    dann, wenn die Agentur von Hand postet — der Kunde soll ja sehen, dass
  *    ein Beitrag auf Instagram *und* Facebook erscheint.
- * 2. **Postet Preroll das selbst?** Das ist Technik und braucht einen Zugang.
+ * 2. **Postet Preroll das selbst?** Das ist der Schalter darunter.
  *
- * Früher gab es hier nur die zweite Frage, und ohne Meta-Zugang war die Karte
- * leer. Das war falsch: Die Plattformen eines Kunden stehen fest, lange bevor
- * jemand ein Token hinterlegt.
+ * Beides hängt trotzdem an derselben Zuordnung: **Wählbar ist nur, wofür ein
+ * Kanal hinterlegt ist.** Ein Häkchen, das nichts bewirken kann, wäre eine
+ * Falle — lieber gesperrt mit Grund als anhakbar mit Warnung. Der Preis ist
+ * die Kopplung: Ohne zugeordnete Seite hat ein Kunde keine Plattformen. Wer
+ * nur planen will, ordnet sie trotzdem zu; das Posten schaltet das nicht ein.
  */
 export function VeroeffentlichenWahl({
   zuordnen,
@@ -28,6 +30,7 @@ export function VeroeffentlichenWahl({
   zugangFehler,
   postenAktiv,
   plattformen,
+  igKontoId,
   seitenId,
   seitenName,
   igName,
@@ -40,6 +43,7 @@ export function VeroeffentlichenWahl({
   zugangFehler: string | null
   postenAktiv: boolean
   plattformen: Plattform[]
+  igKontoId: string | null
   seitenId: string | null
   seitenName: string | null
   igName: string | null
@@ -48,11 +52,17 @@ export function VeroeffentlichenWahl({
   offeneBeitraege: number
   meldung: string | null
 }) {
-  // Gewählt, aber technisch nicht erreichbar. Kein Fehler — nur nichts, was
-  // von selbst passiert; und das gehört gesagt, bevor jemand darauf wartet.
-  const ohneKanal: Plattform[] = []
-  if (plattformen.includes('FACEBOOK') && !seitenId) ohneKanal.push('FACEBOOK')
-  if (plattformen.includes('INSTAGRAM') && !igName) ohneKanal.push('INSTAGRAM')
+  /*
+    Wählbar ist nur, wofür ein Kanal zugeordnet ist. Der Rest steht gesperrt
+    daneben — mit dem Grund, damit niemand sucht, wo nichts fehlt, sondern
+    etwas fehlt, das er selbst nachtragen kann.
+  */
+  const moeglich = moeglichePlattformen({ fbSeitenId: seitenId, igKontoId })
+  const gesperrt: Partial<Record<Plattform, string>> = {}
+  if (!moeglich.includes('FACEBOOK')) gesperrt.FACEBOOK = 'keine Seite zugeordnet'
+  if (!moeglich.includes('INSTAGRAM')) {
+    gesperrt.INSTAGRAM = seitenId ? 'kein Konto an der Seite' : 'keine Seite zugeordnet'
+  }
 
   return (
     <form action={zuordnen} className="grid gap-5">
@@ -60,12 +70,23 @@ export function VeroeffentlichenWahl({
 
       <Feld
         beschriftung="Plattformen"
-        hinweis="Vorbelegung für neue Beiträge. Am einzelnen Beitrag lässt sich davon abweichen. LinkedIn und YouTube kommen später dazu."
+        hinweis={
+          Object.keys(gesperrt).length > 0
+            ? 'Wählbar ist nur, wofür unten ein Kanal zugeordnet ist — ein Häkchen, das nichts bewirkt, wäre eine Falle. LinkedIn und YouTube kommen später dazu.'
+            : 'Vorbelegung für neue Beiträge. Am einzelnen Beitrag lässt sich davon abweichen. LinkedIn und YouTube kommen später dazu.'
+        }
       >
-        <PlattformWahl auswahl={plattformen} />
+        <PlattformWahl auswahl={plattformen} moeglich={moeglich} gesperrt={gesperrt} />
       </Feld>
 
-      {offeneBeitraege > 0 && (
+      {/*
+        Nur wenn es überhaupt etwas zu übernehmen gibt. Ohne zugeordneten
+        Kanal wäre die Wahl leer, und der Haken hieße „allen Beiträgen ihre
+        Plattformen wegnehmen" — samt der Wahl, die von selbst zurückkäme,
+        sobald die Seite wieder hängt. Ein Schalter, der nur zerstören kann,
+        gehört nicht hin.
+      */}
+      {moeglich.length > 0 && offeneBeitraege > 0 && (
         <Schalter
           name="plattformenUebernehmen"
           beschriftung={`Auch auf die ${offeneBeitraege} noch nicht veröffentlichten Beiträge übernehmen`}
@@ -81,8 +102,9 @@ export function VeroeffentlichenWahl({
             <a href="/einstellungen/veroeffentlichen" className="text-akzent">
               Einstellungen → Veröffentlichen
             </a>
-            . Die Plattformwahl darüber gilt trotzdem: Sie steht am Beitrag und auf der
-            Kundenseite.
+            . Solange keine Seite zugeordnet ist, lässt sich oben auch keine Plattform wählen.
+            Zuordnen allein schaltet das Posten übrigens nicht ein — wer nur planen und weiter
+            von Hand posten will, hinterlegt den Kanal trotzdem.
           </Hinweis>
         ) : (
           <div className="grid gap-4">
@@ -108,6 +130,17 @@ export function VeroeffentlichenWahl({
             >
               <Auswahl name="fbSeitenId" defaultValue={seitenId ?? ''}>
                 <option value="">— keine Zuordnung —</option>
+                {/*
+                  Die hinterlegte Seite steht auch dann in der Liste, wenn Meta
+                  sie gerade nicht ausliefert. Ohne sie stünde die Auswahl auf
+                  „keine Zuordnung", und das nächste Speichern löschte einen
+                  Kanal, den niemand anfassen wollte — samt Plattformwahl.
+                */}
+                {seitenId && !seiten.some((s) => s.id === seitenId) && (
+                  <option value={seitenId}>
+                    {seitenName ?? seitenId} · zurzeit nicht erreichbar
+                  </option>
+                )}
                 {seiten.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -122,15 +155,6 @@ export function VeroeffentlichenWahl({
                 Der Zugang erreicht gerade keine Seite. Entweder ist dem Systemnutzer noch keine
                 zugewiesen, oder der Kunde hat die Partnerfreigabe noch nicht erteilt.
               </p>
-            )}
-
-            {ohneKanal.length > 0 && (
-              <Warnung>
-                {ohneKanal.map((p) => PLATTFORM_TEXT[p]).join(' und ')}{' '}
-                {ohneKanal.length === 1 ? 'ist gewählt, hat' : 'sind gewählt, haben'} aber keinen
-                zugeordneten Kanal. Beiträge dorthin plant Preroll ein, veröffentlicht sie aber
-                nicht — es passiert schlicht nichts.
-              </Warnung>
             )}
 
             <Schalter

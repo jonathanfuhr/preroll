@@ -126,9 +126,10 @@ export function PostEditor({
   /** Wie viele **andere** Beiträge zur selben Minute veröffentlicht werden. */
   gleichzeitig: number
   /**
-   * Wohin dieser Beitrag geht (`gewaehlt`) und was der Kunde überhaupt führt
-   * (`moeglich`). Mehr als sein Kunde kann ein Beitrag nicht — die Stammdaten
-   * setzen den Rahmen, hier wird darin ausgewählt.
+   * Wohin dieser Beitrag geht (`gewaehlt`) und was zur Wahl steht (`moeglich`
+   * — die Wahl des Kunden, beschnitten auf das, wofür ein Kanal zugeordnet
+   * ist). Mehr als sein Kunde kann ein Beitrag nicht, und nichts, was gar
+   * nicht eingerichtet ist.
    */
   plattformen: { gewaehlt: Plattform[]; moeglich: Plattform[] }
   szenen: Szene[]
@@ -384,21 +385,22 @@ export function PostEditor({
               </Feld>
             </div>
 
-            {plattformen.moeglich.length > 0 && (
-              <Feld
-                beschriftung="Plattformen"
-                hinweis={
-                  plattformen.gewaehlt.length === 0
+            <Feld
+              beschriftung="Plattformen"
+              hinweis={
+                plattformen.moeglich.length === 0
+                  ? undefined
+                  : plattformen.gewaehlt.length === 0
                     ? 'Nichts gewählt — dieser Beitrag geht nirgendwohin. Preroll veröffentlicht ihn nicht, und auf der Kundenseite steht keine Marke.'
                     : 'Aus den Stammdaten vorbelegt. Was hier steht, sieht auch der Kunde am Beitrag.'
-                }
-              >
-                <PlattformWahl
-                  auswahl={plattformen.gewaehlt}
-                  moeglich={plattformen.moeglich}
-                />
-              </Feld>
-            )}
+              }
+            >
+              <PlattformWahl
+                auswahl={plattformen.gewaehlt}
+                moeglich={plattformen.moeglich}
+                leerText="Für diesen Kunden ist keine Plattform eingerichtet — dafür muss in den Stammdaten eine Facebook-Seite zugeordnet sein."
+              />
+            </Feld>
 
             <Feld beschriftung="Kurzbeschreibung">
               <Eingabe name="kurzbeschreibung" defaultValue={post.kurzbeschreibung ?? ''} />

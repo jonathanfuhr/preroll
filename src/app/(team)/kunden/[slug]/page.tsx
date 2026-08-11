@@ -1,6 +1,7 @@
 import { ersteMedien, ladeKunde, ladePosts, rasterMedium } from '@/lib/abfragen'
 import { prisma } from '@/lib/db'
 import { offeneStufe } from '@/lib/freigabe'
+import { effektivePlattformen } from '@/lib/plattformen'
 import { kalenderwoche } from '@/lib/format'
 import { thumbUrl } from '@/lib/urls'
 import { KalenderPlanung } from '@/components/kalender-planung'
@@ -59,7 +60,7 @@ export default async function PostsSeite({
 
         <div className="flex items-center gap-3">
           <AnsichtsSchalter slug={slug} aktiv={ansicht} />
-          <PostAnlegen kundeId={kunde.id} plattformen={kunde.plattformen} />
+          <PostAnlegen kundeId={kunde.id} plattformen={effektivePlattformen(kunde)} />
         </div>
       </div>
 

@@ -202,6 +202,7 @@ export default async function StammdatenSeite({
             zugangFehler={metaZugang?.fehler ?? null}
             postenAktiv={kunde.postenAktiv}
             plattformen={kunde.plattformen}
+            igKontoId={kunde.igKontoId}
             seitenId={kunde.fbSeitenId}
             seitenName={kunde.fbSeitenName}
             igName={kunde.igName}

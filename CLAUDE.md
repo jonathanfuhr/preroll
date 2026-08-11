@@ -278,19 +278,27 @@ npm run check   # Typecheck + Tests
   Editor steht „Gepostet" deshalb als Etikett neben dem Umschalter, nicht als
   fünfter Knopf. Bei Kunden ohne Freigabepflicht fällt in den Erklärungen der
   Satz zur Freigabe weg.
-- **Plattformen: Absicht am Beitrag, Möglichkeit am Kunden.** Die Wahl in den
+- **Plattformen: wählbar ist nur, was eingerichtet ist.** Die Wahl in den
   Stammdaten (`Kunde.plattformen`) ist die **Vorbelegung**, die am Beitrag
   (`Post.plattformen`) die **Entscheidung** — mehr als sein Kunde kann ein
-  Beitrag nie. Ob dorthin wirklich gepostet wird, entscheidet drittens die
-  Zuordnung (`fbSeitenId`, `igKontoId`): `zielPlattformen` schneidet Wahl und
-  Zuordnung, und was übrig bleibt, plant der Abgleich ein. Eine gewählte
-  Plattform ohne Kanal ergibt deshalb **keinen Fehlschlag**, sondern gar
-  nichts — nicht das Posten ist misslungen, es war nie eines möglich; die
-  Stammdaten warnen. Die Wahl am Beitrag zieht **nicht** automatisch mit,
-  wenn sie am Kunden wechselt: Das erledigt ein eigener Haken, und nur für
-  Beiträge, die noch nicht draußen sind. Gezeigt wird sie einfarbig
-  (`PlattformMarken`, nie in Markenfarben) in Post-Liste, beiden Kalendern
-  und in der Kopfzeile jedes Beitrags auf der Kundenseite.
+  Beitrag nie. Darüber steht die Zuordnung (`fbSeitenId`, `igKontoId`): Ohne
+  zugeordneten Kanal lässt sich eine Plattform **gar nicht erst anhaken**.
+  Sie steht gesperrt da, mit Grund — ein Häkchen, das nichts bewirkt, wäre
+  eine Falle, und Warnen statt Verhindern ist hier die schwächere Lösung
+  (anders als bei Formatabweichungen beim Upload, die gewarnt und nicht
+  blockiert werden). Gerechnet wird an einer Stelle: `moeglichePlattformen`
+  (was eingerichtet ist), `effektivePlattformen` (Wahl ∩ eingerichtet) und
+  `zielPlattformen` (was der Abgleich einplant). **Abgeleitet, nicht
+  nachgeführt** — fällt ein Kanal weg, schrumpft die Wahl von selbst und
+  steht wieder da, sobald er zurück ist; deshalb räumt auch niemand die
+  gespeicherte Liste auf. Der Preis ist die Kopplung: Ein Kunde ohne
+  zugeordnete Seite hat keine Plattformen und damit keine Marken. Wer nur
+  planen und weiter von Hand posten will, ordnet die Seite trotzdem zu —
+  `postenAktiv` bleibt davon unberührt. Die Wahl am Beitrag zieht **nicht**
+  automatisch mit, wenn sie am Kunden wechselt: Das erledigt ein eigener
+  Haken, und nur für Beiträge, die noch nicht draußen sind. Gezeigt wird sie
+  einfarbig (`PlattformMarken`, nie in Markenfarben) in Post-Liste, beiden
+  Kalendern und in der Kopfzeile jedes Beitrags auf der Kundenseite.
 - **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
   beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
   „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim
