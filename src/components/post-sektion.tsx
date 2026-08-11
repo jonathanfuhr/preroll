@@ -1,9 +1,10 @@
-import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
+import type { Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import type { ReactNode } from 'react'
 import { kalenderwoche } from '@/lib/format'
 import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
+import { PlattformMarken } from './plattform-marken'
 import { StatusLeiste } from './status-leiste'
 
 /**
@@ -170,6 +171,11 @@ export function PostSektion({
     inhalte: string | null
     szenenplanAktiv: boolean
     verhaeltnis: Verhaeltnis
+    /**
+     * Wohin der Beitrag geht. Einfarbig neben der Typbezeichnung — die Seite
+     * trägt die Marke des Kunden, nicht die von Meta.
+     */
+    plattformen: Plattform[]
   }
   kunde: string
   logo: string | null
@@ -209,8 +215,9 @@ export function PostSektion({
           >
             {kalenderwoche(post.postenAm)}
           </span>
-          <span className="pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
+          <span className="flex items-center gap-2 pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
             {postBezeichnung(post.typ, post.verhaeltnis)}
+            <PlattformMarken plattformen={post.plattformen} groesse={14} klasse="text-[#9a9691]" />
           </span>
         </div>
 

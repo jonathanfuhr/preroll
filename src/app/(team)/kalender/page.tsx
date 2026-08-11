@@ -68,6 +68,7 @@ export default async function KalenderSeite({
         titel: true,
         status: true,
         postenAm: true,
+        plattformen: true,
         veroeffentlichungen: { select: { stand: true } },
         kunde: { select: { slug: true, name: true } },
       },
@@ -85,6 +86,7 @@ export default async function KalenderSeite({
     // erste Frage, wessen Beitrag da liegt — der Titel sagt das nicht.
     titel: `${p.kunde.name} · ${p.titel}`,
     postenAm: p.postenAm,
+    plattformen: p.plattformen,
     href: postPfad(p.kunde.slug, p.id),
     kundeSlug: p.kunde.slug,
     kundeName: p.kunde.name,

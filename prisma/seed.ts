@@ -118,6 +118,7 @@ async function main() {
     const reel = await prisma.post.create({
       data: {
         kundeId: kunde.id,
+        plattformen: kunde.plattformen,
         typ: 'REEL',
         status: 'VORSCHAU',
         postenAm: new Date(2026, 7, 5, 11, 0),
@@ -181,6 +182,7 @@ async function main() {
     await prisma.post.create({
       data: {
         kundeId: kunde.id,
+        plattformen: kunde.plattformen,
         typ: 'KARUSSELL',
         status: 'VORSCHAU',
         postenAm: new Date(2026, 7, 11, 10, 0),
@@ -198,6 +200,7 @@ async function main() {
     await prisma.post.create({
       data: {
         kundeId: kunde.id,
+        plattformen: kunde.plattformen,
         typ: 'BEITRAG',
         status: 'KONZEPT',
         postenAm: new Date(2026, 7, 20, 17, 30),
@@ -215,6 +218,7 @@ async function main() {
     await prisma.post.create({
       data: {
         kundeId: kunde.id,
+        plattformen: kunde.plattformen,
         typ: 'BEITRAG',
         status: 'KONZEPT',
         postenAm: new Date(2026, 7, 27, 9, 0),
@@ -233,6 +237,7 @@ async function main() {
     await prisma.post.create({
       data: {
         kundeId: kunde.id,
+        plattformen: kunde.plattformen,
         typ: 'BEITRAG',
         status: 'KONZEPT',
         postenAm: null,
@@ -245,6 +250,7 @@ async function main() {
     await prisma.post.create({
       data: {
         kundeId: kunde.id,
+        plattformen: kunde.plattformen,
         typ: 'REEL',
         status: 'KONZEPT',
         postenAm: null,

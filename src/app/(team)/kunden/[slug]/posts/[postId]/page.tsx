@@ -123,6 +123,7 @@ export default async function PostSeite({
       <PostEditor
         phase={anzeigePhase(post.status, post.postenAm, veroeffentlichungen)}
         gleichzeitig={gleichzeitig}
+        plattformen={{ gewaehlt: post.plattformen, moeglich: post.kunde.plattformen }}
         post={{
           id: post.id,
           typ: post.typ,

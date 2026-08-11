@@ -267,13 +267,30 @@ npm run check   # Typecheck + Tests
   (`anzeigePhase`); `abgeleiteteStufe` ist nur die Kundensicht darauf und
   bildet zusätzlich `ENTWURF` auf Konzept ab. Beim Kunden sind es damit vier
   Stufen (Konzept → Vorschau → Final → Gepostet), intern fünf.
-  **`StatusBadge` verlangt `postenAm` als Pflichtangabe** — ohne den Termin
-  ließe sich ein veröffentlichter Beitrag nicht von einem wartenden
-  unterscheiden, und der Typ zwingt jede Fundstelle, ihn mitzugeben. Setzen
-  lassen sich weiterhin nur die vier echten Phasen; im Editor steht „Gepostet"
-  deshalb als Etikett neben dem Umschalter, nicht als fünfter Knopf. Bei
-  Kunden ohne Freigabepflicht fällt in den Erklärungen der Satz zur Freigabe
-  weg.
+  **`StatusBadge` verlangt `postenAm` und die Veröffentlichungszeilen als
+  Pflichtangaben** — ohne den Termin ließe sich ein veröffentlichter Beitrag
+  nicht von einem wartenden unterscheiden, und der Typ zwingt jede
+  Fundstelle, beides mitzugeben. Ein leeres Array heißt ausdrücklich „hier
+  postet Preroll nicht"; dann entscheidet allein die Uhr. Wo Preroll postet,
+  schlägt der Beleg die Uhr, und intern kommt **Fehlgeschlagen** als sechste
+  Anzeigephase dazu — beim Kunden nie, `abgeleiteteStufe` bekommt die Zeilen
+  gar nicht erst. Setzen lassen sich weiterhin nur die vier echten Phasen; im
+  Editor steht „Gepostet" deshalb als Etikett neben dem Umschalter, nicht als
+  fünfter Knopf. Bei Kunden ohne Freigabepflicht fällt in den Erklärungen der
+  Satz zur Freigabe weg.
+- **Plattformen: Absicht am Beitrag, Möglichkeit am Kunden.** Die Wahl in den
+  Stammdaten (`Kunde.plattformen`) ist die **Vorbelegung**, die am Beitrag
+  (`Post.plattformen`) die **Entscheidung** — mehr als sein Kunde kann ein
+  Beitrag nie. Ob dorthin wirklich gepostet wird, entscheidet drittens die
+  Zuordnung (`fbSeitenId`, `igKontoId`): `zielPlattformen` schneidet Wahl und
+  Zuordnung, und was übrig bleibt, plant der Abgleich ein. Eine gewählte
+  Plattform ohne Kanal ergibt deshalb **keinen Fehlschlag**, sondern gar
+  nichts — nicht das Posten ist misslungen, es war nie eines möglich; die
+  Stammdaten warnen. Die Wahl am Beitrag zieht **nicht** automatisch mit,
+  wenn sie am Kunden wechselt: Das erledigt ein eigener Haken, und nur für
+  Beiträge, die noch nicht draußen sind. Gezeigt wird sie einfarbig
+  (`PlattformMarken`, nie in Markenfarben) in Post-Liste, beiden Kalendern
+  und in der Kopfzeile jedes Beitrags auf der Kundenseite.
 - **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
   beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
   „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim

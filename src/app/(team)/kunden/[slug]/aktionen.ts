@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
 import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
+import { plattformenAusFormular } from '@/lib/plattformen'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
@@ -114,6 +115,15 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
       status: 'ENTWURF',
       // Beim Reel ist der Szenenplan der Normalfall, sonst nicht.
       szenenplanAktiv: typ === 'REEL',
+      /*
+        Vorbelegt aus dem Kunden, im Dialog schon abwählbar. Danach steht die
+        Wahl am Beitrag: Wer sie beim Kunden ändert, ändert damit nicht
+        rückwirkend, was längst geplant ist — dafür gibt es in den Stammdaten
+        einen eigenen Haken.
+      */
+      plattformen: formular.get('plattformenGesetzt') === '1'
+        ? plattformenAusFormular(formular)
+        : kunde.plattformen,
     },
   })
 
@@ -172,6 +182,11 @@ export async function postSpeichern(postId: string, formular: FormData) {
       stil: text(formular, 'stil'),
       inhalte: text(formular, 'inhalte'),
       szenenplanAktiv: formular.get('szenenplanAktiv') === 'on',
+      // Ohne Merkerfeld unangetastet lassen: „nichts angehakt" ist eine
+      // gültige Wahl, „Feld war nicht im Formular" darf sie nicht auslösen.
+      ...(formular.get('plattformenGesetzt') === '1'
+        ? { plattformen: plattformenAusFormular(formular) }
+        : {}),
       // Nur ein für diesen Typ vorgesehenes Format — ein veralteter Tab oder
       // ein von Hand gebogenes Formular soll kein 16:9-Karussell anlegen.
       ...(gewaehlt && istErlaubt(typ, gewaehlt) ? { verhaeltnis: gewaehlt } : {}),

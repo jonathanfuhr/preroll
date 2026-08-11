@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { uebernehmePlattformen } from '@/lib/kunde-plattformen'
 import { ladeMetaZugang, metaSeiten } from '@/lib/plattform-zugang'
+import { plattformenAusFormular } from '@/lib/plattformen'
 
 async function angemeldetOderRaus() {
   const nutzer = await aktuellerNutzer()
@@ -12,18 +14,43 @@ async function angemeldetOderRaus() {
 }
 
 /**
- * Kanal zuordnen und das Veröffentlichen ein- oder ausschalten.
+ * Plattformwahl, Kanalzuordnung und der Schalter fürs Selbst-Posten — ein
+ * Formular, weil es eine Sache ist: wohin dieser Kunde bespielt wird.
  *
  * Der Seiten-Token wird hier am Server aus dem Zugang geholt, nicht aus dem
  * Formular gelesen: Ein Token, das durch den Browser läuft, steht im
  * Quelltext der Seite. Aus dem Formular kommt nur die Seiten-Kennung.
+ *
+ * Beide Blöcke tragen ein verstecktes Merkerfeld. Ohne das würde ein
+ * Speichern ohne Meta-Zugang — dann fehlt der ganze Kanalblock im Formular —
+ * die Zuordnung löschen, obwohl niemand sie angefasst hat.
  */
-export async function metaKanalZuordnen(kundeId: string, slug: string, formular: FormData) {
+export async function veroeffentlichenSpeichern(
+  kundeId: string,
+  slug: string,
+  formular: FormData,
+) {
   await angemeldetOderRaus()
+
+  const ziel = `/kunden/${slug}/stammdaten`
+  const plattformen = plattformenAusFormular(formular)
+  const plattformenDa = formular.get('plattformenGesetzt') === '1'
+  const kanalDa = formular.get('kanalGesetzt') === '1'
+
+  if (plattformenDa) {
+    await prisma.kunde.update({ where: { id: kundeId }, data: { plattformen } })
+    if (formular.get('plattformenUebernehmen') === 'on') {
+      await uebernehmePlattformen(kundeId, plattformen)
+    }
+  }
+
+  if (!kanalDa) {
+    revalidatePath(ziel, 'layout')
+    return
+  }
 
   const postenAktiv = formular.get('postenAktiv') === 'on'
   const seitenId = String(formular.get('fbSeitenId') ?? '').trim()
-  const ziel = `/kunden/${slug}/stammdaten`
 
   if (!seitenId) {
     await prisma.kunde.update({
@@ -38,7 +65,7 @@ export async function metaKanalZuordnen(kundeId: string, slug: string, formular:
         igName: null,
       },
     })
-    revalidatePath(ziel)
+    revalidatePath(ziel, 'layout')
     return
   }
 
@@ -66,5 +93,5 @@ export async function metaKanalZuordnen(kundeId: string, slug: string, formular:
     },
   })
 
-  revalidatePath(ziel)
+  revalidatePath(ziel, 'layout')
 }

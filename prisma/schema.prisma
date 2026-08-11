@@ -215,6 +215,16 @@ model Kunde {
   postenAktiv Boolean @default(false)
 
   /**
+   * Auf welche Plattformen dieser Kunde bespielt wird. Das ist die **Absicht**
+   * und nicht die Möglichkeit: Ob Preroll dorthin auch wirklich posten kann,
+   * entscheidet die Zuordnung darunter (`fbSeitenId`, `igKontoId`).
+   *
+   * Dient als Vorbelegung für neue Beiträge; am einzelnen Beitrag lässt sich
+   * davon abweichen. Standard ist das Kreuzposten, weil das der Alltag ist.
+   */
+  plattformen Plattform[] @default([INSTAGRAM, FACEBOOK])
+
+  /**
    * Über welchen Zugang. Facebook und Instagram teilen sich einen: Das
    * Instagram-Konto hängt an der Facebook-Seite, und der Seiten-Token bedient
    * beide.
@@ -385,6 +395,16 @@ model Post {
   verantwortlich   Nutzer? @relation("Verantwortlich", fields: [verantwortlichId], references: [id], onDelete: SetNull)
 
   verhaeltnis Verhaeltnis @default(HOCH_3_4)
+
+  /**
+   * Wohin dieser Beitrag geht. Beim Anlegen aus dem Kunden vorbelegt und
+   * danach eigenständig: Wer die Wahl am Kunden ändert, ändert damit nicht
+   * rückwirkend jeden Beitrag, der längst geplant ist — das entscheidet in
+   * den Stammdaten ein eigener Haken.
+   *
+   * Leer heißt ausdrücklich „für diesen Beitrag postet Preroll nicht".
+   */
+  plattformen Plattform[]
 
   // Reel: Szenenplan ist optional. Ohne ihn tritt das Freitextfeld an seine Stelle.
   szenenplanAktiv Boolean @default(true)

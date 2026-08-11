@@ -1,8 +1,10 @@
-import type { PostTyp, Verhaeltnis } from '@prisma/client'
+import type { Plattform, PostTyp, Verhaeltnis } from '@prisma/client'
 import { Sprung } from './sprung'
 import { monatsbeginn } from '@/lib/datum'
 import { kalenderwoche } from '@/lib/format'
 import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
+import { PLATTFORM_TEXT, sortierePlattformen } from '@/lib/plattformen'
+import { PlattformMarken } from './plattform-marken'
 import { TYP_FARBE, TYP_TEXT, TypPunkt } from './ui'
 
 export type Kalendereintrag = {
@@ -21,6 +23,25 @@ export type Kalendereintrag = {
    * Frage „von wem" wichtiger als „was".
    */
   farbe?: string
+  /**
+   * Wohin der Beitrag geht. Nur in den internen Kalendern gesetzt: Beim
+   * Kunden ist der Kalender eine Sprungmarkenleiste, und dort steht die
+   * Auskunft ohnehin am Beitrag selbst.
+   */
+  plattformen?: readonly Plattform[]
+}
+
+/**
+ * Der Tooltip trägt immer alles: Typ, Titel und — wo gesetzt — die
+ * Plattformen. In der Zelle ist für drei Angaben kein Platz, im Tooltip
+ * schon, und dort sucht man sie auch.
+ */
+function eintragTitel(eintrag: Kalendereintrag): string {
+  const basis = `${postBezeichnung(eintrag.typ, eintrag.verhaeltnis ?? standardVerhaeltnis(eintrag.typ))} · ${eintrag.titel}`
+  const plattformen = sortierePlattformen(eintrag.plattformen ?? [])
+  return plattformen.length > 0
+    ? `${basis} · ${plattformen.map((p) => PLATTFORM_TEXT[p]).join(', ')}`
+    : basis
 }
 
 export const WOCHENTAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
@@ -169,7 +190,7 @@ export function Monatskalender({
                    */}
                   <div className="mt-1 flex min-h-0 flex-1 flex-wrap items-center justify-center gap-1 overflow-hidden sm:hidden">
                     {desTages.map((eintrag) => {
-                      const beschriftung = `${postBezeichnung(eintrag.typ, eintrag.verhaeltnis ?? standardVerhaeltnis(eintrag.typ))} · ${eintrag.titel}`
+                      const beschriftung = eintragTitel(eintrag)
                       const punkt = (
                         <span
                           aria-hidden
@@ -191,7 +212,7 @@ export function Monatskalender({
 
                   <div className="mt-1 hidden min-h-0 flex-1 flex-col gap-[3px] overflow-hidden sm:flex">
                     {sichtbar.map((eintrag) => {
-                      const beschriftung = `${postBezeichnung(eintrag.typ, eintrag.verhaeltnis ?? standardVerhaeltnis(eintrag.typ))} · ${eintrag.titel}`
+                      const beschriftung = eintragTitel(eintrag)
                       // Der Tooltip trägt immer alles; gekürzt wird nur, was
                       // in der Zelle steht.
                       const anzeige = ohneTypname ? eintrag.titel : beschriftung
@@ -206,6 +227,19 @@ export function Monatskalender({
                             <span className="min-w-0 flex-1 truncate text-[9.5px] leading-none text-tinte-3">
                               {anzeige}
                             </span>
+                          )}
+                          {/*
+                            Hinter dem Titel und `shrink-0`: In einer Tagzelle
+                            ist der Titel das Wichtigste und darf zuerst
+                            gekürzt werden — die Marken sind zwei feste Glyphen
+                            oder gar nichts.
+                          */}
+                          {!kompakt && (
+                            <PlattformMarken
+                              plattformen={eintrag.plattformen ?? []}
+                              groesse={9}
+                              klasse="text-stiller"
+                            />
                           )}
                         </span>
                       )
@@ -235,7 +269,7 @@ export function Monatskalender({
                         className="shrink-0 px-0.5 text-[9px] leading-none text-stiller"
                         title={desTages
                           .slice(sichtbar.length)
-                          .map((e) => `${postBezeichnung(e.typ, e.verhaeltnis ?? standardVerhaeltnis(e.typ))} · ${e.titel}`)
+                          .map(eintragTitel)
                           .join('\n')}
                       >
                         +{weitere} weitere
