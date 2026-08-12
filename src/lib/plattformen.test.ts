@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  angezeigtePlattformen,
   effektivePlattformen,
   GEBAUTE_PLATTFORMEN,
   moeglichePlattformen,
@@ -110,5 +111,17 @@ describe('GEBAUTE_PLATTFORMEN', () => {
     // Zieht LinkedIn oder YouTube ein, ist das hier die Stelle, an der es
     // auffällt — samt der Auswahl, die sich dann automatisch mitändert.
     expect(GEBAUTE_PLATTFORMEN).toEqual(['FACEBOOK', 'INSTAGRAM'])
+  })
+})
+
+describe('angezeigtePlattformen', () => {
+  it('zeigt nur, was auch rausginge', () => {
+    const post = { plattformen: ['FACEBOOK', 'INSTAGRAM'] as const }
+    expect(angezeigtePlattformen(post, BEIDE)).toEqual(['FACEBOOK', 'INSTAGRAM'])
+    expect(angezeigtePlattformen(post, NUR_FB)).toEqual(['FACEBOOK'])
+  })
+
+  it('zeigt ohne zugeordneten Kanal gar nichts — auch wenn der Beitrag es will', () => {
+    expect(angezeigtePlattformen({ plattformen: ['FACEBOOK', 'INSTAGRAM'] }, KEINER)).toEqual([])
   })
 })

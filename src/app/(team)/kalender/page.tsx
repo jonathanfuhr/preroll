@@ -10,6 +10,7 @@ import {
 import { kundenFarbe } from '@/lib/kunde-farbe'
 import { anzeigePhase } from '@/lib/status'
 import { postPfad } from '@/lib/urls'
+import { angezeigtePlattformen } from '@/lib/plattformen'
 import { wochenDesMonats } from '@/components/kalender'
 import { GesamtKalender, type GesamtEintrag } from '@/components/kalender-gesamt'
 import { BrotkrumeSetzen } from '@/components/brotkrumen'
@@ -70,7 +71,9 @@ export default async function KalenderSeite({
         postenAm: true,
         plattformen: true,
         veroeffentlichungen: { select: { stand: true } },
-        kunde: { select: { slug: true, name: true } },
+        // Die Kanäle kommen mit, weil ohne sie keine Marke gezeigt wird —
+        // was nicht rausgeht, soll auch kein Zeichen tragen.
+        kunde: { select: { slug: true, name: true, fbSeitenId: true, igKontoId: true } },
       },
     }),
   ])
@@ -86,7 +89,7 @@ export default async function KalenderSeite({
     // erste Frage, wessen Beitrag da liegt — der Titel sagt das nicht.
     titel: `${p.kunde.name} · ${p.titel}`,
     postenAm: p.postenAm,
-    plattformen: p.plattformen,
+    plattformen: angezeigtePlattformen(p, p.kunde),
     href: postPfad(p.kunde.slug, p.id),
     kundeSlug: p.kunde.slug,
     kundeName: p.kunde.name,

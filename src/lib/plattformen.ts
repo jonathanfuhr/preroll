@@ -87,6 +87,28 @@ export function zielPlattformen(
 }
 
 /**
+ * Was an einem Beitrag **angezeigt** wird — und zwar genau das, was auch
+ * rausginge.
+ *
+ * Die Marken am Beitrag sind eine Aussage über die Wirklichkeit: „erscheint
+ * auf Instagram und Facebook". Ohne zugeordneten Kanal stimmt sie nicht —
+ * dann plant die Agentur bloß und postet von Hand, und ein Instagram-Zeichen
+ * behauptete etwas, das niemand versprochen hat.
+ *
+ * Deshalb nimmt **keine** Anzeige `post.plattformen` roh. Die rohe Wahl ist
+ * die Absicht und bleibt stehen, auch wenn der Kanal fehlt; angezeigt wird
+ * der Schnitt mit dem, was der Kunde wirklich hat. Dieselbe Rechnung macht
+ * `veroeffentlichung.ts` beim Anlegen der Läufe — Anzeige und Wirkung
+ * stammen damit aus derselben Quelle.
+ */
+export function angezeigtePlattformen(
+  post: { plattformen: readonly Plattform[] },
+  kunde: { fbSeitenId: string | null; igKontoId: string | null },
+): Plattform[] {
+  return zielPlattformen(post.plattformen, kunde)
+}
+
+/**
  * Was bei diesem Kunden überhaupt eingerichtet ist.
  *
  * **Nur das ist wählbar.** Eine Plattform ohne zugeordneten Kanal ließe sich

@@ -15,7 +15,7 @@ import {
 } from '../aktionen'
 import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
 import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
-import { ladeMetaZugang, metaSeiten } from '@/lib/plattform-zugang'
+import { ladeMetaZugaenge, metaSeiten } from '@/lib/plattform-zugang'
 import { veroeffentlichenSpeichern } from '../veroeffentlichen-aktionen'
 import { zaehleOffeneBeitraege } from '@/lib/kunde-plattformen'
 import { AworkProjektWahl } from './awork-projekt'
@@ -54,8 +54,13 @@ export default async function StammdatenSeite({
   // Ohne Zugang gar nicht erst bei Meta nachfragen. Und ein Fehlschlag darf
   // die Stammdaten nicht mitnehmen — sonst kommt niemand mehr an das
   // Formular, in dem er die Zuordnung reparieren würde.
-  const metaZugang = await ladeMetaZugang()
-  const seiten = metaZugang ? await metaSeiten() : []
+  /*
+    Die Seiten kommen aus **allen** Zugängen in einer Liste. Aus welchem
+    Portfolio eine Seite stammt, ist eine Frage der Verwaltung — wer einen
+    Kunden einrichtet, sucht seine Seite, nicht seinen Business Manager.
+  */
+  const zugaenge = await ladeMetaZugaenge()
+  const seiten = zugaenge.length > 0 ? await metaSeiten() : []
 
   // Für den Haken „auch auf bestehende Beiträge übernehmen" — ohne die Zahl
   // wäre das ein Schalter, dessen Wirkung man erst hinterher sieht.
@@ -198,15 +203,21 @@ export default async function StammdatenSeite({
         <Karte className="p-5">
           <VeroeffentlichenWahl
             zuordnen={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
-            zugangSteht={metaZugang !== null}
-            zugangFehler={metaZugang?.fehler ?? null}
+            zugangSteht={zugaenge.length > 0}
+            zugangFehler={zugaenge.find((z) => z.fehler)?.fehler ?? null}
             postenAktiv={kunde.postenAktiv}
             plattformen={kunde.plattformen}
             igKontoId={kunde.igKontoId}
             seitenId={kunde.fbSeitenId}
             seitenName={kunde.fbSeitenName}
             igName={kunde.igName}
-            seiten={seiten.map((s) => ({ id: s.id, name: s.name, igName: s.igName }))}
+            seiten={seiten.map((s) => ({
+              id: s.id,
+              name: s.name,
+              igName: s.igName,
+              zugang: s.zugangName,
+            }))}
+            mehrereZugaenge={zugaenge.length > 1}
             offeneBeitraege={offeneBeitraege}
             meldung={meta === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null}
           />

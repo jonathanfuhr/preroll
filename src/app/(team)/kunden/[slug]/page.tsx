@@ -1,7 +1,7 @@
 import { ersteMedien, ladeKunde, ladePosts, rasterMedium } from '@/lib/abfragen'
 import { prisma } from '@/lib/db'
 import { offeneStufe } from '@/lib/freigabe'
-import { effektivePlattformen } from '@/lib/plattformen'
+import { angezeigtePlattformen, effektivePlattformen } from '@/lib/plattformen'
 import { kalenderwoche } from '@/lib/format'
 import { thumbUrl } from '@/lib/urls'
 import { KalenderPlanung } from '@/components/kalender-planung'
@@ -84,7 +84,7 @@ export default async function PostsSeite({
             kurzbeschreibung: post.kurzbeschreibung,
             postenAm: post.postenAm,
             veroeffentlichungen: post.veroeffentlichungen,
-            plattformen: post.plattformen,
+            plattformen: angezeigtePlattformen(post, kunde),
             bild: thumbUrl(rasterMedium(post)),
             slides: ersteMedien(post, 'SLIDE').length,
             wer: post.verantwortlich?.initialen ?? null,
@@ -95,7 +95,7 @@ export default async function PostsSeite({
           }))}
         />
       ) : ansicht === 'kalender' ? (
-        <Kalender slug={slug} posts={posts} />
+        <Kalender slug={slug} posts={posts} kanaele={kunde} />
       ) : (
         <FeedPlanung
           kunde={{
@@ -129,14 +129,23 @@ export default async function PostsSeite({
 
 type Posts = Awaited<ReturnType<typeof ladePosts>>
 
-function Kalender({ slug, posts }: { slug: string; posts: Posts }) {
+function Kalender({
+  slug,
+  posts,
+  kanaele,
+}: {
+  slug: string
+  posts: Posts
+  /** Ohne Kanal keine Marken — dieselbe Regel wie in der Liste. */
+  kanaele: { fbSeitenId: string | null; igKontoId: string | null }
+}) {
   const eintraege: Kalendereintrag[] = posts.map((post) => ({
     id: post.id,
     typ: post.typ,
     verhaeltnis: post.verhaeltnis,
     titel: post.titel,
     postenAm: post.postenAm,
-    plattformen: post.plattformen,
+    plattformen: angezeigtePlattformen(post, kanaele),
     href: `/kunden/${slug}/posts/${post.id}`,
   }))
 

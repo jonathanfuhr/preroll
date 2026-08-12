@@ -152,6 +152,25 @@ Seite zu bewachen wäre die schlechtere Regel.
   das Thumbnail in voller Höhe steht — Geräterahmen, Medien-Dialog —, gehört
   deshalb `medienUrl()` hin: Das 4:5-Bild in eine 9:16-Fläche gelegt wird ein
   zweites Mal beschnitten, und übrig bleibt die Mitte der Mitte.
+- **Ohne Kanal keine Marke.** Die Plattform-Zeichen an einem Beitrag sind
+  eine Aussage über die Wirklichkeit — „erscheint auf Instagram und
+  Facebook". Ist beim Kunden keine Facebook-Seite zugeordnet, plant die
+  Agentur bloß und postet von Hand; dann darf **nirgends** ein Zeichen
+  stehen: nicht in der Post-Liste, nicht im Kunden- und nicht im
+  Gesamtkalender, nicht auf der Kundenseite. Keine Anzeige nimmt
+  `post.plattformen` roh — die rohe Wahl ist die **Absicht** und bleibt
+  stehen, auch wenn der Kanal fehlt. Gezeigt wird `angezeigtePlattformen`,
+  dieselbe Rechnung, mit der `veroeffentlichung.ts` die Läufe anlegt.
+- **Meta-Zugänge sind mehrere.** Nicht jeder Kunde liegt im selben
+  Portfolio; wer Seiten aus zwei Business Managern bespielt, braucht aus
+  jedem einen eigenen Systemnutzer. In den Einstellungen steht deshalb eine
+  **Liste** von Zugängen, jeder mit eigenem Prüfen und Entfernen. Nach außen
+  sieht man davon möglichst wenig: Die Seitenauswahl in den Stammdaten zeigt
+  **alle** Seiten aus **allen** Zugängen in einer Liste
+  (`fasseSeitenZusammen`) — wer einen Kunden einrichtet, sucht seine Seite,
+  nicht seinen Business Manager. Eine doppelt zugewiesene Seite erscheint
+  einmal, am ältesten Zugang; welcher Zugang gilt, kommt beim Zuordnen von
+  **der Seite** (`seite.zugangId`), nicht von „dem einen".
 - **Karussell-Auftrennung.** Geht die Breite nicht glatt im 4:5-Raster auf, gibt
   es **keine manuellen Schnittkanten**, sondern eine Fehlermeldung. Bewusst
   simpel: korrekt exportierte Canva-Dateien passen immer. Die Bedienelemente

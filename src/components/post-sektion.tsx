@@ -148,6 +148,7 @@ function Ablauf({ szenen, laenge }: { szenen: SzenenZeile[]; laenge: string | nu
 
 export function PostSektion({
   post,
+  plattformen,
   kunde,
   logo,
   medien,
@@ -171,12 +172,16 @@ export function PostSektion({
     inhalte: string | null
     szenenplanAktiv: boolean
     verhaeltnis: Verhaeltnis
-    /**
-     * Wohin der Beitrag geht. Einfarbig neben der Typbezeichnung — die Seite
-     * trägt die Marke des Kunden, nicht die von Meta.
-     */
-    plattformen: Plattform[]
   }
+  /**
+   * Wohin der Beitrag geht. Einfarbig neben der Typbezeichnung — die Seite
+   * trägt die Marke des Kunden, nicht die von Meta.
+   *
+   * Steht **neben** dem Beitrag und nicht in ihm, weil es nicht allein an
+   * ihm hängt: Ohne zugeordneten Kanal beim Kunden erscheint keine Marke.
+   * Die Rechnung macht `angezeigtePlattformen`, nicht diese Anzeige.
+   */
+  plattformen: Plattform[]
   kunde: string
   logo: string | null
   medien: string[]
@@ -217,7 +222,7 @@ export function PostSektion({
           </span>
           <span className="flex items-center gap-2 pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
             {postBezeichnung(post.typ, post.verhaeltnis)}
-            <PlattformMarken plattformen={post.plattformen} groesse={14} klasse="text-[#9a9691]" />
+            <PlattformMarken plattformen={plattformen} groesse={14} klasse="text-[#9a9691]" />
           </span>
         </div>
 

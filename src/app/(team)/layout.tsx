@@ -65,7 +65,7 @@ export default async function TeamLayout({
     meldungen,
     ungelesen,
     offeneKommentare,
-    metaZugang,
+    metaZugaenge,
     fehlgeschlagen,
   ] = await Promise.all([
       ladeEinstellungen(),
@@ -94,9 +94,14 @@ export default async function TeamLayout({
       }),
       // Ein abgelehnter Meta-Zugang fällt sonst erst auf, wenn ein Termin
       // verstrichen ist — und dann ist der Beitrag nicht draußen.
-      prisma.plattformZugang.findFirst({
+      // Alle abgelehnten Zugänge, nicht nur der erste: Bei mehreren Portfolios
+      // sagt „Meta-Zugang abgelehnt" sonst nicht, welcher gemeint ist.
+      prisma.plattformZugang.findMany({
         where: { plattform: 'FACEBOOK', fehler: { not: null } },
+        orderBy: { erstelltAm: 'asc' },
         select: {
+          id: true,
+          bezeichnung: true,
           fehler: true,
           kunden: {
             where: { archiviert: false, postenAktiv: true },
@@ -215,13 +220,19 @@ export default async function TeamLayout({
             für sie nichts raus. Deshalb stehen sie hier namentlich — „Meta
             geht nicht" wäre eine Auskunft, mit der niemand etwas anfangen kann.
           */}
-          {metaZugang && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-4 py-2.5 text-[12.5px] text-akzent-dunkel md:px-8">
-              <strong className="font-semibold">Meta-Zugang abgelehnt</strong>
+          {metaZugaenge.map((zugang) => (
+            <div
+              key={zugang.id}
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[#eec9c6] bg-akzent-zart px-4 py-2.5 text-[12.5px] text-akzent-dunkel md:px-8"
+            >
+              <strong className="font-semibold">
+                Meta-Zugang abgelehnt
+                {metaZugaenge.length > 1 ? `: ${zugang.bezeichnung}` : ''}
+              </strong>
               <span className="text-akzent-dunkel/80">
-                {metaZugang.kunden.length === 0
-                  ? 'Zurzeit veröffentlicht Preroll für keinen Kunden — es geht also nichts verloren.'
-                  : `Für ${metaZugang.kunden.map((k) => k.name).join(', ')} geht bis zur Erneuerung nichts raus.`}
+                {zugang.kunden.length === 0
+                  ? 'Zurzeit veröffentlicht Preroll für keinen Kunden daran — es geht also nichts verloren.'
+                  : `Für ${zugang.kunden.map((k) => k.name).join(', ')} geht bis zur Erneuerung nichts raus.`}
               </span>
               {darfVerwalten(nutzer.rolle) && (
                 <Link
@@ -232,7 +243,7 @@ export default async function TeamLayout({
                 </Link>
               )}
             </div>
-          )}
+          ))}
 
           {/*
             Ein Beitrag, der nicht rausging, fällt sonst erst auf, wenn ihn

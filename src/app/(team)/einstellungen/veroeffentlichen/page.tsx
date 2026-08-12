@@ -1,16 +1,16 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
-import { ladeMetaZugang, metaSeiten } from '@/lib/plattform-zugang'
+import { metaZugaengeMitSeiten } from '@/lib/plattform-zugang'
 import { PLATTFORM_TEXT } from '@/lib/plattformen'
 import { VERFALL } from '@/lib/veroeffentlichung'
 import { Abschnitt, Eingabe, Feld, Fehler, Hinweis, Karte, Knopf, Schalter, Warnung } from '@/components/ui'
 import {
   hauptschalterSpeichern,
   laufAnstossen,
-  metaTokenSpeichern,
   metaZugangLoesen,
   metaZugangPruefen,
+  metaZugangSpeichern,
 } from '../veroeffentlichen-aktionen'
 
 export const metadata = { title: 'Veröffentlichen — Preroll' }
@@ -32,12 +32,13 @@ export default async function VeroeffentlichenSeite({
 }) {
   const { stand, meldung } = await searchParams
 
-  const [e, zugang] = await Promise.all([ladeEinstellungen(), ladeMetaZugang()])
-
-  // Die Seiten werden nur geholt, wenn ein Zugang steht — und ein Fehlschlag
-  // darf diese Seite nicht mitnehmen, sonst kommt niemand mehr an das Feld,
-  // in dem er ihn reparieren würde.
-  const seiten = zugang ? await metaSeiten() : []
+  /*
+    Jeder Zugang mit seinen Seiten. Ein Fehlschlag darf diese Seite nicht
+    mitnehmen — sonst kommt niemand mehr an das Feld, in dem er ihn
+    reparieren würde; deshalb steht der Fehler am Zugang statt in einem
+    Wurf.
+  */
+  const [e, zugaenge] = await Promise.all([ladeEinstellungen(), metaZugaengeMitSeiten()])
 
   const [kunden, letzte] = await Promise.all([
     prisma.kunde.findMany({
@@ -119,115 +120,139 @@ export default async function VeroeffentlichenSeite({
       </Abschnitt>
 
       <Abschnitt
-        titel="Meta-Zugang"
-        hinweis="Ein Systemnutzer-Token aus dem Business Manager. Es hat kein Passwort, läuft nicht ab und hängt an keinem Mitarbeiterkonto."
+        titel="Meta-Zugänge"
+        hinweis="Systemnutzer-Token aus dem Business Manager. Sie haben kein Passwort, laufen nicht ab und hängen an keinem Mitarbeiterkonto. Liegen die Kunden in mehreren Portfolios, kommt je Portfolio einer dazu — die Seiten daraus stehen danach gemeinsam in der Auswahl."
       >
-        <Karte className="p-5">
-          {zugang?.fehler && (
-            <div className="mb-4">
-              <Warnung>
-                Meta lehnt den Zugang ab: {zugang.fehler} — bis das behoben ist, geht für alle
-                daran hängenden Kunden nichts raus.
-              </Warnung>
-            </div>
-          )}
-
-          <form action={metaTokenSpeichern} className="grid gap-4">
-            <Feld
-              beschriftung="Bezeichnung"
-              hinweis="Steht später in Fehlermeldungen. Zum Beispiel: Systemnutzer Preroll."
-            >
-              <Eingabe
-                name="bezeichnung"
-                defaultValue={zugang?.bezeichnung ?? 'Systemnutzer Preroll'}
-              />
-            </Feld>
-
-            <Feld
-              beschriftung="Systemnutzer-Token"
-              hinweis={
-                zugang
-                  ? 'Hinterlegt — nur ausfüllen, um es zu ersetzen.'
-                  : 'Business-Einstellungen → Nutzer → Systemnutzer → Neues Token generieren. Ablauf auf „Nie" stellen, Berechtigungen: pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish.'
-              }
-            >
-              <Eingabe
-                name="token"
-                type="password"
-                placeholder={zugang ? 'unverändert' : 'EAAG…'}
-              />
-            </Feld>
-
-            <div className="flex flex-wrap items-end justify-between gap-4 border-t border-rahmen pt-4">
-              <div className="text-[12.5px] text-leise">
-                {zugang?.geprueftAm ? (
-                  <>
-                    Zuletzt geprüft am{' '}
-                    <strong className="font-medium text-tinte-3">
-                      {DATUM.format(zugang.geprueftAm)}
-                    </strong>
-                    .
-                  </>
-                ) : (
-                  'Noch nie geprüft.'
-                )}
-                <p className="mt-1 text-[11.5px] text-stiller">
-                  Geprüft wird mit demselben Aufruf, der beim Posten die Grundlage bildet — nicht
-                  bloß, ob ein Endpunkt „OK" sagt.
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                {zugang && (
-                  <Knopf klein type="submit" formAction={metaZugangPruefen}>
-                    Verbindung prüfen
-                  </Knopf>
-                )}
-                <Knopf klein art="primaer" type="submit">
-                  Speichern
-                </Knopf>
-              </div>
-            </div>
-          </form>
-
-          {zugang && (
-            <div className="mt-5 border-t border-rahmen pt-5">
-              <h3 className="mb-2 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
-                Erreichbare Seiten ({seiten.length})
-              </h3>
-              {seiten.length === 0 ? (
-                <p className="text-[12.5px] leading-relaxed text-leise">
-                  Diesem Systemnutzer ist noch keine Seite zugewiesen. Das passiert in den
-                  Business-Einstellungen unter Nutzer → Systemnutzer → Assets zuweisen — und zwar
-                  für die Seite <em>und</em> das Instagram-Konto getrennt, die sind dort zwei
-                  Dinge.
-                </p>
-              ) : (
-                <ul className="grid gap-1.5">
-                  {seiten.map((s) => (
-                    <li key={s.id} className="text-[12.5px] text-leise">
-                      <strong className="font-medium text-tinte-3">{s.name}</strong>
-                      {s.igName ? (
-                        <span className="text-leiser"> · Instagram @{s.igName}</span>
-                      ) : (
-                        <span className="text-leiser"> · ohne Instagram-Konto</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+        <div className="grid gap-4">
+          {zugaenge.map(({ zugang, seiten: eigene, fehler }) => (
+            <Karte key={zugang.id} className="p-5">
+              {fehler && (
+                <div className="mb-4">
+                  <Warnung>
+                    Meta lehnt diesen Zugang ab: {fehler} — bis das behoben ist, geht für alle
+                    daran hängenden Kunden nichts raus.
+                  </Warnung>
+                </div>
               )}
 
-              <form action={metaZugangLoesen} className="mt-4">
-                <button
-                  type="submit"
-                  className="text-[11.5px] text-leise underline underline-offset-2 hover:text-akzent"
+              <form action={metaZugangSpeichern} className="grid gap-4">
+                <input type="hidden" name="zugangId" value={zugang.id} />
+
+                <Feld
+                  beschriftung="Bezeichnung"
+                  hinweis="Steht später in Fehlermeldungen. Zum Beispiel: Systemnutzer Portfolio Nord."
                 >
-                  Zugang entfernen
-                </button>
+                  <Eingabe name="bezeichnung" defaultValue={zugang.bezeichnung} />
+                </Feld>
+
+                <Feld
+                  beschriftung="Systemnutzer-Token"
+                  hinweis="Hinterlegt — nur ausfüllen, um es zu ersetzen."
+                >
+                  <Eingabe name="token" type="password" placeholder="unverändert" />
+                </Feld>
+
+                <div className="flex flex-wrap items-end justify-between gap-4 border-t border-rahmen pt-4">
+                  <div className="text-[12.5px] text-leise">
+                    {zugang.geprueftAm ? (
+                      <>
+                        Zuletzt geprüft am{' '}
+                        <strong className="font-medium text-tinte-3">
+                          {DATUM.format(zugang.geprueftAm)}
+                        </strong>
+                        .
+                      </>
+                    ) : (
+                      'Noch nie geprüft.'
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Knopf klein type="submit" formAction={metaZugangPruefen}>
+                      Verbindung prüfen
+                    </Knopf>
+                    <Knopf klein art="primaer" type="submit">
+                      Speichern
+                    </Knopf>
+                  </div>
+                </div>
               </form>
-            </div>
-          )}
-        </Karte>
+
+              <div className="mt-5 border-t border-rahmen pt-5">
+                <h3 className="mb-2 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
+                  Erreichbare Seiten ({eigene.length})
+                </h3>
+                {eigene.length === 0 ? (
+                  <p className="text-[12.5px] leading-relaxed text-leise">
+                    Diesem Systemnutzer ist noch keine Seite zugewiesen. Das passiert in den
+                    Business-Einstellungen unter Nutzer → Systemnutzer → Assets zuweisen — und zwar
+                    für die Seite <em>und</em> das Instagram-Konto getrennt, die sind dort zwei
+                    Dinge.
+                  </p>
+                ) : (
+                  <ul className="grid gap-1.5">
+                    {eigene.map((seite) => (
+                      <li key={seite.id} className="text-[12.5px] text-leise">
+                        <strong className="font-medium text-tinte-3">{seite.name}</strong>
+                        {seite.igName ? (
+                          <span className="text-leiser"> · Instagram @{seite.igName}</span>
+                        ) : (
+                          <span className="text-leiser"> · ohne Instagram-Konto</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <form action={metaZugangLoesen} className="mt-4">
+                  <input type="hidden" name="zugangId" value={zugang.id} />
+                  <button
+                    type="submit"
+                    className="text-[11.5px] text-leise underline underline-offset-2 hover:text-akzent"
+                  >
+                    Zugang entfernen
+                  </button>
+                </form>
+              </div>
+            </Karte>
+          ))}
+
+          {/*
+            Der Knopf zum Hinzufügen steht als eigene Karte darunter und nicht
+            in einer der bestehenden: Sonst sähe es aus, als hinge der neue
+            Zugang am alten.
+          */}
+          <Karte className="p-5">
+            <h3 className="mb-1 text-[13.5px] font-medium text-tinte">
+              {zugaenge.length === 0 ? 'Zugang einrichten' : 'Weiteren Zugang hinzufügen'}
+            </h3>
+            <p className="mb-4 text-[12px] leading-relaxed text-leise">
+              Business-Einstellungen → Nutzer → Systemnutzer → Neues Token generieren. Ablauf auf
+              „Nie" stellen, Berechtigungen: pages_show_list, pages_read_engagement,
+              pages_manage_posts, instagram_basic, instagram_content_publish.
+            </p>
+
+            <form action={metaZugangSpeichern} className="grid gap-4">
+              <Feld beschriftung="Bezeichnung">
+                <Eingabe
+                  name="bezeichnung"
+                  defaultValue={zugaenge.length === 0 ? 'Systemnutzer Preroll' : ''}
+                  placeholder="Systemnutzer Portfolio …"
+                />
+              </Feld>
+
+              <Feld beschriftung="Systemnutzer-Token">
+                <Eingabe name="token" type="password" placeholder="EAAG…" />
+              </Feld>
+
+              <div className="flex justify-end border-t border-rahmen pt-4">
+                <Knopf klein art="primaer" type="submit">
+                  Zugang hinzufügen
+                </Knopf>
+              </div>
+            </form>
+          </Karte>
+        </div>
       </Abschnitt>
 
       <Abschnitt

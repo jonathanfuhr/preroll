@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { uebernehmePlattformen } from '@/lib/kunde-plattformen'
-import { ladeMetaZugang, metaSeiten } from '@/lib/plattform-zugang'
+import { metaSeiten } from '@/lib/plattform-zugang'
 import { moeglichePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 
 async function angemeldetOderRaus() {
@@ -59,10 +59,9 @@ export async function veroeffentlichenSpeichern(
         },
       })
     } else {
-      const [vorher, seiten, zugang] = await Promise.all([
+      const [vorher, seiten] = await Promise.all([
         prisma.kunde.findUniqueOrThrow({ where: { id: kundeId }, select: { fbSeitenId: true } }),
         metaSeiten(),
-        ladeMetaZugang(),
       ])
 
       /*
@@ -76,7 +75,7 @@ export async function veroeffentlichenSpeichern(
 
       if (!seite && unveraendert) {
         await prisma.kunde.update({ where: { id: kundeId }, data: { postenAktiv } })
-      } else if (!seite || !zugang) {
+      } else if (!seite) {
         redirect(
           `${ziel}?meta=fehler&meldung=${encodeURIComponent(
             'Diese Seite ist über den hinterlegten Zugang gerade nicht erreichbar.',
@@ -87,7 +86,9 @@ export async function veroeffentlichenSpeichern(
           where: { id: kundeId },
           data: {
             postenAktiv,
-            metaZugangId: zugang.id,
+            // Der Zugang kommt von der Seite, nicht „der eine": Bei mehreren
+            // Portfolios hängt jede Seite an ihrem eigenen Systemnutzer.
+            metaZugangId: seite.zugangId,
             fbSeitenId: seite.id,
             fbSeitenName: seite.name,
             fbSeitenToken: seite.token,

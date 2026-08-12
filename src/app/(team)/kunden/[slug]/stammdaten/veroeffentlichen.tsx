@@ -7,6 +7,8 @@ export type MetaSeitenZeile = {
   id: string
   name: string
   igName: string | null
+  /** Aus welchem Zugang die Seite stammt — nur bei mehreren interessant. */
+  zugang: string
 }
 
 /**
@@ -35,6 +37,7 @@ export function VeroeffentlichenWahl({
   seitenName,
   igName,
   seiten,
+  mehrereZugaenge,
   offeneBeitraege,
   meldung,
 }: {
@@ -48,6 +51,12 @@ export function VeroeffentlichenWahl({
   seitenName: string | null
   igName: string | null
   seiten: MetaSeitenZeile[]
+  /**
+   * Ob es mehr als einen Meta-Zugang gibt. Nur dann wird die Herkunft je
+   * Seite genannt — bei einem einzigen wäre sie bei jedem Eintrag dieselbe
+   * und damit Lärm.
+   */
+  mehrereZugaenge: boolean
   /** Beiträge, die noch nicht veröffentlicht sind — nur die lassen sich nachziehen. */
   offeneBeitraege: number
   meldung: string | null
@@ -145,6 +154,7 @@ export function VeroeffentlichenWahl({
                   <option key={s.id} value={s.id}>
                     {s.name}
                     {s.igName ? ` · @${s.igName}` : ' · ohne Instagram'}
+                    {mehrereZugaenge ? ` · ${s.zugang}` : ''}
                   </option>
                 ))}
               </Auswahl>
@@ -152,7 +162,7 @@ export function VeroeffentlichenWahl({
 
             {seiten.length === 0 && (
               <p className="text-[11.5px] text-leiser">
-                Der Zugang erreicht gerade keine Seite. Entweder ist dem Systemnutzer noch keine
+                Es ist gerade keine Seite erreichbar. Entweder ist den Systemnutzern noch keine
                 zugewiesen, oder der Kunde hat die Partnerfreigabe noch nicht erteilt.
               </p>
             )}

@@ -12,6 +12,7 @@ import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
+import { angezeigtePlattformen } from '@/lib/plattformen'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
 import { Monatskalender, monateImZeitraum, type Kalendereintrag } from '@/components/kalender'
@@ -305,6 +306,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
             <PostSektion
               key={post.id}
               post={post}
+              plattformen={angezeigtePlattformen(post, exp.kunde)}
               kunde={exp.kunde.name}
               logo={thumbUrl(exp.kunde.logoId)}
               medien={

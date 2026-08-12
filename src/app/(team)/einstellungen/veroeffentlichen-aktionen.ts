@@ -4,7 +4,12 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { speichereEinstellungen } from '@/lib/einstellungen'
-import { loeseMetaZugang, pruefeMetaZugang, speichereMetaToken } from '@/lib/plattform-zugang'
+import {
+  aktualisiereMetaZugang,
+  legeMetaZugangAn,
+  loeseMetaZugang,
+  pruefeMetaZugang,
+} from '@/lib/plattform-zugang'
 import { takt } from '@/lib/veroeffentlichung-lauf'
 
 const SEITE = '/einstellungen/veroeffentlichen'
@@ -24,22 +29,29 @@ export async function hauptschalterSpeichern(formular: FormData) {
 }
 
 /**
- * Token hinterlegen. Gespeichert wird auch dann, wenn Meta es ablehnt — sonst
- * tippt man es beim nächsten Versuch noch einmal ab, obwohl vielleicht nur
- * eine Berechtigung fehlt. Was Meta gesagt hat, steht danach an der
- * Verbindung.
+ * Einen Zugang anlegen oder einen bestehenden ändern — dasselbe Formular,
+ * unterschieden an der mitgeschickten Kennung.
+ *
+ * Gespeichert wird auch dann, wenn Meta das Token ablehnt: Sonst tippt man
+ * es beim nächsten Versuch noch einmal ab, obwohl vielleicht nur eine
+ * Berechtigung fehlt. Was Meta gesagt hat, steht danach am Zugang.
  */
-export async function metaTokenSpeichern(formular: FormData) {
+export async function metaZugangSpeichern(formular: FormData) {
   await adminOderRaus()
 
+  const id = String(formular.get('zugangId') ?? '').trim()
   const token = String(formular.get('token') ?? '').trim()
   const bezeichnung = String(formular.get('bezeichnung') ?? '').trim() || 'Systemnutzer'
 
-  if (!token) {
+  // Neu ohne Token wäre ein Zugang, der nichts kann.
+  if (!id && !token) {
     redirect(`${SEITE}?stand=fehler&meldung=${encodeURIComponent('Kein Token eingegeben.')}`)
   }
 
-  const ergebnis = await speichereMetaToken(token, bezeichnung)
+  const ergebnis = id
+    ? await aktualisiereMetaZugang(id, bezeichnung, token || null)
+    : await legeMetaZugangAn(token, bezeichnung)
+
   revalidatePath(SEITE)
 
   if (!ergebnis.ok) {
@@ -54,10 +66,10 @@ export async function metaTokenSpeichern(formular: FormData) {
   )
 }
 
-export async function metaZugangPruefen() {
+export async function metaZugangPruefen(formular: FormData) {
   await adminOderRaus()
 
-  const ergebnis = await pruefeMetaZugang()
+  const ergebnis = await pruefeMetaZugang(String(formular.get('zugangId') ?? ''))
   revalidatePath(SEITE)
 
   if (!ergebnis.ok) {
@@ -68,9 +80,9 @@ export async function metaZugangPruefen() {
   )
 }
 
-export async function metaZugangLoesen() {
+export async function metaZugangLoesen(formular: FormData) {
   await adminOderRaus()
-  await loeseMetaZugang()
+  await loeseMetaZugang(String(formular.get('zugangId') ?? ''))
   revalidatePath(SEITE)
 }
 
