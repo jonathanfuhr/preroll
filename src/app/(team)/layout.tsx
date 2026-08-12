@@ -12,6 +12,17 @@ import { Benutzermenue, Glocke } from '@/components/kopfleiste'
 import { Brotkrumen, BrotkrumenSpeicher } from '@/components/brotkrumen'
 import { Navigationsknopf, Seitenleiste } from '@/components/seitenleiste'
 
+/*
+  Unter `(team)` steht nichts ohne Anmeldung — statisch kann hier also nichts
+  sein. Ohne diese Zeile versucht Next es beim Bauen trotzdem: Seiten, die ihre
+  Daten holen, **bevor** sie `cookies()` oder `searchParams` anfassen, laufen
+  dabei ein Stück weit an, setzen ihre Datenbankabfrage ab und brechen erst
+  danach als dynamisch ab. Das Ergebnis waren zwei `prisma:error`-Zeilen im
+  Build — harmlos, aber irreführend, und die Reihenfolge in jeder neuen Seite
+  zu bewachen ist die schlechtere Regel.
+*/
+export const dynamic = 'force-dynamic'
+
 async function abmelden() {
   'use server'
   await beendeTeamSession()

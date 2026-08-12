@@ -99,6 +99,15 @@ nicht zurecht. Deshalb: Migrationen mit `prisma migrate diff` erzeugen und mit
 npm run check   # Typecheck + Tests
 ```
 
+Der **Produktionsbuild wird ohne laufende Datenbank geprüft** — mit laufender
+verdeckte er einmal ein fehlendes `force-dynamic`. Aus demselben Grund trägt
+`(team)/layout.tsx` die Zeile `export const dynamic = 'force-dynamic'`: Unter
+`(team)` steht nichts ohne Anmeldung, statisch kann dort also nichts sein.
+Ohne die Zeile versucht Next es beim Bauen trotzdem, und jede Seite, die ihre
+Daten holt, **bevor** sie `cookies()` oder `searchParams` anfasst, setzt dabei
+eine Datenbankabfrage ab, die ins Leere läuft. Die Reihenfolge in jeder neuen
+Seite zu bewachen wäre die schlechtere Regel.
+
 ## Fachliche Regeln, die leicht verloren gehen
 
 - **Typ und Format sind getrennt.** Der Typ sagt, **woraus** ein Beitrag
