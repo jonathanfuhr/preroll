@@ -1,8 +1,9 @@
 'use client'
 
-import type { PostTyp, Verhaeltnis } from '@prisma/client'
+import type { Plattform, PostTyp, Verhaeltnis } from '@prisma/client'
 import { useState } from 'react'
 import { ERLAUBT, standardVerhaeltnis, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
+import { PlattformWahl } from '@/components/plattform-wahl'
 import { Eingabe, Feld, Knopf, TYP_FARBE } from '@/components/ui'
 import { postAnlegen } from './aktionen'
 
@@ -44,7 +45,14 @@ const TYPEN: Array<{ wert: PostTyp; titel: string; text: string; Icon: () => Rea
   { wert: 'REEL', titel: 'Reel', text: 'Ein Video', Icon: IconReel },
 ]
 
-export function PostAnlegen({ kundeId }: { kundeId: string }) {
+export function PostAnlegen({
+  kundeId,
+  plattformen,
+}: {
+  kundeId: string
+  /** Die Plattformen des Kunden — vorbelegt, aber hier schon abwählbar. */
+  plattformen: Plattform[]
+}) {
   const [offen, setOffen] = useState(false)
   const [typ, setTyp] = useState<PostTyp>('BEITRAG')
   const [verhaeltnis, setVerhaeltnis] = useState<Verhaeltnis>(standardVerhaeltnis('BEITRAG'))
@@ -134,6 +142,16 @@ export function PostAnlegen({ kundeId }: { kundeId: string }) {
               ))}
             </div>
           </Feld>
+
+          {/*
+            Nur bei Kunden, die überhaupt eine Plattform führen. Wo nichts zur
+            Wahl steht, ist ein leeres Feld schlechter als gar keines.
+          */}
+          {plattformen.length > 0 && (
+            <Feld beschriftung="Plattformen" hinweis="Aus den Stammdaten vorbelegt.">
+              <PlattformWahl auswahl={plattformen} moeglich={plattformen} />
+            </Feld>
+          )}
 
           <Feld beschriftung="Titel" hinweis="Nur intern — steht in Listen, Kalender und Klappe.">
             <Eingabe name="titel" required autoFocus placeholder="z. B. Recruiting-Reel" />

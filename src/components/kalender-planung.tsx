@@ -18,6 +18,8 @@ import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { kalenderwoche } from '@/lib/format'
 import { postBezeichnung, standardVerhaeltnis } from '@/lib/verhaeltnis'
+import { PLATTFORM_TEXT, sortierePlattformen } from '@/lib/plattformen'
+import { PlattformMarken } from './plattform-marken'
 import { TYP_FARBE, TYP_TEXT, TypPunkt } from './ui'
 import { WOCHENTAGE, gleicherTag, wochenDesMonats, type Kalendereintrag } from './kalender'
 
@@ -54,6 +56,12 @@ function Streifen({ eintrag, klein }: { eintrag: Kalendereintrag; klein?: boolea
       >
         {eintrag.titel}
       </span>
+      {/* Hinter dem Titel und `shrink-0`: Der Titel darf zuerst kürzen. */}
+      <PlattformMarken
+        plattformen={eintrag.plattformen ?? []}
+        groesse={klein ? 9 : 11}
+        klasse="text-stiller"
+      />
     </span>
   )
 }
@@ -68,9 +76,10 @@ function ZiehbarerEintrag({
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: eintrag.id })
 
+  const plattformen = sortierePlattformen(eintrag.plattformen ?? [])
   const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}${
     eintrag.postenAm ? ` · ${UHRZEIT.format(eintrag.postenAm)} Uhr` : ''
-  }`
+  }${plattformen.length > 0 ? ` · ${plattformen.map((p) => PLATTFORM_TEXT[p]).join(', ')}` : ''}`
 
   return (
     <div

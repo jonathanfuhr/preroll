@@ -16,7 +16,8 @@ import {
 import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
 import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
 import { ladeMetaZugang, metaSeiten } from '@/lib/plattform-zugang'
-import { metaKanalZuordnen } from '../veroeffentlichen-aktionen'
+import { veroeffentlichenSpeichern } from '../veroeffentlichen-aktionen'
+import { zaehleOffeneBeitraege } from '@/lib/kunde-plattformen'
 import { AworkProjektWahl } from './awork-projekt'
 import { BetreuungFormular } from './betreuung'
 import { CustomFeldFormular } from './custom-felder'
@@ -55,6 +56,10 @@ export default async function StammdatenSeite({
   // Formular, in dem er die Zuordnung reparieren würde.
   const metaZugang = await ladeMetaZugang()
   const seiten = metaZugang ? await metaSeiten() : []
+
+  // Für den Haken „auch auf bestehende Beiträge übernehmen" — ohne die Zahl
+  // wäre das ein Schalter, dessen Wirkung man erst hinterher sieht.
+  const offeneBeitraege = await zaehleOffeneBeitraege(kunde.id)
 
   return (
     <div className="max-w-[760px]">
@@ -188,18 +193,21 @@ export default async function StammdatenSeite({
 
       <Abschnitt
         titel="Veröffentlichen"
-        hinweis="Verbindet den Kunden mit seiner Facebook-Seite und dem daran hängenden Instagram-Konto. Beide bekommen denselben Inhalt."
+        hinweis="Auf welche Plattformen dieser Kunde bespielt wird — und ob Preroll das selbst übernimmt. Facebook und Instagram bekommen denselben Inhalt."
       >
         <Karte className="p-5">
           <VeroeffentlichenWahl
-            zuordnen={metaKanalZuordnen.bind(null, kunde.id, slug)}
+            zuordnen={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
             zugangSteht={metaZugang !== null}
             zugangFehler={metaZugang?.fehler ?? null}
             postenAktiv={kunde.postenAktiv}
+            plattformen={kunde.plattformen}
+            igKontoId={kunde.igKontoId}
             seitenId={kunde.fbSeitenId}
             seitenName={kunde.fbSeitenName}
             igName={kunde.igName}
             seiten={seiten.map((s) => ({ id: s.id, name: s.name, igName: s.igName }))}
+            offeneBeitraege={offeneBeitraege}
             meldung={meta === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null}
           />
         </Karte>

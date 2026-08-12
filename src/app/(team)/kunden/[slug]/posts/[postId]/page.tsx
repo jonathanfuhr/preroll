@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
 import { anzeigePhase } from '@/lib/status'
+import { effektivePlattformen } from '@/lib/plattformen'
 import { klappeEingerichtet } from '@/lib/klappe'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { reelVideoQuelle } from '@/lib/reel-video'
@@ -123,6 +124,7 @@ export default async function PostSeite({
       <PostEditor
         phase={anzeigePhase(post.status, post.postenAm, veroeffentlichungen)}
         gleichzeitig={gleichzeitig}
+        plattformen={{ gewaehlt: post.plattformen, moeglich: effektivePlattformen(post.kunde) }}
         post={{
           id: post.id,
           typ: post.typ,

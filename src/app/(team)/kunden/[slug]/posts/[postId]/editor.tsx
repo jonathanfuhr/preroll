@@ -1,6 +1,6 @@
 'use client'
 
-import type { CustomFeldTyp, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
+import type { CustomFeldTyp, Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import { useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
 import { MedienDialog } from '@/components/medien-dialog'
@@ -15,6 +15,7 @@ import { kalenderwoche } from '@/lib/format'
 import type { Anzeigephase } from '@/lib/status'
 import { PhasenBadge } from '@/components/ui'
 import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
+import { PlattformWahl } from '@/components/plattform-wahl'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
 import type { Zielreel } from './uebertragen'
@@ -93,6 +94,7 @@ export function PostEditor({
   post,
   phase,
   gleichzeitig,
+  plattformen,
   szenen,
   customFelder,
   slides,
@@ -123,6 +125,13 @@ export function PostEditor({
   phase: Anzeigephase
   /** Wie viele **andere** Beiträge zur selben Minute veröffentlicht werden. */
   gleichzeitig: number
+  /**
+   * Wohin dieser Beitrag geht (`gewaehlt`) und was zur Wahl steht (`moeglich`
+   * — die Wahl des Kunden, beschnitten auf das, wofür ein Kanal zugeordnet
+   * ist). Mehr als sein Kunde kann ein Beitrag nicht, und nichts, was gar
+   * nicht eingerichtet ist.
+   */
+  plattformen: { gewaehlt: Plattform[]; moeglich: Plattform[] }
   szenen: Szene[]
   customFelder: CustomFeld[]
   slides: Array<{ id: string; url: string }>
@@ -375,6 +384,23 @@ export function PostEditor({
                 <Eingabe name="stil" defaultValue={post.stil ?? ''} placeholder="nahbar, direkt" />
               </Feld>
             </div>
+
+            <Feld
+              beschriftung="Plattformen"
+              hinweis={
+                plattformen.moeglich.length === 0
+                  ? undefined
+                  : plattformen.gewaehlt.length === 0
+                    ? 'Nichts gewählt — dieser Beitrag geht nirgendwohin. Preroll veröffentlicht ihn nicht, und auf der Kundenseite steht keine Marke.'
+                    : 'Aus den Stammdaten vorbelegt. Was hier steht, sieht auch der Kunde am Beitrag.'
+              }
+            >
+              <PlattformWahl
+                auswahl={plattformen.gewaehlt}
+                moeglich={plattformen.moeglich}
+                leerText="Für diesen Kunden ist keine Plattform eingerichtet — dafür muss in den Stammdaten eine Facebook-Seite zugeordnet sein."
+              />
+            </Feld>
 
             <Feld beschriftung="Kurzbeschreibung">
               <Eingabe name="kurzbeschreibung" defaultValue={post.kurzbeschreibung ?? ''} />

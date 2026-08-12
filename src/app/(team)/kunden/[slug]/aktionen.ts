@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
 import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
+import { moeglichePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
@@ -114,6 +115,20 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
       status: 'ENTWURF',
       // Beim Reel ist der Szenenplan der Normalfall, sonst nicht.
       szenenplanAktiv: typ === 'REEL',
+      /*
+        Vorbelegt aus dem Kunden, im Dialog schon abwählbar. Danach steht die
+        Wahl am Beitrag: Wer sie beim Kunden ändert, ändert damit nicht
+        rückwirkend, was längst geplant ist — dafür gibt es in den Stammdaten
+        einen eigenen Haken.
+      */
+      plattformen: (() => {
+        const moeglich = moeglichePlattformen(kunde).filter((p) =>
+          kunde.plattformen.includes(p),
+        )
+        return formular.get('plattformenGesetzt') === '1'
+          ? plattformenAusFormular(formular).filter((p) => moeglich.includes(p))
+          : moeglich
+      })(),
     },
   })
 
@@ -155,9 +170,12 @@ export async function postSpeichern(postId: string, formular: FormData) {
 
   // Der Typ entscheidet, welche Formate erlaubt sind — er steht nicht im
   // Formular und lässt sich von dort auch nicht ändern.
-  const { typ } = await prisma.post.findUniqueOrThrow({
+  const { typ, kunde: kanaele } = await prisma.post.findUniqueOrThrow({
     where: { id: postId },
-    select: { typ: true },
+    select: {
+      typ: true,
+      kunde: { select: { plattformen: true, fbSeitenId: true, igKontoId: true } },
+    },
   })
   const gewaehlt = formular.get('verhaeltnis') as Verhaeltnis | null
 
@@ -172,6 +190,21 @@ export async function postSpeichern(postId: string, formular: FormData) {
       stil: text(formular, 'stil'),
       inhalte: text(formular, 'inhalte'),
       szenenplanAktiv: formular.get('szenenplanAktiv') === 'on',
+      /*
+        Ohne Merkerfeld unangetastet lassen: „nichts angehakt" ist eine
+        gültige Wahl, „Feld war nicht im Formular" darf sie nicht auslösen.
+        Geschnitten wird gegen das, was der Kunde führt **und** wofür ein
+        Kanal zugeordnet ist — die Sperre im Formular ist Bequemlichkeit,
+        entschieden wird hier.
+      */
+      ...(formular.get('plattformenGesetzt') === '1'
+        ? {
+            plattformen: plattformenAusFormular(formular).filter(
+              (p) =>
+                kanaele.plattformen.includes(p) && moeglichePlattformen(kanaele).includes(p),
+            ),
+          }
+        : {}),
       // Nur ein für diesen Typ vorgesehenes Format — ein veralteter Tab oder
       // ein von Hand gebogenes Formular soll kein 16:9-Karussell anlegen.
       ...(gewaehlt && istErlaubt(typ, gewaehlt) ? { verhaeltnis: gewaehlt } : {}),

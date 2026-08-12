@@ -267,13 +267,38 @@ npm run check   # Typecheck + Tests
   (`anzeigePhase`); `abgeleiteteStufe` ist nur die Kundensicht darauf und
   bildet zusätzlich `ENTWURF` auf Konzept ab. Beim Kunden sind es damit vier
   Stufen (Konzept → Vorschau → Final → Gepostet), intern fünf.
-  **`StatusBadge` verlangt `postenAm` als Pflichtangabe** — ohne den Termin
-  ließe sich ein veröffentlichter Beitrag nicht von einem wartenden
-  unterscheiden, und der Typ zwingt jede Fundstelle, ihn mitzugeben. Setzen
-  lassen sich weiterhin nur die vier echten Phasen; im Editor steht „Gepostet"
-  deshalb als Etikett neben dem Umschalter, nicht als fünfter Knopf. Bei
-  Kunden ohne Freigabepflicht fällt in den Erklärungen der Satz zur Freigabe
-  weg.
+  **`StatusBadge` verlangt `postenAm` und die Veröffentlichungszeilen als
+  Pflichtangaben** — ohne den Termin ließe sich ein veröffentlichter Beitrag
+  nicht von einem wartenden unterscheiden, und der Typ zwingt jede
+  Fundstelle, beides mitzugeben. Ein leeres Array heißt ausdrücklich „hier
+  postet Preroll nicht"; dann entscheidet allein die Uhr. Wo Preroll postet,
+  schlägt der Beleg die Uhr, und intern kommt **Fehlgeschlagen** als sechste
+  Anzeigephase dazu — beim Kunden nie, `abgeleiteteStufe` bekommt die Zeilen
+  gar nicht erst. Setzen lassen sich weiterhin nur die vier echten Phasen; im
+  Editor steht „Gepostet" deshalb als Etikett neben dem Umschalter, nicht als
+  fünfter Knopf. Bei Kunden ohne Freigabepflicht fällt in den Erklärungen der
+  Satz zur Freigabe weg.
+- **Plattformen: wählbar ist nur, was eingerichtet ist.** Die Wahl in den
+  Stammdaten (`Kunde.plattformen`) ist die **Vorbelegung**, die am Beitrag
+  (`Post.plattformen`) die **Entscheidung** — mehr als sein Kunde kann ein
+  Beitrag nie. Darüber steht die Zuordnung (`fbSeitenId`, `igKontoId`): Ohne
+  zugeordneten Kanal lässt sich eine Plattform **gar nicht erst anhaken**.
+  Sie steht gesperrt da, mit Grund — ein Häkchen, das nichts bewirkt, wäre
+  eine Falle, und Warnen statt Verhindern ist hier die schwächere Lösung
+  (anders als bei Formatabweichungen beim Upload, die gewarnt und nicht
+  blockiert werden). Gerechnet wird an einer Stelle: `moeglichePlattformen`
+  (was eingerichtet ist), `effektivePlattformen` (Wahl ∩ eingerichtet) und
+  `zielPlattformen` (was der Abgleich einplant). **Abgeleitet, nicht
+  nachgeführt** — fällt ein Kanal weg, schrumpft die Wahl von selbst und
+  steht wieder da, sobald er zurück ist; deshalb räumt auch niemand die
+  gespeicherte Liste auf. Der Preis ist die Kopplung: Ein Kunde ohne
+  zugeordnete Seite hat keine Plattformen und damit keine Marken. Wer nur
+  planen und weiter von Hand posten will, ordnet die Seite trotzdem zu —
+  `postenAktiv` bleibt davon unberührt. Die Wahl am Beitrag zieht **nicht**
+  automatisch mit, wenn sie am Kunden wechselt: Das erledigt ein eigener
+  Haken, und nur für Beiträge, die noch nicht draußen sind. Gezeigt wird sie
+  einfarbig (`PlattformMarken`, nie in Markenfarben) in Post-Liste, beiden
+  Kalendern und in der Kopfzeile jedes Beitrags auf der Kundenseite.
 - **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
   beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
   „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim

@@ -1,9 +1,10 @@
 'use client'
 
-import type { PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
+import type { Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import type { Veroeffentlichungslage } from '@/lib/status'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { PlattformMarken } from '@/components/plattform-marken'
 import { Karte, Leerzustand, StatusBadge, TypBadge } from '@/components/ui'
 import { ZeilenMenue } from './zeilen-menue'
 import { kalenderwoche } from '@/lib/format'
@@ -23,6 +24,8 @@ export type Postzeile = {
   kurzbeschreibung: string | null
   postenAm: Date | null
   veroeffentlichungen: Veroeffentlichungslage
+  /** Wohin der Beitrag geht — leer heißt: nirgendwohin. */
+  plattformen: Plattform[]
   bild: string | null
   slides: number
   wer: string | null
@@ -240,6 +243,14 @@ export function Postliste({
                       {zeile.typ === 'KARUSSELL' && zeile.slides > 0 && (
                         <span className="ml-1.5 text-[11px] text-still">{zeile.slides} Slides</span>
                       )}
+                      {/*
+                        Zur Typspalte statt in eine eigene: Neun Spalten sind
+                        genug, und „was für ein Beitrag" und „wohin er geht"
+                        liest man ohnehin zusammen.
+                      */}
+                      <span className="ml-1.5 inline-flex align-middle">
+                        <PlattformMarken plattformen={zeile.plattformen} groesse={12} />
+                      </span>
                     </td>
                     <td className="px-3 py-2">
                       <Link

@@ -1,6 +1,6 @@
 import 'server-only'
-import type { Plattform } from '@prisma/client'
 import { prisma } from './db'
+import { zielPlattformen } from './plattformen'
 import { posteAufFacebook, posteAufInstagram, type MetaFehler } from './meta'
 import {
   meldeVeroeffentlichungFehlgeschlagen,
@@ -84,6 +84,7 @@ export async function gleicheVeroeffentlichungenAb(jetzt = new Date()): Promise<
     select: {
       id: true,
       postenAm: true,
+      plattformen: true,
       kunde: { select: { fbSeitenId: true, igKontoId: true } },
       veroeffentlichungen: { select: { id: true, plattform: true, stand: true, geplantFuer: true } },
     },
@@ -92,9 +93,22 @@ export async function gleicheVeroeffentlichungenAb(jetzt = new Date()): Promise<
   for (const post of posts) {
     if (!post.postenAm) continue
 
-    const ziele: Plattform[] = []
-    if (post.kunde.fbSeitenId) ziele.push('FACEBOOK')
-    if (post.kunde.igKontoId) ziele.push('INSTAGRAM')
+    const ziele = zielPlattformen(post.plattformen, post.kunde)
+
+    /*
+      Eine abgewählte Plattform nimmt ihre geplante Zeile wieder mit. Nur die
+      geplante: Was einmal draußen ist, lässt sich nicht abwählen, und der
+      Beleg bleibt stehen. Das ist dieselbe Regel wie beim Zurückstufen eines
+      Beitrags, nur eine Ebene feiner.
+    */
+    const ueberzaehlig = post.veroeffentlichungen.filter(
+      (v) => v.stand === 'GEPLANT' && !ziele.includes(v.plattform),
+    )
+    if (ueberzaehlig.length > 0) {
+      await prisma.veroeffentlichung.deleteMany({
+        where: { id: { in: ueberzaehlig.map((v) => v.id) } },
+      })
+    }
 
     for (const plattform of ziele) {
       const vorhanden = post.veroeffentlichungen.find((v) => v.plattform === plattform)
