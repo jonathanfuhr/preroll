@@ -272,6 +272,37 @@ export async function postTerminieren(postId: string, tag: string | null) {
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }
 
+/**
+ * Datum **und** Uhrzeit in einem Zug — aus dem kleinen Fenster in der
+ * Post-Liste.
+ *
+ * Anders als `postTerminieren`, das nur den Tag verschiebt und die Uhrzeit
+ * bewusst stehen lässt: Wer hier das Fenster öffnet, sieht beide Felder und
+ * hat beide vor Augen. Ein leeres Datum heißt „wieder ungeplant" — das ist
+ * ein gültiger Stand und braucht keinen eigenen Knopf.
+ */
+export async function postTerminSetzen(postId: string, formular: FormData) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    include: { kunde: { select: { slug: true, standardUhrzeit: true } } },
+  })
+
+  const tag = String(formular.get('datum') ?? '').trim()
+  const uhrzeit = String(formular.get('uhrzeit') ?? '').trim() || post.kunde.standardUhrzeit
+
+  await prisma.post.update({
+    where: { id: postId },
+    data: { postenAm: tag ? new Date(`${tag}T${uhrzeit}`) : null },
+  })
+
+  // In Klappe trägt das Video das Datum im Namen — der zieht mit.
+  await klappeVideoNachziehen(postId).catch(() => {})
+
+  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}
+
 export async function postStatusSetzen(postId: string, status: PostStatus) {
   await nutzerOderRaus()
   const post = await prisma.post.update({

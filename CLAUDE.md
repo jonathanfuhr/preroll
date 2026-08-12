@@ -179,6 +179,15 @@ Seite zu bewachen wäre die schlechtere Regel.
 - **Transparente Pixel** in Post-Grafiken sind praktisch immer ein Versehen und
   werden gewarnt. Geprüft wird mit `stats().isOpaque`, nicht mit `hasAlpha` —
   viele PNGs tragen einen deckenden Alphakanal.
+- **In der Post-Liste führen drei Wege in den Beitrag** — Vorschaubild, Typ
+  und Titel. Das Bild allein war ein zu kleines Ziel. Der **Termin dagegen
+  öffnet ein kleines Fenster** mit Datum, Uhrzeit, OK und Abbrechen: Umplanen
+  war sonst nur über den Kalender oder das Formular im Beitrag zu haben, und
+  für „der geht doch erst Donnerstag raus" ist beides zu weit. Bewusst kein
+  Speichern beim Tippen — ein Zwischenstand aus neuem Tag und alter Uhrzeit
+  wäre ein Termin, den niemand gewollt hat. Ein **leeres Datum** stellt den
+  Beitrag zurück auf „Ungeplant" (`postTerminSetzen`); das ist ein gültiger
+  Stand und braucht keinen eigenen Knopf.
 - **Posts dürfen ungeplant sein.** `postenAm` ist optional. Der Anlegen-Dialog
   fragt bewusst kein Datum ab — ein erfundener Termin ist schlechter als gar
   keiner. Ungeplante Posts stehen im Kalender in der Spalte „Ungeplant" und

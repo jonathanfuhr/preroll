@@ -75,6 +75,7 @@ export default async function PostsSeite({
           suche={suche ?? ''}
           filter={filter}
           freigabeLink={letzterExport}
+          standardUhrzeit={kunde.standardUhrzeit}
           zeilen={posts.map((post) => ({
             id: post.id,
             typ: post.typ,

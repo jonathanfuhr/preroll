@@ -6,11 +6,10 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { PlattformMarken } from '@/components/plattform-marken'
 import { Karte, Leerzustand, StatusBadge, TypBadge } from '@/components/ui'
+import { TerminKnopf } from './termin-knopf'
 import { ZeilenMenue } from './zeilen-menue'
 import { kalenderwoche } from '@/lib/format'
 
-const DATUM = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
 const MONAT = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
 export type Filter = 'alle' | 'freigabe' | 'kommentare'
@@ -51,6 +50,7 @@ export function Postliste({
   suche: startSuche,
   filter: startFilter,
   freigabeLink,
+  standardUhrzeit,
 }: {
   slug: string
   zeilen: Postzeile[]
@@ -58,6 +58,8 @@ export function Postliste({
   filter: Filter
   /** Jüngster Export-Link des Kunden — der, den man gerade herumreicht. */
   freigabeLink: { token: string; titel: string | null } | null
+  /** Vorbelegung im Termin-Fenster, wenn ein Beitrag noch ungeplant ist. */
+  standardUhrzeit: string
 }) {
   const [suche, setSuche] = useState(startSuche)
   const [filter, setFilter] = useState<Filter>(startFilter)
@@ -226,23 +228,21 @@ export function Postliste({
                       {zeile.postenAm ? kalenderwoche(zeile.postenAm) : '—'}
                     </td>
                     <td className="whitespace-nowrap px-3 py-2 text-tinte-3">
-                      {zeile.postenAm ? (
-                        <>
-                          {DATUM.format(zeile.postenAm)}
-                          {/* Am Telefon zweizeilig — nebeneinander kosten sie 55 px, die dem Titel fehlen. */}
-                          <span className="block text-still md:ml-1.5 md:inline">
-                            {UHRZEIT.format(zeile.postenAm)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-stiller">ungeplant</span>
-                      )}
+                      <TerminKnopf
+                        postId={zeile.id}
+                        postenAm={zeile.postenAm}
+                        standardUhrzeit={standardUhrzeit}
+                      />
                     </td>
                     <td className="px-3 py-2">
-                      <TypBadge typ={zeile.typ} verhaeltnis={zeile.verhaeltnis} />
-                      {zeile.typ === 'KARUSSELL' && zeile.slides > 0 && (
-                        <span className="ml-1.5 text-[11px] text-still">{zeile.slides} Slides</span>
-                      )}
+                      {/* Auch Typ und Titel führen in den Beitrag — das
+                          Vorschaubild allein ist ein kleines Ziel. */}
+                      <Link href={`/kunden/${slug}/posts/${zeile.id}`} className="text-tinte">
+                        <TypBadge typ={zeile.typ} verhaeltnis={zeile.verhaeltnis} />
+                        {zeile.typ === 'KARUSSELL' && zeile.slides > 0 && (
+                          <span className="ml-1.5 text-[11px] text-still">{zeile.slides} Slides</span>
+                        )}
+                      </Link>
                       {/*
                         Zur Typspalte statt in eine eigene: Neun Spalten sind
                         genug, und „was für ein Beitrag" und „wohin er geht"
@@ -253,17 +253,22 @@ export function Postliste({
                       </span>
                     </td>
                     <td className="px-3 py-2">
+                      {/* Die ganze Zelle, nicht nur die Zeile mit dem Titel:
+                          Wer die Kurzbeschreibung trifft, meint denselben
+                          Beitrag. */}
                       <Link
                         href={`/kunden/${slug}/posts/${zeile.id}`}
-                        className="font-medium text-tinte hover:text-akzent"
+                        className="group/titel block"
                       >
-                        {zeile.titel}
+                        <span className="font-medium text-tinte group-hover/titel:text-akzent">
+                          {zeile.titel}
+                        </span>
+                        {zeile.kurzbeschreibung && (
+                          <p className="mt-0.5 line-clamp-1 text-[11.5px] text-leiser">
+                            {zeile.kurzbeschreibung}
+                          </p>
+                        )}
                       </Link>
-                      {zeile.kurzbeschreibung && (
-                        <p className="mt-0.5 line-clamp-1 text-[11.5px] text-leiser">
-                          {zeile.kurzbeschreibung}
-                        </p>
-                      )}
                     </td>
                     <td className="px-3 py-2">
                       <StatusBadge
