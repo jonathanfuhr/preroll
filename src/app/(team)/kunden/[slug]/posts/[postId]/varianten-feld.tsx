@@ -28,16 +28,19 @@ export type VariantenZeile = {
  * eine Kopie, die beim nächsten Umbau des Beitrags stillschweigend veraltet.
  *
  * **Eigene Medien je Fassung sind noch nicht wählbar.** Das Datenmodell trägt
- * sie (`PostVarianteMedium`), die Erbregel rechnet damit, und Versand wie
- * Kundenansicht zeigen sie — es fehlt allein der Upload-Weg. Ihn hier zweit-
- * gebaut daneben zu stellen wäre die schlechtere Hälfte: Zwei Uploadwege für
- * dieselbe Sache sind zwei Stellen, an denen die Formatprüfung auseinanderläuft.
- * Deshalb steht bis dahin ein Hinweis statt eines Knopfes, der es andeutet.
+ * sie (`PostVarianteMedium`), die Erbregel rechnet damit, ZIP und Kundenansicht
+ * zeigen sie — es fehlt allein der Upload-Weg. Ihn hier zweitgebaut daneben zu
+ * stellen wäre die schlechtere Hälfte: `/api/upload` trägt Formatprüfung,
+ * Transparenzwarnung, Karussell-Auftrennung und das Aufräumen der drei
+ * Video-Quellen. Ein zweiter Weg daneben wäre eine zweite Stelle, an der das
+ * alles auseinanderläuft. Der Weg führt über `varianteId` **in** dieser Route,
+ * und das ist ein eigener Schritt.
  */
 export function VariantenFeld({
   postTyp,
   varianten,
   frei,
+  ausserhalb,
   anlegen,
   speichern,
   loeschen,
@@ -46,6 +49,14 @@ export function VariantenFeld({
   varianten: VariantenZeile[]
   /** Plattformen, die in keiner anderen Variante stehen. */
   frei: Plattform[]
+  /**
+   * Plattformen, die der Kunde bespielt, dieser Beitrag aber nicht. Sie
+   * stehen gesperrt da statt zu fehlen: Wer LinkedIn sucht und nicht findet,
+   * sucht an der falschen Stelle weiter — eine Fassung für eine Plattform,
+   * auf der der Beitrag gar nicht erscheint, wäre sinnlos, und das steht
+   * dann auch dabei.
+   */
+  ausserhalb: Plattform[]
   anlegen: (formular: FormData) => Promise<void>
   speichern: (varianteId: string, formular: FormData) => Promise<void>
   loeschen: (varianteId: string) => Promise<void>
@@ -89,6 +100,16 @@ export function VariantenFeld({
                   />
                   {PLATTFORM_TEXT[p]}
                 </label>
+              ))}
+              {ausserhalb.map((p) => (
+                <span
+                  key={p}
+                  title={`Dieser Beitrag geht nicht auf ${PLATTFORM_TEXT[p]} — oben in den Eckdaten anhaken.`}
+                  className="flex items-center gap-1.5 text-[12.5px] text-stiller"
+                >
+                  <input type="checkbox" disabled />
+                  {PLATTFORM_TEXT[p]}
+                </span>
               ))}
             </div>
           </Feld>

@@ -142,6 +142,7 @@ export function PostEditor({
   varianten?: {
     zeilen: VariantenZeile[]
     frei: Plattform[]
+    ausserhalb: Plattform[]
     anlegen: (formular: FormData) => Promise<void>
     speichern: (varianteId: string, formular: FormData) => Promise<void>
     loeschen: (varianteId: string) => Promise<void>
@@ -469,6 +470,7 @@ export function PostEditor({
               postTyp={post.typ}
               varianten={varianten.zeilen}
               frei={varianten.frei}
+              ausserhalb={varianten.ausserhalb}
               anlegen={varianten.anlegen}
               speichern={varianten.speichern}
               loeschen={varianten.loeschen}

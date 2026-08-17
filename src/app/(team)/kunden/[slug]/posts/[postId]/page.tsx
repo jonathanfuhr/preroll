@@ -142,6 +142,11 @@ export default async function PostSeite({
             Regel steht am Server.
           */
           frei: freiePlattformen(post.plattformen, post.varianten as never),
+          // Was der Kunde bespielt, dieser Beitrag aber nicht — gesperrt
+          // gezeigt, damit niemand sucht, wo nichts fehlt.
+          ausserhalb: effektivePlattformen(post.kunde).filter(
+            (p) => !post.plattformen.includes(p),
+          ),
           anlegen: varianteAnlegen.bind(null, post.id, slug),
           speichern: varianteSpeichern.bind(null, post.id, slug),
           loeschen: varianteLoeschen.bind(null, post.id, slug),
