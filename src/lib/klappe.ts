@@ -1,5 +1,10 @@
 import 'server-only'
+import { createWriteStream } from 'node:fs'
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { ladeEinstellungen } from './einstellungen'
 
 export { klappeVideoBeschreibung, klappeVideoName } from './klappe-namen'
@@ -59,12 +64,19 @@ export type KlappeAntwort<T> = { ok: true; daten: T } | { ok: false; fehler: str
 
 // ------------------------------------------------------------- Grundgerüst
 
-type Zugang = { basisUrl: string; token: string }
+type Zugang = { basisUrl: string; medienUrl: string; token: string }
 
 async function zugang(): Promise<Zugang | null> {
   const e = await ladeEinstellungen()
   if (!e.klappeBasisUrl || !e.klappeApiKey) return null
-  return { basisUrl: e.klappeBasisUrl.replace(/\/$/, ''), token: e.klappeApiKey }
+  const basisUrl = e.klappeBasisUrl.replace(/\/$/, '')
+  return {
+    basisUrl,
+    // Videodaten nehmen den kurzen Weg, wenn einer eingetragen ist. Warum das
+    // nicht bloß Feinschliff ist, steht am Feld `klappeMedienUrl` im Schema.
+    medienUrl: e.klappeMedienUrl?.trim().replace(/\/$/, '') || basisUrl,
+    token: e.klappeApiKey,
+  }
 }
 
 export async function klappeEingerichtet(): Promise<boolean> {
@@ -236,22 +248,42 @@ export async function klappeVideoUmbenennen(
 // ------------------------------------------------------------ Medien
 
 /**
- * Die Fassung eines Reels für den ZIP-Export. Liegt das Video nur als
- * Klappe-Stream vor, wird es im Moment des Exports von dort durchgereicht —
- * ein ZIP mit fehlendem Reel wäre für den Scheduler wertlos.
+ * Die Fassung eines Reels fürs ZIP — erst vollständig auf die Platte, dann ins
+ * Archiv. Ein ZIP mit fehlendem Reel wäre für den Zeitplaner wertlos.
+ *
+ * Bewusst **nicht** direkt in das Archiv gestreamt, wie es hier einmal stand:
+ * Bricht der Strom auf halbem Weg ab — bei uns als `TypeError: terminated` mit
+ * `NGHTTP2_PROTOCOL_ERROR` —, reißt er das ganze Archiv mit, denn der Eintrag
+ * ist dann halb geschrieben und lässt sich nicht mehr überspringen. Über eine
+ * Zwischendatei ist der Fehlschlag ein fehlendes Video statt eines kaputten
+ * Downloads, und der Rest des Archivs bleibt brauchbar.
+ *
+ * Die Zeitgrenze gilt für den ganzen Abruf. Über den kurzen Weg
+ * (`klappeMedienUrl`) braucht eine 115-MB-Fassung gut eine Sekunde; wer hier
+ * in die Grenze läuft, hat ein anderes Problem als eine langsame Leitung.
  */
 export async function klappeVideoFuersZip(
   fassungId: string,
   art: 'original' | 'proxy',
-): Promise<{ strom: Readable; endung: string } | null> {
-  const antwort = await klappeMedium(fassungId, art)
+  zeitgrenzeMs = 120_000,
+): Promise<{ pfad: string; endung: string } | null> {
+  const antwort = await klappeMedium(fassungId, art, null, AbortSignal.timeout(zeitgrenzeMs))
   if (!antwort?.ok || !antwort.body) return null
 
   const typ = antwort.headers.get('content-type') ?? ''
   const endung = typ.includes('quicktime') ? 'mov' : typ.includes('webm') ? 'webm' : 'mp4'
-  return {
-    strom: Readable.fromWeb(antwort.body as Parameters<typeof Readable.fromWeb>[0]),
-    endung,
+  const pfad = path.join(os.tmpdir(), `klappe-${fassungId}-${Date.now()}.${endung}`)
+
+  try {
+    await pipeline(
+      Readable.fromWeb(antwort.body as Parameters<typeof Readable.fromWeb>[0]),
+      createWriteStream(pfad),
+    )
+    return { pfad, endung }
+  } catch (fehler) {
+    console.warn('[klappe] Fassung nicht vollständig geladen:', fassungId, fehler)
+    await fs.rm(pfad, { force: true }).catch(() => undefined)
+    return null
   }
 }
 
@@ -260,6 +292,7 @@ export async function klappeMedium(
   fassungId: string,
   art: 'proxy' | 'original' | 'poster',
   bereich?: string | null,
+  abbruch?: AbortSignal,
 ): Promise<Response | null> {
   const z = await zugang()
   if (!z) return null
@@ -270,10 +303,10 @@ export async function klappeMedium(
   const pfad = art === 'poster' ? 'poster' : art
   try {
     return await fetch(
-      `${z.basisUrl}/v1/versions/${encodeURIComponent(fassungId)}/${pfad}${
+      `${z.medienUrl}/v1/versions/${encodeURIComponent(fassungId)}/${pfad}${
         art === 'original' ? '?inline=1' : ''
       }`,
-      { headers: kopfzeilen, cache: 'no-store' },
+      { headers: kopfzeilen, cache: 'no-store', signal: abbruch },
     )
   } catch {
     return null

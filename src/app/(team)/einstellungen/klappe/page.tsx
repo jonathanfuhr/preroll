@@ -21,6 +21,7 @@ export default async function KlappeSeite({
       >
         <KlappeEinrichtung
           basisUrl={e.klappeBasisUrl}
+          medienUrl={e.klappeMedienUrl}
           gekoppeltAm={e.klappeGekoppeltAm}
           konto={e.klappeKonto}
           zustand={klappe}

@@ -109,6 +109,95 @@ export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlba
   )
 }
 
+/**
+ * Dateien eines frei gewählten Zeitraums als ZIP.
+ *
+ * Steht über den Monatskarten, weil ein Zeitraum quer zu ihnen liegen kann —
+ * „von der Konzeptrunde bis zum Dreh" hält sich nicht an Monatsgrenzen. Der
+ * Knopf an der einzelnen Karte bleibt daneben stehen; er ist der schnelle Weg
+ * für genau diesen Monat.
+ *
+ * Der Zeitraum geht als Adresse an die Route und nicht durch ein Formular:
+ * Ein `<a download>` bekommt den Strom direkt vom Server, ohne dass der Browser
+ * das ganze Archiv erst im Speicher sammelt.
+ */
+export function ZipZeitraum({ exportId, von, bis }: { exportId: string; von: string; bis: string }) {
+  const [vonWert, setVon] = useState(von)
+  const [bisWert, setBis] = useState(bis)
+  const [captions, setCaptions] = useState(true)
+  const [kommentare, setKommentare] = useState(false)
+
+  const suche = new URLSearchParams({ von: vonWert, bis: bisWert })
+  if (!captions) suche.set('captions', '0')
+  if (kommentare) suche.set('kommentare', '1')
+
+  const gueltig = Boolean(vonWert && bisWert && vonWert <= bisWert)
+
+  return (
+    <Karte className="p-5">
+      <h3 className="text-[14px] font-semibold">Dateien als ZIP</h3>
+      <p className="mt-1 text-[12.5px] leading-relaxed text-leiser">
+        Ein Ordner je Beitrag, darin die Dateien mit Termin im Namen.
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-end gap-3">
+        <Feld beschriftung="Von">
+          <Eingabe
+            type="date"
+            value={vonWert}
+            onChange={(e) => setVon(e.currentTarget.value)}
+            className="w-[150px]"
+          />
+        </Feld>
+        <Feld beschriftung="Bis">
+          <Eingabe
+            type="date"
+            value={bisWert}
+            onChange={(e) => setBis(e.currentTarget.value)}
+            className="w-[150px]"
+          />
+        </Feld>
+
+        <div className="grid gap-1.5 pb-0.5">
+          <label className="flex items-center gap-2 text-[12px] text-tinte-3">
+            <input
+              type="checkbox"
+              checked={captions}
+              onChange={(e) => setCaptions(e.currentTarget.checked)}
+            />
+            Captions als Textdatei
+          </label>
+          <label className="flex items-center gap-2 text-[12px] text-tinte-3">
+            <input
+              type="checkbox"
+              checked={kommentare}
+              onChange={(e) => setKommentare(e.currentTarget.checked)}
+            />
+            Kommentarverlauf als PDF
+          </label>
+        </div>
+
+        {gueltig ? (
+          <a
+            href={`/api/export/${exportId}/zip?${suche.toString()}`}
+            className="rounded-[5px] bg-akzent px-3.5 py-2 text-[12px] font-medium text-white hover:opacity-90"
+          >
+            ZIP erzeugen
+          </a>
+        ) : (
+          <span className="rounded-[5px] border border-rahmen-3 px-3.5 py-2 text-[12px] text-stiller">
+            ZIP erzeugen
+          </span>
+        )}
+      </div>
+
+      {!gueltig && (
+        <p className="mt-2 text-[11.5px] text-stiller">Das Ende liegt vor dem Beginn.</p>
+      )}
+    </Karte>
+  )
+}
+
 export function ExportKarte({
   exp,
   basisUrl,

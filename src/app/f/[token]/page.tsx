@@ -192,9 +192,34 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   // auf der Seite auch nichts davon.
   const mitFreigaben = exp.kunde.freigabenNoetig
   const fortschritt = freigabeFortschritt(sektionen)
-  const freigabeleiste = mitFreigaben ? (
-    <Freigabefortschritt erledigt={fortschritt.erledigt} gesamt={fortschritt.gesamt} />
-  ) : null
+
+  /*
+    Darf der Kunde die Dateien selbst holen, steht der Knopf oben in der Leiste.
+    Nur wenn es in den Stammdaten eingeschaltet ist und wenigstens ein Beitrag
+    final ist — ein Knopf, der ein leeres Archiv liefert, sieht wie ein Fehler
+    aus. In der Team-Vorschau bleibt er weg: Das Team hat den vollständigen
+    Export in der Verwaltung, und hier wäre er die falsche Auskunft darüber,
+    was der Kunde vor sich hat.
+  */
+  const download =
+    exp.kunde.zipFuerKunden && !alsTeam && sektionen.some((p) => p.status === 'FINAL') ? (
+      <a
+        href={`/api/export/${exp.id}/zip`}
+        className="rounded-[5px] border border-rahmen-3 px-3 py-1.5 text-[12px] font-medium text-tinte hover:border-rahmen-4"
+      >
+        Finale Beiträge herunterladen
+      </a>
+    ) : null
+
+  const freigabeleiste =
+    mitFreigaben || download ? (
+      <>
+        {mitFreigaben && (
+          <Freigabefortschritt erledigt={fortschritt.erledigt} gesamt={fortschritt.gesamt} />
+        )}
+        {download}
+      </>
+    ) : null
 
   return (
     /*
