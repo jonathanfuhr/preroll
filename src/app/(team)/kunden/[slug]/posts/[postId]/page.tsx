@@ -10,7 +10,12 @@ import { anzeigePhase } from '@/lib/status'
 import { effektivePlattformen } from '@/lib/plattformen'
 import { freiePlattformen } from '@/lib/varianten'
 import { klappeEingerichtet } from '@/lib/klappe'
-import { varianteAnlegen, varianteLoeschen, varianteSpeichern } from '../../aktionen'
+import {
+  varianteAnlegen,
+  varianteLoeschen,
+  varianteMediumEntfernen,
+  varianteSpeichern,
+} from '../../aktionen'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
@@ -133,7 +138,11 @@ export default async function PostSeite({
             plattformen: v.plattformen,
             caption: v.caption,
             verhaeltnis: v.verhaeltnis,
-            medienAnzahl: v._count.medien,
+            medien: v.medien.map((m) => ({
+              id: m.id,
+              url: medienUrl(m.mediumId)!,
+              istVideo: m.medium.mimeTyp.startsWith('video/'),
+            })),
           })),
           /*
             Wählbar ist nur, was der Beitrag überhaupt bespielt **und** was in
@@ -150,6 +159,7 @@ export default async function PostSeite({
           anlegen: varianteAnlegen.bind(null, post.id, slug),
           speichern: varianteSpeichern.bind(null, post.id, slug),
           loeschen: varianteLoeschen.bind(null, post.id, slug),
+          mediumEntfernen: varianteMediumEntfernen.bind(null, post.id, slug),
         }}
         post={{
           id: post.id,

@@ -1,4 +1,4 @@
-import type { MediumRolle } from '@prisma/client'
+import type { MediumRolle, Verhaeltnis } from '@prisma/client'
 import type { NextRequest } from 'next/server'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
@@ -49,12 +49,30 @@ export async function POST(anfrage: NextRequest) {
   const postId = String(formular.get('postId') ?? '')
   const rolle = (String(formular.get('rolle') ?? 'MEDIUM') as MediumRolle) || 'MEDIUM'
   const modus = String(formular.get('modus') ?? 'einzeln')
+  /*
+    Gilt der Upload einer abweichenden Fassung statt dem Beitrag selbst?
+
+    Bewusst **dieselbe** Route und nicht eine zweite daneben: Hier hängen
+    Formatprüfung, Transparenzwarnung, Karussell-Auftrennung und die
+    Größengrenzen. Ein zweiter Weg wäre eine zweite Stelle, an der das alles
+    auseinanderläuft — dieselbe Begründung wie beim einen Video-Platz.
+  */
+  const varianteId = String(formular.get('varianteId') ?? '') || null
 
   const post = await prisma.post.findUnique({
     where: { id: postId },
     include: { kunde: true, medien: true },
   })
   if (!post) return Response.json({ fehler: 'Post nicht gefunden.' }, { status: 404 })
+
+  // Die Fassung muss zu diesem Beitrag gehören — sonst ließe sich über eine
+  // fremde Kennung an einem anderen Post herumladen.
+  const variante = varianteId
+    ? await prisma.postVariante.findFirst({ where: { id: varianteId, postId } })
+    : null
+  if (varianteId && !variante) {
+    return Response.json({ fehler: 'Diese Fassung gibt es nicht mehr.' }, { status: 404 })
+  }
 
   const sitzungen = formular.getAll('sitzungen').map(String)
   let dateien: Eingang[]
@@ -83,7 +101,7 @@ export async function POST(anfrage: NextRequest) {
         )
       }
     }
-    return await verarbeite({ post, nutzer, dateien, rolle, modus, formular, postId })
+    return await verarbeite({ post, variante, nutzer, dateien, rolle, modus, formular, postId })
   } finally {
     // Die Blöcke haben ihren Zweck erfüllt — egal, wie es ausgegangen ist.
     for (const sitzung of sitzungen) await loescheSitzung(sitzung)
@@ -92,6 +110,7 @@ export async function POST(anfrage: NextRequest) {
 
 async function verarbeite({
   post,
+  variante,
   nutzer,
   dateien,
   rolle,
@@ -100,6 +119,8 @@ async function verarbeite({
   postId,
 }: {
   post: NonNullable<Awaited<ReturnType<typeof prisma.post.findUnique>>>
+  /** Gesetzt, wenn der Upload einer abweichenden Fassung gilt. */
+  variante: { id: string; verhaeltnis: Verhaeltnis | null } | null
   nutzer: { id: string }
   dateien: Eingang[]
   rolle: MediumRolle
@@ -107,6 +128,59 @@ async function verarbeite({
   formular: FormData
   postId: string
 }): Promise<Response> {
+  /*
+    Wohin geschrieben wird — Beitrag oder Fassung. An einer Stelle gebündelt,
+    weil es fünf Schreibwege sind: Wer davon einen vergisst, legt still am
+    falschen Ort ab, und auffallen würde das erst beim Kunden.
+
+    Das Verhältnis kommt von der Fassung, sonst vom Beitrag: Danach richtet
+    sich die Formatwarnung und die Auftrennung eines Gesamtbildes — eine
+    Fassung in 1:1 soll nicht gegen die 4:5 des Beitrags gemessen werden.
+  */
+  const ziel = variante
+    ? {
+        verhaeltnis: variante.verhaeltnis ?? post.verhaeltnis,
+        zaehle: (r: MediumRolle) =>
+          prisma.postVarianteMedium.count({ where: { varianteId: variante.id, rolle: r } }),
+        hoechste: (r: MediumRolle) =>
+          prisma.postVarianteMedium.findFirst({
+            where: { varianteId: variante.id, rolle: r },
+            orderBy: { position: 'desc' },
+          }),
+        raeume: (r: MediumRolle) =>
+          prisma.postVarianteMedium.deleteMany({ where: { varianteId: variante.id, rolle: r } }),
+        lege: (mediumId: string, r: MediumRolle, position: number) =>
+          prisma.postVarianteMedium.create({
+            data: { varianteId: variante.id, mediumId, rolle: r, position },
+          }),
+        legeSlides: (ids: string[]) =>
+          prisma.postVarianteMedium.createMany({
+            data: ids.map((mediumId, position) => ({
+              varianteId: variante.id,
+              mediumId,
+              rolle: 'SLIDE' as const,
+              position,
+            })),
+          }),
+      }
+    : {
+        verhaeltnis: post.verhaeltnis,
+        zaehle: (r: MediumRolle) => prisma.postMedium.count({ where: { postId, rolle: r } }),
+        hoechste: (r: MediumRolle) =>
+          prisma.postMedium.findFirst({ where: { postId, rolle: r }, orderBy: { position: 'desc' } }),
+        raeume: (r: MediumRolle) => prisma.postMedium.deleteMany({ where: { postId, rolle: r } }),
+        lege: (mediumId: string, r: MediumRolle, position: number) =>
+          prisma.postMedium.create({ data: { postId, mediumId, rolle: r, position } }),
+        legeSlides: (ids: string[]) =>
+          prisma.postMedium.createMany({
+            data: ids.map((mediumId, position) => ({
+              postId,
+              mediumId,
+              rolle: 'SLIDE' as const,
+              position,
+            })),
+          }),
+      }
 
   // ------------------------------------------------- Ein Gesamtbild auftrennen
   if (modus === 'gesamtbild') {
@@ -121,7 +195,7 @@ async function verarbeite({
     })
 
     const gewuenscht = formular.get('anzahl') ? Number(formular.get('anzahl')) : undefined
-    const ergebnis = berechneAuftrennung(quelle.breite, quelle.hoehe, gewuenscht, post.verhaeltnis)
+    const ergebnis = berechneAuftrennung(quelle.breite, quelle.hoehe, gewuenscht, ziel.verhaeltnis)
 
     if (!ergebnis.ok) {
       return Response.json(
@@ -138,15 +212,8 @@ async function verarbeite({
     })
 
     // Vorhandene Slides ersetzen, damit die Reihenfolge eindeutig bleibt.
-    await prisma.postMedium.deleteMany({ where: { postId, rolle: 'SLIDE' } })
-    await prisma.postMedium.createMany({
-      data: slides.map((slide, position) => ({
-        postId,
-        mediumId: slide.id,
-        rolle: 'SLIDE' as const,
-        position,
-      })),
-    })
+    await ziel.raeume('SLIDE')
+    await ziel.legeSlides(slides.map((slide) => slide.id))
 
     const transparenz = transparenzHinweis(hatTransparenz, datei.name)
 
@@ -163,18 +230,11 @@ async function verarbeite({
   // -------------------------------------------------------- Einzelne Dateien
   const hinweise: string[] = []
   let position =
-    (await prisma.postMedium.count({ where: { postId, rolle } })) === 0
-      ? 0
-      : ((
-          await prisma.postMedium.findFirst({
-            where: { postId, rolle },
-            orderBy: { position: 'desc' },
-          })
-        )?.position ?? -1) + 1
+    (await ziel.zaehle(rolle)) === 0 ? 0 : ((await ziel.hoechste(rolle))?.position ?? -1) + 1
 
   // Beitrag, Reel und Thumbnail haben genau ein Medium — vorher aufräumen.
   if (rolle !== 'SLIDE') {
-    await prisma.postMedium.deleteMany({ where: { postId, rolle } })
+    await ziel.raeume(rolle)
     position = 0
   }
 
@@ -187,18 +247,21 @@ async function verarbeite({
       hochgeladenVonId: nutzer.id,
     })
 
-    const hinweis = pruefeFormat(post.verhaeltnis, rolle, breite, hoehe)
+    const hinweis = pruefeFormat(ziel.verhaeltnis, rolle, breite, hoehe)
     if (hinweis) hinweise.push(`${datei.name}: ${hinweis.text}`)
 
     const transparenz = transparenzHinweis(hatTransparenz, datei.name)
     if (transparenz) hinweise.push(transparenz)
 
-    await prisma.postMedium.create({
-      data: { postId, mediumId: medium.id, rolle, position: position++ },
-    })
+    await ziel.lege(medium.id, rolle, position++)
   }
 
-  if (rolle === 'MEDIUM' && post.typ === 'REEL') {
+  /*
+    Das Aufräumen der drei Video-Quellen gilt dem **einen** Video-Platz des
+    Beitrags. Eine Fassung hat keinen Klappe-Bezug und keinen Download — sie
+    trägt schlicht ihr eigenes Video.
+  */
+  if (!variante && rolle === 'MEDIUM' && post.typ === 'REEL') {
     // Der Upload übernimmt den Video-Platz — die anderen beiden Quellen
     // werden gelöst, nicht nur überdeckt: ein laufender Download würde das
     // frische Video sonst später überschreiben, ein stehen gebliebener Link

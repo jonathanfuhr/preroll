@@ -4,6 +4,7 @@ import type { Plattform, Verhaeltnis } from '@prisma/client'
 import { useState } from 'react'
 import { PLATTFORM_TEXT } from '@/lib/plattformen'
 import { ERLAUBT, VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
+import { VariantenMedien, type VariantenMedium } from './varianten-medien'
 import { Auswahl, Feld, Hinweis, Knopf, Textfeld } from '@/components/ui'
 
 export type VariantenZeile = {
@@ -11,8 +12,8 @@ export type VariantenZeile = {
   plattformen: Plattform[]
   caption: string | null
   verhaeltnis: Verhaeltnis | null
-  /** Wie viele eigene Medien hängen — entscheidet über „geerbt" oder nicht. */
-  medienAnzahl: number
+  /** Eigene Medien dieser Fassung — leer heißt geerbt. */
+  medien: VariantenMedium[]
 }
 
 /**
@@ -27,16 +28,14 @@ export type VariantenZeile = {
  * würde jemand die Caption abtippen, damit „etwas drinsteht" — und hätte damit
  * eine Kopie, die beim nächsten Umbau des Beitrags stillschweigend veraltet.
  *
- * **Eigene Medien je Fassung sind noch nicht wählbar.** Das Datenmodell trägt
- * sie (`PostVarianteMedium`), die Erbregel rechnet damit, ZIP und Kundenansicht
- * zeigen sie — es fehlt allein der Upload-Weg. Ihn hier zweitgebaut daneben zu
- * stellen wäre die schlechtere Hälfte: `/api/upload` trägt Formatprüfung,
- * Transparenzwarnung, Karussell-Auftrennung und das Aufräumen der drei
- * Video-Quellen. Ein zweiter Weg daneben wäre eine zweite Stelle, an der das
- * alles auseinanderläuft. Der Weg führt über `varianteId` **in** dieser Route,
- * und das ist ein eigener Schritt.
+ * **Eigene Medien je Fassung** hängen unter der Caption. Sie gehen über
+ * dieselbe Route wie die des Beitrags (`/api/upload` mit `varianteId`) — dort
+ * sitzen Blockupload, Formatprüfung, Transparenzwarnung und die
+ * Karussell-Auftrennung, und ein zweiter Weg daneben wäre eine zweite Stelle,
+ * an der das auseinanderläuft.
  */
 export function VariantenFeld({
+  postId,
   postTyp,
   varianten,
   frei,
@@ -44,7 +43,9 @@ export function VariantenFeld({
   anlegen,
   speichern,
   loeschen,
+  mediumEntfernen,
 }: {
+  postId: string
   postTyp: 'REEL' | 'KARUSSELL' | 'BEITRAG'
   varianten: VariantenZeile[]
   /** Plattformen, die in keiner anderen Variante stehen. */
@@ -60,6 +61,7 @@ export function VariantenFeld({
   anlegen: (formular: FormData) => Promise<void>
   speichern: (varianteId: string, formular: FormData) => Promise<void>
   loeschen: (varianteId: string) => Promise<void>
+  mediumEntfernen: (varianteMediumId: string) => Promise<void>
 }) {
   const [offen, setOffen] = useState(false)
   const erlaubteFormate = ERLAUBT[postTyp]
@@ -124,9 +126,9 @@ export function VariantenFeld({
           <Feld
             beschriftung="Format"
             hinweis={
-              v.medienAnzahl > 0
-                ? `${v.medienAnzahl} eigene Medien hängen an dieser Fassung.`
-                : 'Wirkt erst mit eigenen Medien — sonst stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist. Eigene Medien je Fassung kommen im nächsten Schritt.'
+              v.medien.length > 0
+                ? `${v.medien.length} eigene Medien hängen an dieser Fassung.`
+                : 'Wirkt erst mit eigenen Medien — sonst stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.'
             }
           >
             <Auswahl name="verhaeltnis" defaultValue={v.verhaeltnis ?? ''}>
@@ -137,6 +139,19 @@ export function VariantenFeld({
                 </option>
               ))}
             </Auswahl>
+          </Feld>
+
+          <Feld
+            beschriftung="Eigene Medien"
+            hinweis="Leer lassen heißt: die Medien des Beitrags gelten. Ersetzt wird als Ganzes — ein Karussell aus zwei Quellen hätte niemand so gemeint."
+          >
+            <VariantenMedien
+              postId={postId}
+              varianteId={v.id}
+              typ={postTyp}
+              medien={v.medien}
+              entfernen={mediumEntfernen}
+            />
           </Feld>
 
           <div className="flex justify-end">

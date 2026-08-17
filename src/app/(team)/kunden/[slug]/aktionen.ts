@@ -962,6 +962,34 @@ export async function varianteSpeichern(
   revalidatePath(`/kunden/${slug}/posts/${postId}`)
 }
 
+/**
+ * Ein Medium einer Fassung wieder lösen.
+ *
+ * Gelöscht wird nur die Zuordnung, nicht die Datei: Sie liegt in der
+ * Medienbibliothek und kann anderswo hängen — dieselbe Linie wie beim
+ * Entfernen eines Slides.
+ *
+ * Bleibt danach keins übrig, erbt die Fassung wieder die Medien des Beitrags.
+ * Das ist kein Sonderfall, sondern die Regel: **Leer heißt geerbt.**
+ */
+export async function varianteMediumEntfernen(
+  postId: string,
+  slug: string,
+  varianteMediumId: string,
+) {
+  await nutzerOderRaus()
+
+  // Über den Beitrag geprüft, nicht über die Kennung allein — sonst ließe
+  // sich mit einer fremden an einer anderen Fassung herumräumen.
+  const eintrag = await prisma.postVarianteMedium.findFirst({
+    where: { id: varianteMediumId, variante: { postId } },
+  })
+  if (!eintrag) return
+
+  await prisma.postVarianteMedium.delete({ where: { id: varianteMediumId } })
+  revalidatePath(`/kunden/${slug}/posts/${postId}`)
+}
+
 export async function varianteLoeschen(postId: string, slug: string, varianteId: string) {
   await nutzerOderRaus()
   await prisma.postVariante.delete({ where: { id: varianteId } })

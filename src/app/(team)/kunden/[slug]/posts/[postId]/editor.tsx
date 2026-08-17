@@ -146,6 +146,7 @@ export function PostEditor({
     anlegen: (formular: FormData) => Promise<void>
     speichern: (varianteId: string, formular: FormData) => Promise<void>
     loeschen: (varianteId: string) => Promise<void>
+    mediumEntfernen: (varianteMediumId: string) => Promise<void>
   }
   szenen: Szene[]
   customFelder: CustomFeld[]
@@ -521,6 +522,7 @@ export function PostEditor({
           hinweis="Dieselbe Sache liest sich auf LinkedIn anders als auf Instagram. Was hier leer bleibt, wird vom Beitrag geerbt."
         >
           <VariantenFeld
+            postId={post.id}
             postTyp={post.typ}
             varianten={varianten.zeilen}
             frei={varianten.frei}
@@ -528,6 +530,7 @@ export function PostEditor({
             anlegen={varianten.anlegen}
             speichern={varianten.speichern}
             loeschen={varianten.loeschen}
+            mediumEntfernen={varianten.mediumEntfernen}
           />
         </Abschnitt>
       )}

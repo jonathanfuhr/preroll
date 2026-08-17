@@ -72,7 +72,12 @@ export async function ladePost(postId: string) {
       // Der Editor braucht nur zu wissen, ob eigene hängen.
       varianten: {
         orderBy: { position: 'asc' },
-        include: { _count: { select: { medien: true } } },
+        include: {
+          medien: {
+            orderBy: { position: 'asc' },
+            include: { medium: { select: { mimeTyp: true } } },
+          },
+        },
       },
       verantwortlich: true,
       kommentare: {

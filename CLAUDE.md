@@ -431,6 +431,17 @@ Seite zu bewachen wäre die schlechtere Regel.
   stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.
   Medien werden als **Ganzes** ersetzt, nicht Stück für Stück — ein Karussell
   aus zwei Quellen hätte niemand so gemeint.
+- **Eigene Medien je Fassung gehen durch dieselbe Route** wie die des
+  Beitrags — `/api/upload` mit `varianteId`. Dort sitzen Blockupload,
+  Formatprüfung, Transparenzwarnung und die Karussell-Auftrennung; ein
+  zweiter Uploadweg wäre eine zweite Stelle, an der das auseinanderläuft.
+  Geschrieben wird über **ein** gebündeltes Ziel (`ziel` in der Route), weil
+  es fünf Schreibwege sind — wer einen vergisst, legt still am falschen Ort
+  ab. Geprüft wird gegen das Verhältnis **der Fassung**, sonst das des
+  Beitrags. Das Aufräumen der drei Video-Quellen beim Reel gilt nur dem
+  Beitrag: Eine Fassung hat keinen Klappe-Bezug und keinen Download, sie
+  trägt schlicht ihr eigenes Video. Entfernt wird nur die Zuordnung, nicht
+  die Datei — und bleibt keine übrig, erbt die Fassung wieder.
 - **Eine Plattform steht in höchstens einer Fassung.** Welche von zwei gälte,
   wäre nicht entscheidbar. Geprüft am Server (`freiePlattformen`), im Enum lässt
   sich ein Array nicht eindeutig machen; die Sperre im Formular ist
