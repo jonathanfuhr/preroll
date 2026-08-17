@@ -2,19 +2,24 @@ import type { MediumRolle, PostTyp, Verhaeltnis } from '@prisma/client'
 import { VERHAELTNIS_TEXT, VERHAELTNIS_WERT } from './verhaeltnis'
 
 /**
- * Erwartete Seitenverhältnisse.
+ * Feste Verhältnisse, die nicht am einzelnen Beitrag hängen.
  *
- * **Hochkant ist 3:4 (1080 × 1440), nicht mehr 4:5.** Instagram hat das
- * Profilraster 2025 von quadratisch auf 3:4 umgestellt; ein 4:5-Bild wird
- * dort seither links und rechts beschnitten. Wer im Raster plant — und
- * genau das tut dieses Werkzeug —, gestaltet deshalb gleich in 3:4: Der
- * Ausschnitt im Raster ist dann das ganze Bild.
+ * Hier stand einmal `hochkant: 3/4` und beantwortete damit **zwei** Fragen auf
+ * einmal: in welchem Format gestaltet wird und wie eine Rasterkachel aussieht.
+ * Genau diese Vermischung war der Fehler — beides fällt auseinander:
  *
- * Der Preis ist bewusst in Kauf genommen: 4:5 gilt anderswo weiter als
- * Standard. Im Feed werden beide unbeschnitten gezeigt, im Raster nur 3:4.
+ * · **Gestaltet wird in 4:5.** Höher nimmt Instagram beim Posten nicht an; ein
+ *   3:4-Bild verliert oben und unten, bevor es überhaupt im Raster landet.
+ *   Welches Format ein Beitrag hat, steht deshalb am Beitrag
+ *   (`Post.verhaeltnis`) und nicht hier.
+ * · **Das Raster ist 3:4.** Seit Instagrams Umstellung 2025. Der Ausschnitt
+ *   entsteht an der **Kachel** — bei einem 4:5-Beitrag also erst in der
+ *   Anzeige. Nur was höher ist als das Raster, ein 9:16-Reel-Thumbnail, wird
+ *   schon beim Upload geschnitten; sonst müsste die Kachel zweimal schneiden
+ *   und übrig bliebe die Mitte der Mitte.
  */
 export const VERHAELTNIS = {
-  hochkant: 3 / 4, // Beiträge, Karussell-Slides und der Rasterausschnitt
+  raster: 3 / 4, // Profilraster — und der Ausschnitt der Reel-Thumbnails
   reel: 9 / 16, // Reels und Reel-Thumbnails
 } as const
 
@@ -109,7 +114,7 @@ export function zipDateiname(
   typ: PostTyp,
   rolle: MediumRolle,
   position = 0,
-  verhaeltnis: Verhaeltnis = 'HOCH_3_4',
+  verhaeltnis: Verhaeltnis = 'HOCH_4_5',
 ): string {
   const stempel = zipStempel(postenAm)
 

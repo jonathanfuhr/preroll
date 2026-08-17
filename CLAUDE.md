@@ -114,9 +114,10 @@ Seite zu bewachen wäre die schlechtere Regel.
   besteht (ein Bild, mehrere Bilder, ein Video), das `Verhaeltnis` daneben,
   **wie er aussieht**. Zur Wahl steht je Typ ein fester Satz, das Erste ist
   der Standard (`src/lib/verhaeltnis.ts`):
-  Beitrag **3:4**, 1:1 · Karussell **3:4**, 1:1, 9:16 · Reel **9:16**, 1:1,
-  16:9. Ein Beitrag quer gibt es nicht — im Feed bliebe ein Streifen, im
-  Raster ein Ausschnitt.
+  Beitrag **4:5**, 1:1, 3:4 · Karussell **4:5**, 1:1, 9:16, 3:4 · Reel
+  **9:16**, 1:1, 16:9. Ein Beitrag quer gibt es nicht — im Feed bliebe ein
+  Streifen, im Raster ein Ausschnitt. **3:4 steht hinten** und nur für den
+  Bestand aus den zehn Tagen, in denen es Standard war.
 - **Ein hochkantes Video heißt Reel, dasselbe quer heißt Video.** Der Typ in
   der Datenbank bleibt `REEL`, nur das Wort ändert sich —
   `postBezeichnung(typ, verhaeltnis)`, und zwar überall: Etikett, Kalender,
@@ -124,34 +125,43 @@ Seite zu bewachen wäre die schlechtere Regel.
   Geräteschirm; quer oder quadratisch steht das Video im Feed zwischen
   Kopfzeile und Caption, weil es dort auch erscheint. Abweichungen werden **gewarnt, nicht blockiert** — der
   Hinweis nennt erkanntes und erwartetes Format.
-- **Instagrams Profilraster ist 3:4, nicht 4:5.** Seit der Umstellung 2025
-  beschneidet Instagram dort jedes 4:5-Bild seitlich. Weil dieses Werkzeug
-  im Raster plant, ist **3:4 (1080 × 1440) das erwartete Format** für
-  Beiträge und Slides — dann ist der Ausschnitt im Raster das ganze Bild.
-  Der Preis ist bewusst gewählt: Anderswo gilt 4:5 weiter als Standard, im
-  Feed werden beide unbeschnitten gezeigt.
+- **Gestaltet wird in 4:5 — das Raster ist trotzdem 3:4.** Zwei Fragen, die
+  einmal in einem Wert steckten (`VERHAELTNIS.hochkant`) und genau deshalb
+  falsch beantwortet wurden. Zwischen dem 07. und 17.08.2026 war **3:4** das
+  erwartete Format für Beiträge und Slides, weil Instagrams Profilraster seit
+  2025 so aussieht und dieses Werkzeug im Raster plant. Der Gedanke war einen
+  Schritt zu weit: **Posten lässt sich nur bis 4:5.** Ein in 3:4 gestaltetes
+  Bild verliert oben und unten, bevor es überhaupt im Raster landet — der
+  Verlust liegt also im Beitrag, den der Kunde sieht, nicht bloß in der
+  Kachel. Erwartet wird deshalb **4:5 (1080 × 1350)**; `VERHAELTNIS.raster`
+  bleibt 3:4 und heißt jetzt so, damit die Vermischung nicht zurückkommt.
 - **Beschnitten wird nur, was höher ist als das Raster.** Ein 9:16-Reel-
   Thumbnail bekommt den **mittigen 3:4-Ausschnitt**, wie bei Instagram — das
-  ist die einzige Stelle, an der der Zuschnitt wirklich etwas tut. Ein
-  Beitrag in 4:5 ist dagegen *breiter* als 3:4 und bleibt **unangetastet**:
-  Ihn zu beschneiden hieße, seitlich wegzunehmen, was jemand bewusst
-  gestaltet hat. Wie die Kachel ihn zeigt, entscheidet die Anzeige, nicht
-  die Datei (`brauchtZuschnitt`). Logos und Profilbilder fallen damit auch
-  heraus — sie sind quadratisch und standen nie im Raster.
-- **4:5 bleibt hochladbar.** Für Altbestand. Es gibt nur eine Warnung, dass
-  das aktuelle Format 3:4 ist — wie bei jeder Formatabweichung: gewarnt,
-  nicht blockiert.
-  Diesen Ausschnitt liefert `thumbUrl()` als fertige Datei. Er entsteht beim
-  Upload. Für den einmaligen Wechsel von 4:5 auf 3:4 gab es in den
-  Einstellungen einen Knopf, der den Bestand neu zuschnitt; er ist nach dem
-  Lauf am 07.08.2026 wieder entfernt worden — ein Werkzeug für einen Umzug,
-  kein Dauergast. Ändert sich das Zielformat noch einmal, gehört er neu
-  gebaut (Vorlage: Commit `440f70e`). Dieselbe
-  Adresse trägt dann anderen Inhalt, deshalb ist die Vorschau-Variante
-  **nicht** `immutable` gecacht, sondern kurzlebig mit ETag. Überall dort, wo
-  das Thumbnail in voller Höhe steht — Geräterahmen, Medien-Dialog —, gehört
-  deshalb `medienUrl()` hin: Das 4:5-Bild in eine 9:16-Fläche gelegt wird ein
-  zweites Mal beschnitten, und übrig bleibt die Mitte der Mitte.
+  ist die einzige Stelle, an der der Zuschnitt *an der Datei* etwas tut. Ein
+  Beitrag in 4:5 ist *breiter* als 3:4 und bleibt **unangetastet**; im Raster
+  erscheint er ebenfalls als Ausschnitt, aber der entsteht an der Kachel
+  (`aspect-[3/4]` mit `object-cover`). Ihn schon beim Upload zu schneiden
+  hieße, seitlich wegzunehmen, was jemand bewusst gestaltet hat — und im
+  Geräterahmen, wo derselbe Beitrag in voller Breite steht, fehlte es dann
+  (`brauchtZuschnitt`). Logos und Profilbilder fallen ebenfalls heraus: sie
+  sind quadratisch und standen nie im Raster.
+- **3:4 bleibt wählbar und hochladbar.** Für den Bestand aus jenen zehn Tagen.
+  Ein 3:4-Bild an einem 4:5-Beitrag löst die übliche Formatwarnung aus —
+  gewarnt, nicht blockiert; das ist nach der Umstellung der häufigste Fall
+  (eine Canva-Vorlage im alten Maß). Der Wert der vorhandenen Beiträge wird
+  **nicht** umgestellt: Ihre Dateien liegen in 3:4, und in einer 4:5-Fläche
+  gezeigt fehlte oben und unten etwas.
+- **Ein Wechsel des Zielformats schneidet nichts nach.** Für den Weg von 4:5
+  auf 3:4 gab es in den Einstellungen einen Knopf, der den Bestand neu
+  zuschnitt (Vorlage: Commit `440f70e`); zurück brauchte es ihn nicht, weil
+  4:5 ohnehin nie beschnitten wurde. Käme das Raster einmal in Bewegung,
+  gehört er neu gebaut. Den Rasterausschnitt liefert `thumbUrl()` als fertige
+  Datei, erzeugt beim Upload. Dieselbe Adresse kann anderen Inhalt tragen,
+  deshalb ist die Vorschau-Variante **nicht** `immutable` gecacht, sondern
+  kurzlebig mit ETag. Überall dort, wo das Bild in voller Höhe steht —
+  Geräterahmen, Medien-Dialog —, gehört `medienUrl()` hin: das schon
+  geschnittene Thumbnail in eine 9:16-Fläche gelegt wird ein zweites Mal
+  beschnitten, und übrig bleibt die Mitte der Mitte.
 - **Ohne Kanal keine Marke.** Die Plattform-Zeichen an einem Beitrag sind
   eine Aussage über die Wirklichkeit — „erscheint auf Instagram und
   Facebook". Ist beim Kunden keine Facebook-Seite zugeordnet, plant die
