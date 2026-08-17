@@ -250,6 +250,22 @@ model Kunde {
   igKontoId     String?
   igName        String?
 
+  /**
+   * LinkedIn. Getrennt vom Meta-Zugang, weil es ein anderer Anbieter mit
+   * anderer Anmeldung ist: Bei Meta gilt ein Systemnutzer-Token, das nicht
+   * abläuft; bei LinkedIn ein Mitgliedstoken, das nach 60 Tagen erneuert
+   * werden muss.
+   *
+   * Die Kennung ist die Organisation, nicht die Person — gepostet wird als
+   * Firmenseite. `urn:li:organization:<id>` baut der Code daraus zusammen;
+   * gespeichert wird nur die Zahl, damit ein Wechsel des URN-Formats keine
+   * Migration braucht.
+   */
+  liZugangId       String?
+  liZugang         PlattformZugang? @relation("LinkedInZugang", fields: [liZugangId], references: [id], onDelete: SetNull)
+  liOrganisationId String?
+  liOrganisation   String?
+
   // Der Hauptansprechpartner steht auf jeder Export-Seite dieses Kunden und
   // bekommt jede Rückmeldung — auch wenn für einen Export zusätzlich jemand
   // anderes hinterlegt ist.
@@ -820,7 +836,14 @@ model PlattformZugang {
    */
   gemeldetAm DateTime?
 
-  kunden Kunde[]
+  /**
+   * Nur bei LinkedIn gesetzt: Ein Mitgliedstoken läuft ab, und die Erneuerung
+   * braucht das Auffrischungstoken. Meta-Systemnutzer kennen beides nicht.
+   */
+  auffrischToken String?
+
+  kunden       Kunde[]
+  linkedInFuer Kunde[] @relation("LinkedInZugang")
 
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt
@@ -973,6 +996,18 @@ model Einstellungen {
   agenturName    String?
   agenturAdresse String?
   agenturWebsite String?
+
+  /**
+   * Die LinkedIn-App. Anders als bei Meta lässt sich kein Token von Hand
+   * hinterlegen: Ein Token für eine Firmenseite entsteht nur über den
+   * Autorisierungsablauf, und der braucht die App-Daten.
+   *
+   * Zum Posten auf Firmenseiten verlangt LinkedIn die Community Management
+   * API, und die gibt es nur nach einer Freigabe. Bis dahin bleiben die Felder
+   * leer und der Abschnitt sagt das.
+   */
+  linkedinClientId     String?
+  linkedinClientSecret String?
 
   // Klappe-Anbindung für finale Reels. Der Token entsteht über die
   // Gerätekopplung und wird als Bearer-Token mitgeschickt.

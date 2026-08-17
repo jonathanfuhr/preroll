@@ -92,7 +92,12 @@ describe('plattformenAusFormular', () => {
 
   it('nimmt nichts an, was es nicht gibt oder was nicht gebaut ist', () => {
     expect(plattformenAusFormular(formular(['MYSPACE', 'INSTAGRAM']))).toEqual(['INSTAGRAM'])
-    expect(plattformenAusFormular(formular(['LINKEDIN']))).toEqual([])
+    // YouTube steht im Enum, ist aber nicht gebaut.
+    expect(plattformenAusFormular(formular(['YOUTUBE']))).toEqual([])
+  })
+
+  it('nimmt LinkedIn an, seit es gebaut ist', () => {
+    expect(plattformenAusFormular(formular(['LINKEDIN']))).toEqual(['LINKEDIN'])
   })
 
   it('gibt bei einem leeren Formular eine leere Wahl zurück', () => {
@@ -107,10 +112,34 @@ describe('plattformenAusFormular', () => {
 })
 
 describe('GEBAUTE_PLATTFORMEN', () => {
-  it('sind heute Facebook und Instagram', () => {
-    // Zieht LinkedIn oder YouTube ein, ist das hier die Stelle, an der es
-    // auffällt — samt der Auswahl, die sich dann automatisch mitändert.
-    expect(GEBAUTE_PLATTFORMEN).toEqual(['FACEBOOK', 'INSTAGRAM'])
+  it('sind heute Facebook, Instagram und LinkedIn', () => {
+    // Zieht YouTube ein, ist das hier die Stelle, an der es auffällt — samt
+    // der Auswahl, die sich dann automatisch mitändert.
+    expect(GEBAUTE_PLATTFORMEN).toEqual(['FACEBOOK', 'INSTAGRAM', 'LINKEDIN'])
+  })
+})
+
+describe('LinkedIn hängt an seiner eigenen Zuordnung', () => {
+  const MIT_LI = { fbSeitenId: null, igKontoId: null, liOrganisationId: 'org-1' }
+
+  it('gilt, sobald eine Organisation zugeordnet ist', () => {
+    expect(zielPlattformen(['LINKEDIN'], MIT_LI)).toEqual(['LINKEDIN'])
+  })
+
+  it('fällt ohne Organisation weg, auch wenn eine Facebook-Seite hängt', () => {
+    // Die beiden Anbieter haben nichts miteinander zu tun: Eine Facebook-Seite
+    // ist keine LinkedIn-Seite.
+    expect(zielPlattformen(['LINKEDIN'], BEIDE)).toEqual([])
+  })
+
+  it('lässt Meta unberührt, wenn nur LinkedIn hängt', () => {
+    expect(zielPlattformen(['FACEBOOK', 'INSTAGRAM', 'LINKEDIN'], MIT_LI)).toEqual(['LINKEDIN'])
+  })
+
+  it('steht in der festen Reihenfolge hinter Meta', () => {
+    expect(
+      zielPlattformen(['LINKEDIN', 'INSTAGRAM', 'FACEBOOK'], { ...BEIDE, liOrganisationId: 'org-1' }),
+    ).toEqual(['FACEBOOK', 'INSTAGRAM', 'LINKEDIN'])
   })
 })
 

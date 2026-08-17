@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
+import { env } from '@/lib/env'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { metaZugaengeMitSeiten } from '@/lib/plattform-zugang'
 import { PLATTFORM_TEXT } from '@/lib/plattformen'
@@ -8,10 +9,14 @@ import { Abschnitt, Eingabe, Feld, Fehler, Hinweis, Karte, Knopf, Schalter, Warn
 import {
   hauptschalterSpeichern,
   laufAnstossen,
+  linkedInAppSpeichern,
+  linkedInZugangLoesen,
+  linkedInZugangPruefen,
   metaZugangLoesen,
   metaZugangPruefen,
   metaZugangSpeichern,
 } from '../veroeffentlichen-aktionen'
+import { kundenAmLinkedInZugang, ladeLinkedInZugang } from '@/lib/linkedin-zugang'
 
 export const metadata = { title: 'Veröffentlichen — Preroll' }
 
@@ -28,9 +33,9 @@ const STAND_TEXT: Record<string, string> = {
 export default async function VeroeffentlichenSeite({
   searchParams,
 }: {
-  searchParams: Promise<{ stand?: string; meldung?: string }>
+  searchParams: Promise<{ stand?: string; meldung?: string; linkedin?: string }>
 }) {
-  const { stand, meldung } = await searchParams
+  const { stand, meldung, linkedin } = await searchParams
 
   /*
     Jeder Zugang mit seinen Seiten. Ein Fehlschlag darf diese Seite nicht
@@ -38,7 +43,12 @@ export default async function VeroeffentlichenSeite({
     reparieren würde; deshalb steht der Fehler am Zugang statt in einem
     Wurf.
   */
-  const [e, zugaenge] = await Promise.all([ladeEinstellungen(), metaZugaengeMitSeiten()])
+  const [e, zugaenge, liZugang, liKunden] = await Promise.all([
+    ladeEinstellungen(),
+    metaZugaengeMitSeiten(),
+    ladeLinkedInZugang(),
+    kundenAmLinkedInZugang(),
+  ])
 
   const [kunden, letzte] = await Promise.all([
     prisma.kunde.findMany({
@@ -251,6 +261,122 @@ export default async function VeroeffentlichenSeite({
                 </Knopf>
               </div>
             </form>
+          </Karte>
+        </div>
+      </Abschnitt>
+
+      <Abschnitt
+        titel="LinkedIn"
+        hinweis="Ein Zugang für alle Kunden: das Konto der Agentur, das an den Firmenseiten als Administrator eingetragen ist."
+      >
+        <div className="grid gap-4">
+          {linkedin === 'verbunden' && <Hinweis>LinkedIn ist verbunden.</Hinweis>}
+          {linkedin === 'app-fehlt' && (
+            <Fehler>Bitte zuerst Client-ID und Secret der LinkedIn-App eintragen.</Fehler>
+          )}
+          {linkedin === 'fehler' && (
+            <Fehler>{meldung ?? 'Die Verbindung zu LinkedIn ist fehlgeschlagen.'}</Fehler>
+          )}
+
+          <Karte className="p-5">
+            <h3 className="mb-1 text-[13px] font-semibold">Die App</h3>
+            <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
+              Zum Posten auf Firmenseiten verlangt LinkedIn die <strong>Community Management
+              API</strong>, und die gibt es nur nach einer Freigabe — vergleichbar mit dem Meta App
+              Review. Solange sie fehlt, lässt sich hier nichts verbinden, und LinkedIn bleibt in
+              der Plattformwahl gesperrt. Als Rücksprungadresse gehört{' '}
+              <code className="rounded bg-flaeche-leise px-1 py-0.5 font-mono text-[11px]">
+                {`${env.appUrl}/api/auth/linkedin/callback`}
+              </code>{' '}
+              in die App.
+            </p>
+
+            <form action={linkedInAppSpeichern} className="grid gap-4">
+              <Feld beschriftung="Client-ID">
+                <Eingabe name="linkedinClientId" defaultValue={e.linkedinClientId ?? ''} />
+              </Feld>
+              <Feld
+                beschriftung="Client-Secret"
+                hinweis={
+                  e.linkedinClientSecret
+                    ? 'Hinterlegt. Leer lassen heißt: unverändert.'
+                    : 'Wird nie zurück in dieses Feld geschrieben.'
+                }
+              >
+                <Eingabe
+                  name="linkedinClientSecret"
+                  type="password"
+                  placeholder={e.linkedinClientSecret ? '••••••••' : ''}
+                />
+              </Feld>
+              <div className="flex justify-end">
+                <Knopf klein type="submit">
+                  Speichern
+                </Knopf>
+              </div>
+            </form>
+          </Karte>
+
+          <Karte className="p-5">
+            <h3 className="mb-1 text-[13px] font-semibold">Der Zugang</h3>
+
+            {!liZugang ? (
+              <>
+                <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
+                  Noch nicht verbunden. Der Ablauf öffnet LinkedIn, dort wird das Konto der Agentur
+                  bestätigt — danach kann Preroll für jede Seite posten, an der es Administrator
+                  ist.
+                </p>
+                {e.linkedinClientId && e.linkedinClientSecret ? (
+                  <a
+                    href="/api/auth/linkedin/start"
+                    className="inline-block rounded-[5px] bg-akzent px-3.5 py-2 text-[12px] font-medium text-white hover:opacity-90"
+                  >
+                    Mit LinkedIn verbinden
+                  </a>
+                ) : (
+                  <p className="text-[11.5px] text-stiller">
+                    Dafür oben Client-ID und Secret eintragen.
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="grid gap-3">
+                <p className="text-[12.5px] text-leise">
+                  <strong className="text-tinte">{liZugang.bezeichnung}</strong>
+                  {liZugang.gueltigBis && ` · Token gilt bis ${DATUM.format(liZugang.gueltigBis)}`}
+                  {liZugang.geprueftAm && ` · geprüft ${DATUM.format(liZugang.geprueftAm)}`}
+                </p>
+
+                {liZugang.fehler && <Warnung>{liZugang.fehler}</Warnung>}
+
+                {liKunden.length > 0 && (
+                  <p className="text-[11.5px] text-leiser">
+                    Daran hängen: {liKunden.map((k) => k.name).join(', ')}. Wird der Zugang gelöst,
+                    postet Preroll für sie nicht mehr auf LinkedIn.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  <form action={linkedInZugangPruefen}>
+                    <Knopf klein type="submit">
+                      Prüfen
+                    </Knopf>
+                  </form>
+                  <a
+                    href="/api/auth/linkedin/start"
+                    className="rounded-[5px] border border-rahmen-3 px-3 py-1.5 text-[12px] font-medium text-tinte hover:border-rahmen-4"
+                  >
+                    Neu verbinden
+                  </a>
+                  <form action={linkedInZugangLoesen}>
+                    <Knopf klein art="gefahr" type="submit">
+                      Zugang lösen
+                    </Knopf>
+                  </form>
+                </div>
+              </div>
+            )}
           </Karte>
         </div>
       </Abschnitt>
