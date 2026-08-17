@@ -170,6 +170,7 @@ describe('zipEintraege je Plattform', () => {
         plattformen: ['INSTAGRAM'] as Plattform[],
         caption: 'Für Instagram',
         verhaeltnis: null,
+        klappeVersionId: null,
         position: 0,
         medien: [medium('insta')],
       },

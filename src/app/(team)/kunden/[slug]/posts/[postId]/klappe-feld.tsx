@@ -21,9 +21,14 @@ const ZEIT = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: '
  * Verknüpfung des Reels mit einem Video in Klappe. Die Auswahl zeigt nur
  * Videos aus dem Projekt dieses Kunden — alles andere wäre auf Dauer
  * unübersichtlich.
+ *
+ * Dasselbe Feld bedient den Video-Platz einer Fassung: Ein anderes Format
+ * heißt in aller Regel ein anderer Schnitt, und der liegt in Klappe als
+ * eigenes Video.
  */
 export function KlappeFeld({
   postId,
+  varianteId = null,
   kundeSlug,
   eingerichtet,
   projektName,
@@ -33,6 +38,8 @@ export function KlappeFeld({
   meldung,
 }: {
   postId: string
+  /** Gesetzt, wenn die Verknüpfung dem Video-Platz einer Fassung gilt. */
+  varianteId?: string | null
   kundeSlug: string
   eingerichtet: boolean
   projektName: string | null
@@ -106,7 +113,7 @@ export function KlappeFeld({
                   In Klappe öffnen
                 </a>
               )}
-              <form action={klappeFassungAktualisieren.bind(null, postId)}>
+              <form action={klappeFassungAktualisieren.bind(null, postId, varianteId)}>
                 <Knopf klein type="submit">
                   Fassung prüfen
                 </Knopf>
@@ -124,7 +131,7 @@ export function KlappeFeld({
           )}
 
           <form
-            action={klappeVideoVerknuepfen.bind(null, postId)}
+            action={klappeVideoVerknuepfen.bind(null, postId, varianteId)}
             className="mt-3 border-t border-rahmen pt-3"
           >
             <input type="hidden" name="videoId" value="" />
@@ -136,12 +143,14 @@ export function KlappeFeld({
       ) : (
         <Karte className="p-4">
           <p className="text-[12.5px] leading-relaxed text-leise">
-            Für diesen Post liegt noch kein Video in Klappe. Beim Anlegen eines Reels entsteht es
-            normalerweise automatisch im Projekt <strong>{projektName}</strong>.
+            {varianteId
+              ? 'Für diese Fassung liegt noch kein Video in Klappe. Ein anderes Format heißt meist ein anderer Schnitt — der bekommt dort ein eigenes Video.'
+              : 'Für diesen Post liegt noch kein Video in Klappe. Beim Anlegen eines Reels entsteht es normalerweise automatisch.'}{' '}
+            Projekt: <strong>{projektName}</strong>.
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <form action={klappeVideoErzeugen.bind(null, postId)}>
+            <form action={klappeVideoErzeugen.bind(null, postId, varianteId)}>
               <Knopf klein art="primaer" type="submit">
                 Video in Klappe anlegen
               </Knopf>
@@ -152,7 +161,7 @@ export function KlappeFeld({
           </div>
 
           {auswahlOffen && (
-            <form action={klappeVideoVerknuepfen.bind(null, postId)} className="mt-3 grid gap-2">
+            <form action={klappeVideoVerknuepfen.bind(null, postId, varianteId)} className="mt-3 grid gap-2">
               {videos.length === 0 ? (
                 <p className="text-[12px] text-leiser">
                   Im Projekt {projektName} liegen noch keine Videos.

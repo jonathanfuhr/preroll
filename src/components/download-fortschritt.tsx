@@ -16,7 +16,12 @@ export type Downloadstand = {
  * sobald er fertig ist. Der Haken sitzt hier und nicht im Balken selbst,
  * damit Dialog und Editor denselben Stand sehen, ohne zweimal zu fragen.
  */
-export function useDownloadstand(postId: string, start: Downloadstand): Downloadstand {
+export function useDownloadstand(
+  postId: string,
+  start: Downloadstand,
+  /** Gesetzt, wenn der Balken den Platz einer Fassung zeigt — sie lädt eigenes. */
+  varianteId?: string | null,
+): Downloadstand {
   const router = useRouter()
   const [stand, setStand] = useState(start)
 
@@ -27,15 +32,17 @@ export function useDownloadstand(postId: string, start: Downloadstand): Download
     if (stand.stand !== 'LAEUFT') return
 
     let abgemeldet = false
+    const adresse =
+      `/api/posts/${postId}/video-download` + (varianteId ? `?variante=${varianteId}` : '')
     const takt = setInterval(async () => {
       try {
-        const antwort = await fetch(`/api/posts/${postId}/video-download`, { cache: 'no-store' })
+        const antwort = await fetch(adresse, { cache: 'no-store' })
         if (!antwort.ok || abgemeldet) return
         const neu = (await antwort.json()) as Downloadstand
         setStand(neu)
 
         // Fertig oder gescheitert: einmal die Seite nachladen — das Video
-        // hängt dann als MEDIUM am Post und steht überall.
+        // hängt dann als MEDIUM am Video-Platz und steht überall.
         if (neu.stand !== 'LAEUFT') router.refresh()
       } catch {
         // Ein verpasster Takt ist kein Fehler — beim nächsten klappt es.
@@ -46,7 +53,7 @@ export function useDownloadstand(postId: string, start: Downloadstand): Download
       abgemeldet = true
       clearInterval(takt)
     }
-  }, [postId, stand.stand, router])
+  }, [postId, varianteId, stand.stand, router])
 
   return stand
 }

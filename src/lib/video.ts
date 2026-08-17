@@ -6,6 +6,7 @@ import path from 'node:path'
 import { promisify } from 'node:util'
 import { prisma } from './db'
 import { absoluterPfad, speichereMedium } from './medien'
+import { leseVideoPlatz, type VideoPlatz } from './video-platz'
 
 const ausfuehren = promisify(execFile)
 
@@ -63,16 +64,28 @@ export async function standbild(videoPfad: string): Promise<Buffer | null> {
  * nie — ein fehlendes Thumbnail ist ein Schönheitsfehler, kein Grund, einen
  * Upload scheitern zu lassen.
  */
-export async function thumbnailAusVideoErgaenzen(postId: string): Promise<boolean> {
+export async function thumbnailAusVideoErgaenzen(platz: VideoPlatz): Promise<boolean> {
   try {
-    const post = await prisma.post.findUnique({
-      where: { id: postId },
-      include: { medien: { include: { medium: true } } },
-    })
-    if (!post || post.typ !== 'REEL') return false
-    if (post.medien.some((m) => m.rolle === 'THUMBNAIL')) return false
+    const stand = await leseVideoPlatz(platz)
+    if (!stand || stand.postTyp !== 'REEL') return false
 
-    const video = post.medien.find(
+    // Die Medien des Platzes, nicht die des Beitrags: Eine Fassung mit eigenem
+    // Video braucht ein Standbild aus **ihrem** Video. Das des Beitrags zu
+    // nehmen hieße, ein fremdes Bild vor einen anderen Schnitt zu setzen.
+    const medien =
+      platz.art === 'POST'
+        ? await prisma.postMedium.findMany({
+            where: { postId: platz.id },
+            include: { medium: true },
+          })
+        : await prisma.postVarianteMedium.findMany({
+            where: { varianteId: platz.id },
+            include: { medium: true },
+          })
+
+    if (medien.some((m) => m.rolle === 'THUMBNAIL')) return false
+
+    const video = medien.find(
       (m) => m.rolle === 'MEDIUM' && m.medium.mimeTyp.startsWith('video/'),
     )
     if (!video) return false
@@ -82,15 +95,21 @@ export async function thumbnailAusVideoErgaenzen(postId: string): Promise<boolea
 
     const { medium } = await speichereMedium({
       inhalt: bild,
-      dateiname: `${post.titel.slice(0, 40)}-thumbnail.jpg`,
+      dateiname: `${stand.postTitel.slice(0, 40)}-thumbnail.jpg`,
       mimeTyp: 'image/jpeg',
-      kundeId: post.kundeId,
+      kundeId: stand.kundeId,
       quelleId: video.mediumId,
     })
 
-    await prisma.postMedium.create({
-      data: { postId, mediumId: medium.id, rolle: 'THUMBNAIL', position: 0 },
-    })
+    if (platz.art === 'POST') {
+      await prisma.postMedium.create({
+        data: { postId: platz.id, mediumId: medium.id, rolle: 'THUMBNAIL', position: 0 },
+      })
+    } else {
+      await prisma.postVarianteMedium.create({
+        data: { varianteId: platz.id, mediumId: medium.id, rolle: 'THUMBNAIL', position: 0 },
+      })
+    }
     return true
   } catch (fehler) {
     console.warn('[video] Thumbnail konnte nicht erzeugt werden:', fehler)

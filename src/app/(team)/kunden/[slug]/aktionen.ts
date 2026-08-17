@@ -17,6 +17,8 @@ import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/
 import { slugify } from '@/lib/slug'
 import { internAbleiten } from '@/lib/kommentar-intern'
 import { freiePlattformen } from '@/lib/varianten'
+import { brichVideoDownloadAb } from '@/lib/video-download'
+import { platzAus, schreibeVideoPlatz } from '@/lib/video-platz'
 import { klappeVideoNachziehen } from './klappe-aktionen'
 
 async function nutzerOderRaus() {
@@ -963,30 +965,45 @@ export async function varianteSpeichern(
 }
 
 /**
- * Ein Medium einer Fassung wieder lösen.
+ * Die eigenen Medien einer Fassung verwerfen — alle auf einmal.
+ *
+ * Nicht einzeln, weil Medien als Ganzes gelten (`fassungFuer`): Ein Karussell,
+ * dem ein Slide fehlt, wäre kein Zwischenstand, den jemand gewollt hat, und ein
+ * Reel ohne Video, aber mit Thumbnail erst recht nicht.
+ *
+ * Mit weggeräumt wird der **ganze Video-Platz**, also auch eine gewählte
+ * Klappe-Fassung und ein hinterlegter Downloadlink. Bliebe die Klappe-Wahl
+ * stehen, sähe die Fassung leer aus und zeigte trotzdem ein eigenes Video.
  *
  * Gelöscht wird nur die Zuordnung, nicht die Datei: Sie liegt in der
  * Medienbibliothek und kann anderswo hängen — dieselbe Linie wie beim
- * Entfernen eines Slides.
- *
- * Bleibt danach keins übrig, erbt die Fassung wieder die Medien des Beitrags.
- * Das ist kein Sonderfall, sondern die Regel: **Leer heißt geerbt.**
+ * Entfernen eines Slides. Danach erbt die Fassung wieder vom Beitrag; das ist
+ * kein Sonderfall, sondern die Regel: **Leer heißt geerbt.**
  */
-export async function varianteMediumEntfernen(
-  postId: string,
-  slug: string,
-  varianteMediumId: string,
-) {
+export async function varianteMedienVerwerfen(postId: string, slug: string, varianteId: string) {
   await nutzerOderRaus()
 
   // Über den Beitrag geprüft, nicht über die Kennung allein — sonst ließe
   // sich mit einer fremden an einer anderen Fassung herumräumen.
-  const eintrag = await prisma.postVarianteMedium.findFirst({
-    where: { id: varianteMediumId, variante: { postId } },
-  })
-  if (!eintrag) return
+  const variante = await prisma.postVariante.findFirst({ where: { id: varianteId, postId } })
+  if (!variante) return
 
-  await prisma.postVarianteMedium.delete({ where: { id: varianteMediumId } })
+  const platz = platzAus(postId, varianteId)
+  await brichVideoDownloadAb(platz)
+  await prisma.postVarianteMedium.deleteMany({ where: { varianteId } })
+  await schreibeVideoPlatz(platz, {
+    videoDownloadUrl: null,
+    videoDownloadStand: null,
+    videoDownloadFortschritt: 0,
+    videoDownloadMeldung: null,
+    klappeVideoId: null,
+    klappeVideoName: null,
+    klappeVideoUrl: null,
+    klappeVersionId: null,
+    klappeVersionNummer: null,
+    klappeStandAm: null,
+  })
+
   revalidatePath(`/kunden/${slug}/posts/${postId}`)
 }
 

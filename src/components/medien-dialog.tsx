@@ -2,6 +2,7 @@
 
 import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import { useRouter } from 'next/navigation'
+import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react'
 import { berechneAuftrennung, erkenneSlideAnzahl } from '@/lib/karussell'
 import { VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
@@ -14,6 +15,11 @@ import { Fehler, Hinweis, Knopf, Warnung } from './ui'
  * Medien-Dialog je Post-Typ. Was hochgeladen werden kann, hängt an der Form
  * des Beitrags — deshalb ein Dialog mit drei Gesichtern statt eines
  * Sammelformulars, in dem zwei Drittel der Felder nicht passen.
+ *
+ * **Derselbe Dialog trägt auch die Fassungen.** Mit `varianteId` gehen alle
+ * Uploads an den Platz der Fassung statt an den des Beitrags — sonst gäbe es
+ * einen zweiten, ärmeren Weg zu denselben Medien, und die Auftrennung eines
+ * Gesamtbildes oder die drei Video-Quellen fehlten dort schlicht.
  */
 
 type Rolle = 'MEDIUM' | 'SLIDE' | 'THUMBNAIL'
@@ -86,10 +92,12 @@ function Ablage({
 /** Zwei Wege: fertige Slides oder ein durchgehendes Motiv zum Auftrennen. */
 function KarussellInhalt({
   postId,
+  varianteId,
   verhaeltnis,
   fertig,
 }: {
   postId: string
+  varianteId?: string | null
   verhaeltnis: Verhaeltnis
   fertig: () => void
 }) {
@@ -137,7 +145,7 @@ function KarussellInhalt({
     try {
       const { ok, daten } = await ladeHoch({
         dateien: Array.from(dateien),
-        felder: { postId, rolle: 'SLIDE', modus: 'einzeln' },
+        felder: { postId, ...(varianteId ? { varianteId } : {}), rolle: 'SLIDE', modus: 'einzeln' },
         aufFortschritt: setStand,
       })
       if (!ok) return setFehler(String(daten.fehler ?? 'Upload fehlgeschlagen.'))
@@ -163,6 +171,7 @@ function KarussellInhalt({
         dateien: [datei],
         felder: {
           postId,
+          ...(varianteId ? { varianteId } : {}),
           modus: 'gesamtbild',
           ...(anzahl === '' ? {} : { anzahl: String(anzahl) }),
         },
@@ -310,6 +319,7 @@ function KarussellInhalt({
 
 function EinfachInhalt({
   postId,
+  varianteId,
   rolle,
   titel,
   hinweis,
@@ -317,6 +327,7 @@ function EinfachInhalt({
   fertig,
 }: {
   postId: string
+  varianteId?: string | null
   rolle: Rolle
   titel: string
   hinweis: string
@@ -338,7 +349,7 @@ function EinfachInhalt({
     try {
       const { ok, daten } = await ladeHoch({
         dateien: [dateien[0]],
-        felder: { postId, rolle, modus: 'einzeln' },
+        felder: { postId, ...(varianteId ? { varianteId } : {}), rolle, modus: 'einzeln' },
         aufFortschritt: setStand,
       })
       if (!ok) return setFehler(String(daten.fehler ?? 'Upload fehlgeschlagen.'))
@@ -383,6 +394,8 @@ export function MedienDialog({
   offen,
   schliessen,
   postId,
+  varianteId,
+  titel,
   typ,
   verhaeltnis,
   videoQuellen,
@@ -394,6 +407,13 @@ export function MedienDialog({
   offen: boolean
   schliessen: () => void
   postId: string
+  /**
+   * Gesetzt, wenn der Dialog die Medien einer abweichenden Fassung füllt.
+   * Alles andere bleibt gleich — dieselbe Route, dieselben Prüfungen.
+   */
+  varianteId?: string | null
+  /** Ersetzt die Überschrift, damit man im Dialog weiß, wessen Medien man ändert. */
+  titel?: string
   typ: PostTyp
   /** Bestimmt Zuschnitt-Erwartung und Karussell-Auftrennung. */
   verhaeltnis: Verhaeltnis
@@ -447,7 +467,16 @@ export function MedienDialog({
 
   if (!offen) return null
 
-  return (
+  /*
+    Gehängt an den Seitenkörper, nicht dorthin, wo der Dialog steht.
+
+    Beim Beitrag wäre das gleichgültig — bei einer Fassung nicht: Ihre Karte
+    **ist** ein Formular, und die Klappe- und Link-Formulare im Dialog lägen
+    darin verschachtelt. Ein `<form>` im `<form>` wirft der Browser still weg;
+    die Knöpfe säßen da und täten nichts. Dieselbe Falle wie seinerzeit bei
+    „Fassung anlegen".
+  */
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-tinte/25 px-3 py-6 sm:px-6 sm:py-10"
       onClick={schliessen}
@@ -461,11 +490,12 @@ export function MedienDialog({
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h3 className="text-[16px] font-semibold">
-              {typ === 'REEL'
-                ? 'Video und Thumbnail'
-                : typ === 'KARUSSELL'
-                  ? 'Karussell-Bilder'
-                  : 'Grafik'}
+              {titel ??
+                (typ === 'REEL'
+                  ? 'Video und Thumbnail'
+                  : typ === 'KARUSSELL'
+                    ? 'Karussell-Bilder'
+                    : 'Grafik')}
             </h3>
             <p className="mt-1 text-[12.5px] text-leise">
               {typ === 'REEL'
@@ -488,6 +518,7 @@ export function MedienDialog({
         {typ === 'BEITRAG' && (
           <EinfachInhalt
             postId={postId}
+            varianteId={varianteId}
             rolle="MEDIUM"
             titel="Grafik hierher ziehen"
             hinweis={`Erwartet: ${VERHAELTNIS_TEXT[verhaeltnis]}, üblicherweise ${VERHAELTNIS_MASSE[verhaeltnis]} px.`}
@@ -495,7 +526,14 @@ export function MedienDialog({
           />
         )}
 
-        {typ === 'KARUSSELL' && <KarussellInhalt postId={postId} verhaeltnis={verhaeltnis} fertig={schliessen} />}
+        {typ === 'KARUSSELL' && (
+          <KarussellInhalt
+            postId={postId}
+            varianteId={varianteId}
+            verhaeltnis={verhaeltnis}
+            fertig={schliessen}
+          />
+        )}
 
         {typ === 'REEL' && (
           <div className="grid gap-6 sm:grid-cols-2">
@@ -527,6 +565,7 @@ export function MedienDialog({
                 <>
                   <EinfachInhalt
                     postId={postId}
+                    varianteId={varianteId}
                     rolle="MEDIUM"
                     titel="Video hierher ziehen"
                     hinweis="Erwartet: 9:16. MP4 oder MOV."
@@ -567,6 +606,7 @@ export function MedienDialog({
                 <>
                   <EinfachInhalt
                     postId={postId}
+                    varianteId={varianteId}
                     rolle="THUMBNAIL"
                     titel="Thumbnail hierher ziehen"
                     hinweis="Erwartet: 9:16. Im Profilraster wird davon der mittige 3:4-Ausschnitt gezeigt."
@@ -598,6 +638,7 @@ export function MedienDialog({
         )}
 
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

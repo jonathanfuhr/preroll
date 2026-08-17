@@ -1,3 +1,4 @@
+import type { MediumRolle } from '@prisma/client'
 import Link from 'next/link'
 import { ersteMedien, ladePost } from '@/lib/abfragen'
 import { aktuellerNutzer } from '@/lib/auth'
@@ -13,7 +14,7 @@ import { klappeEingerichtet } from '@/lib/klappe'
 import {
   varianteAnlegen,
   varianteLoeschen,
-  varianteMediumEntfernen,
+  varianteMedienVerwerfen,
   varianteSpeichern,
 } from '../../aktionen'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
@@ -22,6 +23,37 @@ import { medienUrl, thumbUrl } from '@/lib/urls'
 import { BrotkrumeSetzen } from '@/components/brotkrumen'
 import { PostEditor } from './editor'
 import { VeroeffentlichungStandLeiste } from './veroeffentlichung-stand'
+
+/**
+ * Ein Medium so, wie die Fassungs-Vorschau es braucht. Die Rolle kommt mit:
+ * Beim Reel steht in der Kachel das Thumbnail, nicht das Video — ein Video als
+ * Vorschaubild wäre schwarz, bis jemand es abspielt.
+ */
+function alsAnzeigemedium(m: {
+  id: string
+  mediumId: string
+  rolle: MediumRolle
+  medium: { mimeTyp: string }
+}) {
+  return {
+    id: m.id,
+    url: medienUrl(m.mediumId)!,
+    istVideo: m.medium.mimeTyp.startsWith('video/'),
+    rolle: m.rolle as 'MEDIUM' | 'SLIDE' | 'THUMBNAIL',
+  }
+}
+
+/**
+ * Steht als Thumbnail ein aus dem Video gezogenes Standbild? Erkennbar daran,
+ * dass es das Video als Quelle trägt — dafür braucht es kein eigenes Feld.
+ */
+function standbildAusVideo(
+  medien: Array<{ rolle: MediumRolle; mediumId: string; medium: { quelleId: string | null } }>,
+): boolean {
+  const thumb = medien.find((m) => m.rolle === 'THUMBNAIL')
+  const video = medien.find((m) => m.rolle === 'MEDIUM')
+  return Boolean(thumb && video && thumb.medium.quelleId === video.mediumId)
+}
 
 export default async function PostSeite({
   params,
@@ -95,6 +127,23 @@ export default async function PostSeite({
   const mediumEintrag = post.medien.find((m) => m.rolle === 'MEDIUM')
   const istVideo = mediumEintrag?.medium.mimeTyp.startsWith('video/') ?? false
 
+  /*
+    Klappe-Angaben, die für jede Fassung gleich sind: Die Videoliste hängt am
+    Projekt des Kunden, nicht am einzelnen Beitrag. Nur die Verknüpfung
+    unterscheidet sich — die trägt jede Fassung selbst.
+  */
+  const klappeAngaben = {
+    eingerichtet: angebunden,
+    projektName: post.kunde.klappeProjektName,
+    ladefehler: klappeListe.fehler,
+    videos: klappeListe.videos.map((v) => ({
+      id: v.id,
+      name: v.name,
+      versionCount: v.versionCount,
+      hatFreigegebeneFassung: Boolean(v.latestVersion && !v.latestVersion.internal),
+    })),
+  }
+
   // Der eine Video-Platz — Upload, Link-Download und Klappe füllen ihn alle
   // drei. Was gerade dort steht, entscheidet `reelVideoQuelle`.
   const videoQuelle = post.typ === 'REEL' ? reelVideoQuelle(post) : null
@@ -138,12 +187,53 @@ export default async function PostSeite({
             plattformen: v.plattformen,
             caption: v.caption,
             verhaeltnis: v.verhaeltnis,
-            medien: v.medien.map((m) => ({
-              id: m.id,
-              url: medienUrl(m.mediumId)!,
-              istVideo: m.medium.mimeTyp.startsWith('video/'),
-            })),
+            medien: v.medien.map(alsAnzeigemedium),
+            /*
+              Der Video-Platz dieser Fassung. Nur beim Reel — bei Standbildern
+              ergeben Klappe und Downloadlink keinen Sinn, dieselbe Grenze wie
+              am Beitrag.
+
+              Die Videoliste aus Klappe ist für alle Fassungen dieselbe: Sie
+              hängt am Projekt des Kunden, nicht am Beitrag.
+            */
+            video:
+              post.typ === 'REEL'
+                ? {
+                    quelle: reelVideoQuelle({
+                      medien: v.medien,
+                      klappeVersionId: v.klappeVersionId,
+                    }),
+                    thumbnailUrl: medienUrl(
+                      v.medien.find((m) => m.rolle === 'THUMBNAIL')?.mediumId,
+                    ),
+                    // Ein selbst gezogenes Standbild trägt das Video als
+                    // Quelle — dieselbe Erkennung wie am Beitrag.
+                    thumbnailAutomatisch: standbildAusVideo(v.medien),
+                    videoDownloadUrl: v.videoDownloadUrl,
+                    downloadstand: {
+                      stand: v.videoDownloadStand,
+                      fortschritt: v.videoDownloadFortschritt,
+                      meldung: v.videoDownloadMeldung,
+                    },
+                    klappe: {
+                      ...klappeAngaben,
+                      verknuepft: v.klappeVideoId
+                        ? {
+                            videoId: v.klappeVideoId,
+                            videoName: v.klappeVideoName,
+                            videoUrl: v.klappeVideoUrl,
+                            versionNummer: v.klappeVersionNummer,
+                            standAm: v.klappeStandAm?.toISOString() ?? null,
+                            basisUrl: einstellungen.klappeBasisUrl,
+                            fassungId: v.klappeVersionId,
+                          }
+                        : null,
+                    },
+                  }
+                : null,
           })),
+          // Was eine Fassung ohne eigene Medien zeigt.
+          geerbteMedien: post.medien.map(alsAnzeigemedium),
           /*
             Wählbar ist nur, was der Beitrag überhaupt bespielt **und** was in
             keiner anderen Fassung steht. Zwei Fassungen für dieselbe Plattform
@@ -159,7 +249,7 @@ export default async function PostSeite({
           anlegen: varianteAnlegen.bind(null, post.id, slug),
           speichern: varianteSpeichern.bind(null, post.id, slug),
           loeschen: varianteLoeschen.bind(null, post.id, slug),
-          mediumEntfernen: varianteMediumEntfernen.bind(null, post.id, slug),
+          medienVerwerfen: varianteMedienVerwerfen.bind(null, post.id, slug),
         }}
         post={{
           id: post.id,
@@ -235,15 +325,7 @@ export default async function PostSeite({
           meldung: post.videoDownloadMeldung,
         }}
         klappe={{
-          eingerichtet: angebunden,
-          projektName: post.kunde.klappeProjektName,
-          ladefehler: klappeListe.fehler,
-          videos: klappeListe.videos.map((v) => ({
-            id: v.id,
-            name: v.name,
-            versionCount: v.versionCount,
-            hatFreigegebeneFassung: Boolean(v.latestVersion && !v.latestVersion.internal),
-          })),
+          ...klappeAngaben,
           verknuepft: post.klappeVideoId
             ? {
                 videoId: post.klappeVideoId,

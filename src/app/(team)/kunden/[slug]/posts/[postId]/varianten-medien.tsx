@@ -1,130 +1,192 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { ladeHoch, type Fortschritt } from '@/lib/hochladen'
-import { Fehler, Knopf, Warnung } from '@/components/ui'
+import type { PostTyp, Verhaeltnis } from '@prisma/client'
+import { useState } from 'react'
+import { MedienDialog } from '@/components/medien-dialog'
+import type { Downloadstand } from '@/components/download-fortschritt'
+import { VERHAELTNIS_WERT } from '@/lib/verhaeltnis'
+import { Knopf } from '@/components/ui'
+import { VideoQuellen, type KlappeAngaben } from './video-quellen'
 
 export type VariantenMedium = {
   /** Die Zuordnung, nicht das Medium — sie wird gelöst, die Datei bleibt. */
   id: string
   url: string
   istVideo: boolean
+  rolle: 'MEDIUM' | 'SLIDE' | 'THUMBNAIL'
+}
+
+/** Der Video-Platz dieser Fassung, samt allem, was seine drei Quellen brauchen. */
+export type VariantenVideo = {
+  quelle: { url: string; herkunft: 'MEDIUM' | 'KLAPPE' } | null
+  thumbnailUrl: string | null
+  thumbnailAutomatisch: boolean
+  videoDownloadUrl: string | null
+  downloadstand: Downloadstand
+  klappe: KlappeAngaben
 }
 
 /**
- * Die eigenen Medien einer Fassung: zeigen, hochladen, wieder lösen.
+ * Die eigenen Medien einer Fassung — gezeigt, geändert und wieder gelöst.
  *
- * **Leer heißt geerbt** — dann gilt, was am Beitrag hängt. Deshalb steht hier
- * kein „kein Medium"-Fehler, sondern der Hinweis, was stattdessen greift; und
- * das Lösen des letzten Mediums ist kein Sonderfall, sondern der Weg zurück
- * zum geerbten Stand.
+ * **Derselbe Dialog wie am Beitrag.** Vorher stand hier ein nackter
+ * Dateiwähler; damit fehlte einer Fassung alles, was den Beitrag ausmacht:
+ * das Auftrennen eines Karussell-Gesamtbildes, beim Reel die zweite Spalte
+ * fürs Thumbnail und die Wahl zwischen Upload, Klappe und Downloadlink. Ein
+ * zweiter, ärmerer Weg zu denselben Medien ist keine Vereinfachung, sondern
+ * eine Stelle, an der man beim Arbeiten hängen bleibt.
  *
- * Hochgeladen wird über **dieselbe** Route wie am Beitrag (`/api/upload` mit
- * `varianteId`). Dort hängen Blockupload, Formatprüfung, Transparenzwarnung
- * und die Karussell-Auftrennung; ein zweiter Weg daneben wäre eine zweite
- * Stelle, an der das auseinanderläuft.
+ * **Leer heißt geerbt.** Dann steht hier, was am Beitrag hängt — sichtbar
+ * abgesetzt, damit niemand es für die eigene Wahl hält. Das Lösen des letzten
+ * Mediums ist deshalb kein Sonderfall, sondern der Weg zurück.
  */
 export function VariantenMedien({
   postId,
   varianteId,
+  kundeSlug,
   typ,
+  verhaeltnis,
   medien,
+  geerbt,
+  video,
   entfernen,
 }: {
   postId: string
   varianteId: string
-  typ: 'REEL' | 'KARUSSELL' | 'BEITRAG'
+  kundeSlug: string
+  typ: PostTyp
+  /** Das Verhältnis, gegen das geprüft wird — eigenes, sonst das des Beitrags. */
+  verhaeltnis: Verhaeltnis
   medien: VariantenMedium[]
-  entfernen: (varianteMediumId: string) => Promise<void>
+  /** Was gälte, wenn die Fassung nichts Eigenes hätte. */
+  geerbt: VariantenMedium[]
+  /** Nur beim Reel — der Video-Platz dieser Fassung. */
+  video: VariantenVideo | null
+  /** Verwirft alle eigenen Medien dieser Fassung samt Video-Platz. */
+  entfernen: () => Promise<void>
 }) {
-  const feld = useRef<HTMLInputElement>(null)
-  const [stand, setStand] = useState<Fortschritt | null>(null)
-  const [fehler, setFehler] = useState<string | null>(null)
-  const [hinweise, setHinweise] = useState<string[]>([])
+  const [offen, setOffen] = useState(false)
 
-  // Beim Karussell sind es Slides, sonst das eine Medium.
-  const rolle = typ === 'KARUSSELL' ? 'SLIDE' : 'MEDIUM'
+  const eigen = medien.length > 0 || video?.quelle?.herkunft === 'KLAPPE'
+  // Beim Reel steht das Standbild in der Kachel: Ein Video als Vorschaubild
+  // wäre schwarz, bis jemand es abspielt.
+  const gezeigt = eigen ? medien : geerbt
+  const kacheln =
+    typ === 'REEL'
+      ? gezeigt.filter((m) => m.rolle === 'THUMBNAIL')
+      : gezeigt.filter((m) => m.rolle !== 'THUMBNAIL')
 
-  async function nimm(dateien: FileList | null) {
-    if (!dateien || dateien.length === 0) return
-    setFehler(null)
-    setHinweise([])
-
-    const ergebnis = await ladeHoch({
-      dateien: [...dateien],
-      felder: { postId, varianteId, rolle, modus: 'einzeln' },
-      aufFortschritt: setStand,
-    })
-
-    setStand(null)
-    if (feld.current) feld.current.value = ''
-
-    if (!ergebnis.ok) {
-      setFehler(String(ergebnis.daten.fehler ?? 'Der Upload ist nicht durchgegangen.'))
-      return
-    }
-    setHinweise((ergebnis.daten.hinweise as string[]) ?? [])
-    // Die Liste kommt vom Server — nach dem Upload neu holen lassen.
-    location.reload()
-  }
+  const seite = 1 / VERHAELTNIS_WERT[verhaeltnis]
 
   return (
     <div className="grid gap-2.5">
-      {medien.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {medien.map((m) => (
-            <div key={m.id} className="relative">
+      <button
+        type="button"
+        onClick={() => setOffen(true)}
+        title="Medien dieser Fassung ändern"
+        className="flex flex-wrap items-start gap-2 rounded-md border border-dashed border-rahmen-3 p-2.5 text-left transition-colors hover:border-rahmen-4 hover:bg-flaeche-leise"
+      >
+        {kacheln.length > 0 ? (
+          kacheln.slice(0, 5).map((m) => (
+            <span
+              key={m.id}
+              className={`block w-16 overflow-hidden rounded-[3px] border border-rahmen ${
+                eigen ? '' : 'opacity-45 grayscale'
+              }`}
+              style={{ aspectRatio: String(seite) }}
+            >
               {m.istVideo ? (
-                <video src={m.url} className="h-20 w-16 rounded-[3px] bg-black object-cover" muted />
+                <video src={m.url} className="size-full bg-black object-cover" muted />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={m.url} alt="" className="h-20 w-16 rounded-[3px] object-cover" />
+                <img src={m.url} alt="" className="size-full object-cover" />
               )}
-              <form action={entfernen.bind(null, m.id)} className="absolute right-1 top-1">
-                <button
-                  type="submit"
-                  aria-label="Medium lösen"
-                  title="Lösen — die Datei bleibt in der Bibliothek"
-                  className="flex size-5 items-center justify-center rounded-full bg-black/55 text-[11px] leading-none text-white backdrop-blur transition-colors hover:bg-black/75"
-                >
-                  ×
-                </button>
-              </form>
-            </div>
-          ))}
+            </span>
+          ))
+        ) : (
+          <span
+            className="flex w-16 items-center justify-center rounded-[3px] border border-dashed border-rahmen-3 bg-flaeche-leise text-[18px] leading-none text-stiller"
+            style={{ aspectRatio: String(seite) }}
+          >
+            +
+          </span>
+        )}
+
+        <span className="min-w-[9rem] flex-1 text-[11.5px] leading-relaxed text-leiser">
+          {eigen ? (
+            <>
+              <strong className="font-medium text-tinte">Eigene Medien</strong> — gelten nur für
+              diese Fassung. Klicken zum Ändern.
+              {video?.quelle?.herkunft === 'KLAPPE' && ' Das Video kommt aus Klappe.'}
+            </>
+          ) : kacheln.length > 0 ? (
+            <>
+              <strong className="font-medium text-tinte">Geerbt vom Beitrag.</strong> Klicken, um
+              für diese Fassung eigene Medien zu hinterlegen — ein eigenes Format wirkt erst damit.
+            </>
+          ) : (
+            <>
+              Der Beitrag hat noch keine Medien. Klicken, um für diese Fassung eigene zu
+              hinterlegen.
+            </>
+          )}
+        </span>
+      </button>
+
+      {eigen && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <Knopf klein art="leise" type="button" onClick={() => setOffen(true)}>
+            Medien ändern
+          </Knopf>
+          {/*
+            Alles lösen statt Stück für Stück: Medien gelten als Ganzes
+            (`fassungFuer`), und ein Karussell, dem ein Slide fehlt, wäre kein
+            Zwischenstand, den jemand gewollt hat.
+
+            `formAction` statt eines eigenen `<form>`: Dieser Knopf steht im
+            Formular der Fassung, und ein `<form>` darin würde still verworfen.
+          */}
+          <button
+            type="submit"
+            formAction={entfernen}
+            className="text-[11.5px] text-stiller hover:text-akzent"
+          >
+            Eigene Medien verwerfen
+          </button>
         </div>
-      ) : (
-        <p className="text-[11.5px] leading-relaxed text-leiser">
-          Ohne eigene Medien gilt, was am Beitrag hängt. Ein eigenes Format wirkt erst mit eigenen
-          Medien — sonst stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.
-        </p>
       )}
 
-      {stand && (
-        <p className="text-[11.5px] text-leise">
-          {stand.dateiname} — {Math.round(stand.anteil * 100)} %
-          {stand.dateiAnzahl > 1 && ` (${stand.dateiNummer} von ${stand.dateiAnzahl})`}
-        </p>
-      )}
-
-      {fehler && <Fehler>{fehler}</Fehler>}
-      {hinweise.map((h) => (
-        <Warnung key={h}>{h}</Warnung>
-      ))}
-
-      <div>
-        <input
-          ref={feld}
-          type="file"
-          hidden
-          accept={typ === 'REEL' ? 'video/*' : 'image/*'}
-          multiple={typ === 'KARUSSELL'}
-          onChange={(e) => void nimm(e.currentTarget.files)}
-        />
-        <Knopf klein art="leise" type="button" onClick={() => feld.current?.click()}>
-          {medien.length > 0 ? 'Medien ersetzen' : 'Eigene Medien hochladen'}
-        </Knopf>
-      </div>
+      <MedienDialog
+        offen={offen}
+        schliessen={() => setOffen(false)}
+        postId={postId}
+        varianteId={varianteId}
+        titel={
+          typ === 'REEL'
+            ? 'Video und Thumbnail dieser Fassung'
+            : typ === 'KARUSSELL'
+              ? 'Karussell-Bilder dieser Fassung'
+              : 'Grafik dieser Fassung'
+        }
+        typ={typ}
+        verhaeltnis={verhaeltnis}
+        videoUrl={video?.quelle?.url ?? null}
+        videoHerkunft={video?.quelle?.herkunft ?? null}
+        thumbnailUrl={video?.thumbnailUrl ?? null}
+        thumbnailAutomatisch={video?.thumbnailAutomatisch}
+        videoQuellen={
+          video ? (
+            <VideoQuellen
+              postId={postId}
+              varianteId={varianteId}
+              kundeSlug={kundeSlug}
+              klappe={video.klappe}
+              downloadstand={video.downloadstand}
+              videoDownloadUrl={video.videoDownloadUrl}
+            />
+          ) : null
+        }
+      />
     </div>
   )
 }

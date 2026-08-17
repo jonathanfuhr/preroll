@@ -35,6 +35,13 @@ export type Variante<M = VariantenMedium> = {
   caption: string | null
   verhaeltnis: Verhaeltnis | null
   medien: M[]
+  /**
+   * Die dritte Video-Quelle. Sie gehört zum selben Platz wie das MEDIUM: Eine
+   * Fassung, deren Video aus Klappe kommt, hat gar kein eigenes Medium — ohne
+   * dieses Feld sähe sie aus wie eine ohne eigenes Video und erbte das des
+   * Beitrags.
+   */
+  klappeVersionId: string | null
   position: number
 }
 
@@ -49,6 +56,7 @@ export type Hauptbeitrag<M = VariantenMedium> = {
   caption: string
   verhaeltnis: Verhaeltnis
   medien: M[]
+  klappeVersionId: string | null
 }
 
 /** Was auf einer Plattform gilt, nachdem geerbt wurde. */
@@ -59,6 +67,7 @@ export type Fassung<M = VariantenMedium> = {
   caption: string
   verhaeltnis: Verhaeltnis
   medien: M[]
+  klappeVersionId: string | null
   /** Was tatsächlich abweicht — trägt die Beschriftung beim Kunden. */
   eigeneCaption: boolean
   eigeneMedien: boolean
@@ -102,12 +111,18 @@ export function fassungFuer<M>(
       caption: post.caption,
       verhaeltnis: post.verhaeltnis,
       medien: post.medien,
+      klappeVersionId: post.klappeVersionId,
       eigeneCaption: false,
       eigeneMedien: false,
     }
   }
 
-  const eigeneMedien = variante.medien.length > 0
+  /*
+    Der Video-Platz wird als Ganzes geerbt — mit allen drei Quellen. Eine
+    Fassung, deren Video aus Klappe kommt, trägt kein eigenes Medium; nur die
+    Medienliste zu prüfen hieße, ihr das Video des Beitrags unterzuschieben.
+  */
+  const eigeneMedien = variante.medien.length > 0 || variante.klappeVersionId !== null
   // Ein eigenes Verhältnis ohne eigene Medien wäre eine Fläche, für die das
   // geerbte Bild nicht gemacht ist — dann gilt das des Beitrags.
   const eigenesVerhaeltnis = eigeneMedien && variante.verhaeltnis !== null
@@ -118,6 +133,7 @@ export function fassungFuer<M>(
     caption: variante.caption?.trim() ? variante.caption : post.caption,
     verhaeltnis: eigenesVerhaeltnis ? variante.verhaeltnis! : post.verhaeltnis,
     medien: eigeneMedien ? variante.medien : post.medien,
+    klappeVersionId: eigeneMedien ? variante.klappeVersionId : post.klappeVersionId,
     eigeneCaption: Boolean(variante.caption?.trim()),
     eigeneMedien,
   }
@@ -173,6 +189,7 @@ export function fassungenFuerAnzeige(
     caption: post.caption,
     verhaeltnis: post.verhaeltnis,
     medien: post.medien,
+    klappeVersionId: post.klappeVersionId,
     eigeneCaption: false,
     eigeneMedien: false,
   }

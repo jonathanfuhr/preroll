@@ -4,6 +4,7 @@ import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { thumbnailAusVideoErgaenzen } from '@/lib/video'
 import { brichVideoDownloadAb } from '@/lib/video-download'
+import { platzAus, schreibeVideoPlatz } from '@/lib/video-platz'
 import { pruefeFormat, transparenzHinweis } from '@/lib/format'
 import { berechneAuftrennung } from '@/lib/karussell'
 import { ERLAUBTE_TYPEN, speichereMedium, trenneGesamtbildAuf } from '@/lib/medien'
@@ -257,32 +258,30 @@ async function verarbeite({
   }
 
   /*
-    Das Aufräumen der drei Video-Quellen gilt dem **einen** Video-Platz des
-    Beitrags. Eine Fassung hat keinen Klappe-Bezug und keinen Download — sie
-    trägt schlicht ihr eigenes Video.
+    Der Video-Platz — am Beitrag oder an der Fassung. Beide haben ihre drei
+    Quellen, und in beiden Fällen räumt der Upload die anderen zwei weg.
   */
-  if (!variante && rolle === 'MEDIUM' && post.typ === 'REEL') {
+  if (rolle === 'MEDIUM' && post.typ === 'REEL') {
+    const platz = platzAus(postId, variante?.id)
+
     // Der Upload übernimmt den Video-Platz — die anderen beiden Quellen
     // werden gelöst, nicht nur überdeckt: ein laufender Download würde das
     // frische Video sonst später überschreiben, ein stehen gebliebener Link
     // sähe aus, als gehöre er zu diesem Video.
-    await brichVideoDownloadAb(postId)
-    await prisma.post.update({
-      where: { id: postId },
-      data: {
-        videoDownloadUrl: null,
-        videoDownloadStand: null,
-        videoDownloadFortschritt: 0,
-        videoDownloadMeldung: null,
-        klappeVersionId: null,
-        klappeVersionNummer: null,
-      },
+    await brichVideoDownloadAb(platz)
+    await schreibeVideoPlatz(platz, {
+      videoDownloadUrl: null,
+      videoDownloadStand: null,
+      videoDownloadFortschritt: 0,
+      videoDownloadMeldung: null,
+      klappeVersionId: null,
+      klappeVersionNummer: null,
     })
 
     // Ein Reel ohne Thumbnail zeigt im Profilraster nur Schraffur. Statt das
     // anzumahnen, wird eins aus dem Video gezogen — ein Standbild ist besser
     // als nichts und lässt sich jederzeit ersetzen.
-    const erzeugt = await thumbnailAusVideoErgaenzen(postId)
+    const erzeugt = await thumbnailAusVideoErgaenzen(platz)
     if (erzeugt) {
       hinweise.push('Kein Thumbnail hinterlegt — Preroll hat ein Standbild aus dem Video gezogen.')
     }

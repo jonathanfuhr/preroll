@@ -417,6 +417,7 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
               plattformen: true,
               caption: true,
               verhaeltnis: true,
+              klappeVersionId: true,
               position: true,
               medien: {
                 orderBy: [{ rolle: 'asc' }, { position: 'asc' }],
@@ -463,13 +464,16 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
     Ohne passende Variante ist das der Beitrag selbst — dann verhält sich alles
     wie vorher.
 
-    Hat die Fassung eigene Medien, fällt eine Klappe-Fassung weg: Sonst gingen
-    zwei Videos in denselben Beitrag, und keines wäre erkennbar das gültige.
+    Der Video-Platz kommt dabei als Ganzes: eigenes Medium **oder** eigene
+    Klappe-Fassung — sonst gingen zwei Videos in denselben Beitrag, und keines
+    wäre erkennbar das gültige.
   */
   const fassung = fassungFuer(post, post.varianten, zeile.plattform)
   const material = medienFuerPost({
     typ: post.typ,
-    klappeVersionId: fassung.eigeneMedien ? null : post.klappeVersionId,
+    klappeVersionId: fassung.medien.some((m) => m.rolle === 'MEDIUM')
+      ? null
+      : fassung.klappeVersionId,
     medien: fassung.medien,
   })
   if (!material.ok) {

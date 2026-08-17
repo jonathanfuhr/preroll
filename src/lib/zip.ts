@@ -115,6 +115,9 @@ function fuerFassung(
     const verhaeltnis = fassung?.verhaeltnis ?? post.verhaeltnis
     const medien = fassung?.medien ?? post.medien
     const caption = fassung?.caption ?? post.caption
+    // Der Video-Platz der Fassung, nicht der des Beitrags: Eine Fassung mit
+    // eigenem Klappe-Schnitt bekäme sonst im ZIP das Video der anderen.
+    const klappeVersionId = fassung ? fassung.klappeVersionId : post.klappeVersionId
     const ordner = `${wurzel}${zipPostOrdner({ ...post, verhaeltnis })}`
 
     for (const eintrag of medien) {
@@ -137,12 +140,12 @@ function fuerFassung(
     // des Abrufs von dort. Liegt ein eigenes Video am Beitrag, gilt das — sonst
     // lägen zwei Videos im Ordner und keines wäre erkennbar das gültige.
     const hatEigenesMedium = medien.some((m) => m.rolle === 'MEDIUM')
-    if (post.typ === 'REEL' && post.klappeVersionId && !hatEigenesMedium) {
+    if (post.typ === 'REEL' && klappeVersionId && !hatEigenesMedium) {
       eintraege.push({
         // Die Endung kennt erst die Antwort aus Klappe.
         pfad: `${ordner}/${zipDateiname(post.postenAm, 'REEL', 'MEDIUM', 0, verhaeltnis)}`,
         art: 'klappe',
-        fassungId: post.klappeVersionId,
+        fassungId: klappeVersionId,
         // Das Team bekommt das Original, der Kunde die Abspielfassung.
         fassung: optionen.klappeFassung ?? 'original',
       })

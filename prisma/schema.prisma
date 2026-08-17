@@ -577,6 +577,26 @@ model PostVariante {
 
   medien PostVarianteMedium[]
 
+  /**
+   * Der Video-Platz einer Fassung — dieselben drei Quellen wie am Beitrag.
+   *
+   * Die Spalten stehen hier ein zweites Mal, statt an `Post` zu bleiben: Eine
+   * Fassung, die ein anderes Video zeigen soll, braucht auch einen anderen
+   * Klappe-Schnitt und einen anderen Link. Sie über den Beitrag zu ziehen
+   * hieße, dass ein Download für LinkedIn das Instagram-Video überschreibt.
+   */
+  videoDownloadUrl         String?
+  videoDownloadStand       Ladestand?
+  videoDownloadFortschritt Int        @default(0)
+  videoDownloadMeldung     String?
+
+  klappeVideoId       String?
+  klappeVideoName     String?
+  klappeVideoUrl      String?
+  klappeVersionId     String?
+  klappeVersionNummer Int?
+  klappeStandAm       DateTime?
+
   position       Int      @default(0)
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt

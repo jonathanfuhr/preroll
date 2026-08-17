@@ -28,6 +28,7 @@ const POST: Hauptbeitrag = {
   caption: 'Aus alt wird neu. #handwerk',
   verhaeltnis: 'HOCH_4_5',
   medien: [medium('haupt-1')],
+  klappeVersionId: null,
 }
 
 function variante(teil: Partial<Variante> = {}): Variante {
@@ -37,6 +38,7 @@ function variante(teil: Partial<Variante> = {}): Variante {
     caption: null,
     verhaeltnis: null,
     medien: [],
+    klappeVersionId: null,
     position: 0,
     ...teil,
   }
@@ -118,6 +120,35 @@ describe('fassungFuer — leer heißt geerbt', () => {
     )
 
     expect(f.medien.map((m) => m.mediumId)).toEqual(['v1'])
+  })
+
+  /*
+    Der Video-Platz zählt als Ganzes — mit allen drei Quellen. Eine Fassung,
+    deren Video aus Klappe kommt, hat kein eigenes Medium; nur die Medienliste
+    zu prüfen schöbe ihr das Video des Beitrags unter.
+  */
+  it('nimmt die Klappe-Fassung der Variante statt der des Beitrags', () => {
+    const post: Hauptbeitrag = { ...POST, medien: [], klappeVersionId: 'haupt-schnitt' }
+    const f = fassungFuer(post, [variante({ klappeVersionId: 'linkedin-schnitt' })], 'LINKEDIN')
+
+    expect(f.klappeVersionId).toBe('linkedin-schnitt')
+    expect(f.eigeneMedien).toBe(true)
+  })
+
+  it('erbt die Klappe-Fassung, solange die Variante nichts Eigenes hat', () => {
+    const post: Hauptbeitrag = { ...POST, medien: [], klappeVersionId: 'haupt-schnitt' }
+    const f = fassungFuer(post, [variante({ caption: 'Nur anderer Text' })], 'LINKEDIN')
+
+    expect(f.klappeVersionId).toBe('haupt-schnitt')
+    expect(f.eigeneMedien).toBe(false)
+  })
+
+  it('lässt ein eigenes Video die Klappe-Fassung des Beitrags verdrängen', () => {
+    const post: Hauptbeitrag = { ...POST, medien: [], klappeVersionId: 'haupt-schnitt' }
+    const f = fassungFuer(post, [variante({ medien: [medium('eigenes-video')] })], 'LINKEDIN')
+
+    expect(f.klappeVersionId).toBeNull()
+    expect(f.medien.map((m) => m.mediumId)).toEqual(['eigenes-video'])
   })
 })
 

@@ -19,9 +19,11 @@ import { PlattformWahl } from '@/components/plattform-wahl'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
 import { VariantenFeld, type VariantenZeile } from './varianten-feld'
+import type { VariantenMedium } from './varianten-medien'
 import type { Zielreel } from './uebertragen'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
-import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
+import { type KlappeVideoWahl } from './klappe-feld'
+import { VideoQuellen } from './video-quellen'
 import { videoVonLinkLaden } from '../../video-download-aktionen'
 import {
   Abschnitt,
@@ -141,12 +143,14 @@ export function PostEditor({
    */
   varianten?: {
     zeilen: VariantenZeile[]
+    /** Die Medien des Beitrags — was eine Fassung ohne eigene zeigt. */
+    geerbteMedien: VariantenMedium[]
     frei: Plattform[]
     ausserhalb: Plattform[]
     anlegen: (formular: FormData) => Promise<void>
     speichern: (varianteId: string, formular: FormData) => Promise<void>
     loeschen: (varianteId: string) => Promise<void>
-    mediumEntfernen: (varianteMediumId: string) => Promise<void>
+    medienVerwerfen: (varianteId: string) => Promise<void>
   }
   szenen: Szene[]
   customFelder: CustomFeld[]
@@ -524,13 +528,16 @@ export function PostEditor({
           <VariantenFeld
             postId={post.id}
             postTyp={post.typ}
+            postVerhaeltnis={verhaeltnis}
+            kundeSlug={kundeSlug}
+            geerbteMedien={varianten.geerbteMedien}
             varianten={varianten.zeilen}
             frei={varianten.frei}
             ausserhalb={varianten.ausserhalb}
             anlegen={varianten.anlegen}
             speichern={varianten.speichern}
             loeschen={varianten.loeschen}
-            mediumEntfernen={varianten.mediumEntfernen}
+            medienVerwerfen={varianten.medienVerwerfen}
           />
         </Abschnitt>
       )}
@@ -608,70 +615,14 @@ export function PostEditor({
         thumbnailAutomatisch={thumbnailAutomatisch}
         videoQuellen={
           post.typ === 'REEL' ? (
-            <>
-              {/* ------------------------------------------------- Aus Klappe */}
-              <div className="border-t border-rahmen pt-5">
-                <h4 className="mb-2 text-[10.5px] uppercase tracking-[0.1em] text-still">
-                  Aus Klappe holen
-                </h4>
-                <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
-                  Das fertige Reel aus dem Schnitt. Beim Anlegen entsteht dort automatisch das
-                  passende Video — beim Upload muss dann kein Name mehr getippt werden.
-                </p>
-                <KlappeFeld
-                  postId={post.id}
-                  kundeSlug={kundeSlug}
-                  eingerichtet={klappe.eingerichtet}
-                  projektName={klappe.projektName}
-                  videos={klappe.videos}
-                  ladefehler={klappe.ladefehler}
-                  verknuepft={klappe.verknuepft}
-                  meldung={meldungen.klappe}
-                />
-              </div>
-
-              {/* --------------------------------------------- Von einem Link */}
-              <div className="border-t border-rahmen pt-5">
-                <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
-                  Instagram, TikTok, YouTube, Vimeo — alles, was sich herunterladen lässt. In der
-                  Konzeptphase steht hier das Vorbild, später ersetzt es das fertige Reel.
-                  Eingebettet wird immer die eigene Kopie, weil die Plattformen Einbettungen
-                  unvorhersehbar sperren.
-                </p>
-
-                {downloadstand.stand === 'FEHLER' && downloadstand.meldung && (
-                  <div className="mb-3">
-                    <Warnung>{downloadstand.meldung}</Warnung>
-                  </div>
-                )}
-
-                {downloadstand.stand === 'LAEUFT' && (
-                  <div className="mb-3">
-                    <Fortschrittsbalken stand={downloadstand} />
-                  </div>
-                )}
-
-                <form action={videoVonLinkLaden.bind(null, post.id)} className="grid gap-3">
-                  <Eingabe
-                    name="videoDownloadUrl"
-                    type="url"
-                    defaultValue={post.videoDownloadUrl ?? ''}
-                    placeholder="https://www.instagram.com/reel/…"
-                  />
-                  <div>
-                    <Knopf
-                      klein
-                      art="primaer"
-                      type="submit"
-                      disabled={downloadstand.stand === 'LAEUFT'}
-                    >
-                      {downloadstand.stand === 'LAEUFT' ? 'Läuft …' : 'Laden und einsetzen'}
-                    </Knopf>
-                  </div>
-                </form>
-
-              </div>
-            </>
+            <VideoQuellen
+              postId={post.id}
+              kundeSlug={kundeSlug}
+              klappe={klappe}
+              downloadstand={downloadstand}
+              videoDownloadUrl={post.videoDownloadUrl}
+              meldung={meldungen.klappe}
+            />
           ) : null
         }
       />

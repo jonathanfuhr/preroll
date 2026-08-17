@@ -2,9 +2,18 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import type { Plattform } from '@prisma/client'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { PLATTFORM_TEXT } from '@/lib/plattformen'
 import { brichVideoDownloadAb } from '@/lib/video-download'
+import {
+  leseVideoPlatz,
+  platzAus,
+  raeumeVideoMedium,
+  schreibeVideoPlatz,
+  type VideoPlatz,
+} from '@/lib/video-platz'
 import {
   klappeFassungen,
   klappeVideoAnlegen,
@@ -75,92 +84,103 @@ export async function aworkProjektZuordnen(kundeId: string, formular: FormData) 
  * automatisch mit; hier steht die Nachhol-Variante für Posts, die vor der
  * Kopplung entstanden sind oder bei denen es beim ersten Versuch scheiterte.
  */
-export async function klappeVideoErzeugen(postId: string) {
+export async function klappeVideoErzeugen(postId: string, varianteId: string | null) {
   await nutzerOderRaus()
 
-  const post = await prisma.post.findUniqueOrThrow({
-    where: { id: postId },
-    include: { kunde: true },
-  })
-  if (!post.kunde.klappeProjektId) {
-    redirect(`/kunden/${post.kunde.slug}/posts/${postId}?klappe=kein-projekt`)
+  const platz = platzAus(postId, varianteId)
+  const stand = await leseVideoPlatz(platz)
+  if (!stand) return
+
+  const kunde = await prisma.kunde.findUniqueOrThrow({ where: { id: stand.kundeId } })
+  if (!kunde.klappeProjektId) {
+    redirect(`/kunden/${stand.kundeSlug}/posts/${postId}?klappe=kein-projekt`)
   }
-  if (post.klappeVideoId) {
-    redirect(`/kunden/${post.kunde.slug}/posts/${postId}`)
+  if (stand.klappeVideoId) {
+    redirect(`/kunden/${stand.kundeSlug}/posts/${postId}`)
   }
 
-  const name = klappeVideoName(post.postenAm, post.titel)
+  /*
+    Der Name einer Fassung trägt ihre Plattformen. In Klappe stehen sonst zwei
+    Videos gleichen Namens im selben Projekt, und wer dort schneidet, sieht
+    nicht, welches der beiden das quadratische für LinkedIn ist.
+  */
+  const grundname = klappeVideoName(stand.postenAm, stand.postTitel)
+  const name =
+    stand.plattformen.length > 0
+      ? `${grundname} (${stand.plattformen.map((p) => PLATTFORM_TEXT[p as Plattform]).join(', ')})`
+      : grundname
+
   const ergebnis = await klappeVideoAnlegen(
-    post.kunde.klappeProjektId,
+    kunde.klappeProjektId,
     name,
-    klappeVideoBeschreibung(post.postenAm, post.kunde.name),
+    klappeVideoBeschreibung(stand.postenAm, kunde.name),
   )
 
   if (!ergebnis.ok) {
     redirect(
-      `/kunden/${post.kunde.slug}/posts/${postId}?klappe=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
+      `/kunden/${stand.kundeSlug}/posts/${postId}?klappe=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
     )
   }
 
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      klappeVideoId: ergebnis.daten.id,
-      klappeVideoName: ergebnis.daten.name,
-      klappeVideoUrl: ergebnis.daten.webUrl ?? `/videos/${ergebnis.daten.id}`,
-      klappeStandAm: new Date(),
-    },
+  await schreibeVideoPlatz(platz, {
+    klappeVideoId: ergebnis.daten.id,
+    klappeVideoName: ergebnis.daten.name,
+    klappeVideoUrl: ergebnis.daten.webUrl ?? `/videos/${ergebnis.daten.id}`,
+    klappeStandAm: new Date(),
   })
 
-  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+  revalidatePath(`/kunden/${stand.kundeSlug}`, 'layout')
 }
 
-/** Verknüpft den Post mit einem bereits vorhandenen Video aus Klappe. */
-export async function klappeVideoVerknuepfen(postId: string, formular: FormData) {
+/**
+ * Verknüpft den Video-Platz mit einem vorhandenen Video aus Klappe.
+ *
+ * Der Platz ist der Beitrag oder eine seiner Fassungen — eine Fassung, die ein
+ * anderes Video zeigen soll, braucht auch einen anderen Schnitt. Über den
+ * Beitrag geführt setzte die Wahl für LinkedIn das Instagram-Video mit um.
+ */
+export async function klappeVideoVerknuepfen(
+  postId: string,
+  varianteId: string | null,
+  formular: FormData,
+) {
   await nutzerOderRaus()
 
+  const platz = platzAus(postId, varianteId)
   const videoId = String(formular.get('videoId') ?? '').trim()
-  const post = await prisma.post.findUniqueOrThrow({
-    where: { id: postId },
-    include: { kunde: true },
-  })
+  const stand = await leseVideoPlatz(platz)
+  if (!stand) return
 
   if (!videoId) {
-    await prisma.post.update({
-      where: { id: postId },
-      data: {
-        klappeVideoId: null,
-        klappeVideoName: null,
-        klappeVideoUrl: null,
-        klappeVersionId: null,
-        klappeVersionNummer: null,
-        klappeStandAm: null,
-      },
+    await schreibeVideoPlatz(platz, {
+      klappeVideoId: null,
+      klappeVideoName: null,
+      klappeVideoUrl: null,
+      klappeVersionId: null,
+      klappeVersionNummer: null,
+      klappeStandAm: null,
     })
-    revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+    revalidatePath(`/kunden/${stand.kundeSlug}`, 'layout')
     return
   }
 
   const name = String(formular.get('videoName') ?? '').trim() || null
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      klappeVideoId: videoId,
-      klappeVideoName: name,
-      klappeVideoUrl: `/videos/${videoId}`,
-      klappeStandAm: new Date(),
-    },
+  await schreibeVideoPlatz(platz, {
+    klappeVideoId: videoId,
+    klappeVideoName: name,
+    klappeVideoUrl: `/videos/${videoId}`,
+    klappeStandAm: new Date(),
   })
 
-  await holeFassung(postId, videoId)
-  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+  await holeFassung(platz, videoId)
+  revalidatePath(`/kunden/${stand.kundeSlug}`, 'layout')
 }
 
 /**
  * Holt die aktuell freigegebene Endfassung. Interne Fassungen bleiben außen
  * vor — was der Kunde sieht, soll auch in Klappe freigegeben sein.
  */
-async function holeFassung(postId: string, videoId: string): Promise<string | null> {
+async function holeFassung(platz: VideoPlatz, videoId: string): Promise<string | null> {
   const fassungen = await klappeFassungen(videoId)
   if (!fassungen.ok) return fassungen.fehler
 
@@ -173,45 +193,40 @@ async function holeFassung(postId: string, videoId: string): Promise<string | nu
   // der Link geräumt. Ohne das hätte ein hochgeladenes Video weiter Vorrang
   // (`reelVideoQuelle`), und die Wahl liefe ins Leere.
   if (gewaehlt) {
-    await brichVideoDownloadAb(postId)
-    await prisma.postMedium.deleteMany({ where: { postId, rolle: 'MEDIUM' } })
+    await brichVideoDownloadAb(platz)
+    await raeumeVideoMedium(platz)
   }
 
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      klappeVersionId: gewaehlt?.id ?? null,
-      klappeVersionNummer: gewaehlt?.versionNumber ?? null,
-      klappeStandAm: new Date(),
-      ...(gewaehlt
-        ? {
-            videoDownloadUrl: null,
-            videoDownloadStand: null,
-            videoDownloadFortschritt: 0,
-            videoDownloadMeldung: null,
-          }
-        : {}),
-    },
+  await schreibeVideoPlatz(platz, {
+    klappeVersionId: gewaehlt?.id ?? null,
+    klappeVersionNummer: gewaehlt?.versionNumber ?? null,
+    klappeStandAm: new Date(),
+    ...(gewaehlt
+      ? {
+          videoDownloadUrl: null,
+          videoDownloadStand: null,
+          videoDownloadFortschritt: 0,
+          videoDownloadMeldung: null,
+        }
+      : {}),
   })
 
   return gewaehlt ? null : 'Für dieses Video liegt noch keine freigegebene Fassung vor.'
 }
 
-export async function klappeFassungAktualisieren(postId: string) {
+export async function klappeFassungAktualisieren(postId: string, varianteId: string | null) {
   await nutzerOderRaus()
 
-  const post = await prisma.post.findUniqueOrThrow({
-    where: { id: postId },
-    include: { kunde: true },
-  })
-  if (!post.klappeVideoId) return
+  const platz = platzAus(postId, varianteId)
+  const stand = await leseVideoPlatz(platz)
+  if (!stand?.klappeVideoId) return
 
-  const fehler = await holeFassung(postId, post.klappeVideoId)
-  revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+  const fehler = await holeFassung(platz, stand.klappeVideoId)
+  revalidatePath(`/kunden/${stand.kundeSlug}`, 'layout')
 
   if (fehler) {
     redirect(
-      `/kunden/${post.kunde.slug}/posts/${postId}?klappe=hinweis&meldung=${encodeURIComponent(fehler)}`,
+      `/kunden/${stand.kundeSlug}/posts/${postId}?klappe=hinweis&meldung=${encodeURIComponent(fehler)}`,
     )
   }
 }

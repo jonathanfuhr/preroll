@@ -73,9 +73,13 @@ export async function ladePost(postId: string) {
       varianten: {
         orderBy: { position: 'asc' },
         include: {
+          // Nach Rolle **und** Position: Beim Reel liegen Video und Thumbnail
+          // beide auf Position 0 — ohne die Rolle wäre ihre Reihenfolge Zufall.
           medien: {
-            orderBy: { position: 'asc' },
-            include: { medium: { select: { mimeTyp: true } } },
+            orderBy: [{ rolle: 'asc' }, { position: 'asc' }],
+            // `quelleId` verrät ein selbst gezogenes Standbild — es trägt das
+            // Video, aus dem es stammt.
+            include: { medium: { select: { mimeTyp: true, quelleId: true } } },
           },
         },
       },

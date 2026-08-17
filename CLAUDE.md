@@ -210,8 +210,12 @@ Seite zu bewachen wäre die schlechtere Regel.
   und ohne Geräterahmen. Der Rahmen bei Instagram ist nicht Zierde: Instagram
   *ist* eine Telefon-App, und im Profilraster entscheidet der Ausschnitt über
   die Wirkung. LinkedIn wird genauso am Rechner gelesen, und ein Raster, in dem
-  sich Kacheln zu einem Bild fügen, gibt es dort nicht. Mehrere Bilder stehen
-  nebeneinander, weil LinkedIn sie so zeigt — kein Karussell zum Wischen.
+  sich Kacheln zu einem Bild fügen, gibt es dort nicht. **Mehrere Bilder
+  werden geblättert**, nicht nebeneinandergelegt — LinkedIn hat Karussells.
+  (Hier stand bis zum 17.08.2026 das Gegenteil; die Annahme war falsch.) Die
+  Blätterfläche ist trotzdem eigen und nicht `KarussellFlaeche`: Die ist auf
+  die 320 px des Geräterahmens und eine feste Flächenhöhe gebaut, LinkedIn
+  zeigt Bilder in ihrer eigenen Höhe.
 - **Meta-Zugänge sind mehrere.** Nicht jeder Kunde liegt im selben
   Portfolio; wer Seiten aus zwei Business Managern bespielt, braucht aus
   jedem einen eigenen Systemnutzer. In den Einstellungen steht deshalb eine
@@ -431,17 +435,39 @@ Seite zu bewachen wäre die schlechtere Regel.
   stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.
   Medien werden als **Ganzes** ersetzt, nicht Stück für Stück — ein Karussell
   aus zwei Quellen hätte niemand so gemeint.
-- **Eigene Medien je Fassung gehen durch dieselbe Route** wie die des
-  Beitrags — `/api/upload` mit `varianteId`. Dort sitzen Blockupload,
-  Formatprüfung, Transparenzwarnung und die Karussell-Auftrennung; ein
-  zweiter Uploadweg wäre eine zweite Stelle, an der das auseinanderläuft.
+- **Eine Fassung kann alles, was der Beitrag kann** — derselbe
+  `MedienDialog`, dieselbe Route (`/api/upload` mit `varianteId`), dieselben
+  drei Video-Quellen. Eine Weile stand dort nur ein Dateiwähler; damit fehlte
+  der Fassung das Auftrennen eines Karussell-Gesamtbildes, die zweite Spalte
+  fürs Thumbnail und die Wahl zwischen Upload, Klappe und Downloadlink. Ein
+  zweiter, ärmerer Weg zu denselben Medien ist keine Vereinfachung.
   Geschrieben wird über **ein** gebündeltes Ziel (`ziel` in der Route), weil
   es fünf Schreibwege sind — wer einen vergisst, legt still am falschen Ort
   ab. Geprüft wird gegen das Verhältnis **der Fassung**, sonst das des
-  Beitrags. Das Aufräumen der drei Video-Quellen beim Reel gilt nur dem
-  Beitrag: Eine Fassung hat keinen Klappe-Bezug und keinen Download, sie
-  trägt schlicht ihr eigenes Video. Entfernt wird nur die Zuordnung, nicht
-  die Datei — und bleibt keine übrig, erbt die Fassung wieder.
+  Beitrags.
+- **Der Video-Platz hat eine Adresse, keine zwei Kopien** (`video-platz.ts`).
+  `PostVariante` trägt dieselben Klappe- und Download-Spalten wie `Post`, und
+  Download, Klappe-Verknüpfung und Aufräumen bekommen einen `VideoPlatz`
+  (`{art, id}`) statt einer `postId`. Über den Beitrag geführt zöge ein
+  Download für LinkedIn das Instagram-Video mit um. Die Fachlogik steht
+  weiterhin einmal da; nur die Tabelle wechselt. Ein laufender Download hängt
+  am `platzSchluessel`, nicht an der Post-Kennung — sonst blockierten sich
+  zwei Fassungen desselben Beitrags gegenseitig.
+- **Geerbt wird der Video-Platz als Ganzes** — mit allen drei Quellen. Eine
+  Fassung, deren Video aus Klappe kommt, hat gar kein eigenes `Medium`; nur
+  die Medienliste zu prüfen schöbe ihr das Video des Beitrags unter. Deshalb
+  trägt `Fassung` auch `klappeVersionId`, und `eigeneMedien` heißt „eigene
+  Medien **oder** eigene Klappe-Fassung". „Verwerfen" räumt entsprechend den
+  ganzen Platz: Medien, Link, Download-Stand und Klappe-Wahl. Entfernt wird
+  nur die Zuordnung, nicht die Datei — und bleibt nichts übrig, erbt die
+  Fassung wieder.
+- **Der Medien-Dialog hängt am Seitenkörper** (`createPortal`). Beim Beitrag
+  gleichgültig, bei einer Fassung nicht: Ihre Karte **ist** ein Formular, und
+  die Klappe- und Link-Formulare im Dialog lägen darin verschachtelt. Ein
+  `<form>` im `<form>` wirft der Browser still weg — die Knöpfe säßen da und
+  täten nichts. Dieselbe Falle wie seinerzeit bei „Fassung anlegen"; wo ein
+  Knopf im Fassungsformular etwas auslösen soll, gehört `formAction` hin,
+  kein eigenes Formular.
 - **Eine Plattform steht in höchstens einer Fassung.** Welche von zwei gälte,
   wäre nicht entscheidbar. Geprüft am Server (`freiePlattformen`), im Enum lässt
   sich ein Array nicht eindeutig machen; die Sperre im Formular ist

@@ -4,7 +4,11 @@ import type { Plattform, Verhaeltnis } from '@prisma/client'
 import { useState } from 'react'
 import { PLATTFORM_TEXT } from '@/lib/plattformen'
 import { ERLAUBT, VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
-import { VariantenMedien, type VariantenMedium } from './varianten-medien'
+import {
+  VariantenMedien,
+  type VariantenMedium,
+  type VariantenVideo,
+} from './varianten-medien'
 import { Auswahl, Feld, Hinweis, Knopf, Textfeld } from '@/components/ui'
 
 export type VariantenZeile = {
@@ -14,6 +18,8 @@ export type VariantenZeile = {
   verhaeltnis: Verhaeltnis | null
   /** Eigene Medien dieser Fassung — leer heißt geerbt. */
   medien: VariantenMedium[]
+  /** Nur beim Reel: der Video-Platz dieser Fassung mit seinen drei Quellen. */
+  video: VariantenVideo | null
 }
 
 /**
@@ -37,16 +43,24 @@ export type VariantenZeile = {
 export function VariantenFeld({
   postId,
   postTyp,
+  postVerhaeltnis,
+  kundeSlug,
+  geerbteMedien,
   varianten,
   frei,
   ausserhalb,
   anlegen,
   speichern,
   loeschen,
-  mediumEntfernen,
+  medienVerwerfen,
 }: {
   postId: string
   postTyp: 'REEL' | 'KARUSSELL' | 'BEITRAG'
+  /** Gilt, solange eine Fassung kein eigenes Format wählt. */
+  postVerhaeltnis: Verhaeltnis
+  kundeSlug: string
+  /** Die Medien des Beitrags — was eine Fassung ohne eigene zeigt. */
+  geerbteMedien: VariantenMedium[]
   varianten: VariantenZeile[]
   /** Plattformen, die in keiner anderen Variante stehen. */
   frei: Plattform[]
@@ -61,7 +75,7 @@ export function VariantenFeld({
   anlegen: (formular: FormData) => Promise<void>
   speichern: (varianteId: string, formular: FormData) => Promise<void>
   loeschen: (varianteId: string) => Promise<void>
-  mediumEntfernen: (varianteMediumId: string) => Promise<void>
+  medienVerwerfen: (varianteId: string) => Promise<void>
 }) {
   const [offen, setOffen] = useState(false)
   const erlaubteFormate = ERLAUBT[postTyp]
@@ -127,7 +141,7 @@ export function VariantenFeld({
             beschriftung="Format"
             hinweis={
               v.medien.length > 0
-                ? `${v.medien.length} eigene Medien hängen an dieser Fassung.`
+                ? `${v.medien.length} eigene ${v.medien.length === 1 ? 'Datei hängt' : 'Dateien hängen'} an dieser Fassung.`
                 : 'Wirkt erst mit eigenen Medien — sonst stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.'
             }
           >
@@ -142,15 +156,19 @@ export function VariantenFeld({
           </Feld>
 
           <Feld
-            beschriftung="Eigene Medien"
+            beschriftung="Medien"
             hinweis="Leer lassen heißt: die Medien des Beitrags gelten. Ersetzt wird als Ganzes — ein Karussell aus zwei Quellen hätte niemand so gemeint."
           >
             <VariantenMedien
               postId={postId}
               varianteId={v.id}
+              kundeSlug={kundeSlug}
               typ={postTyp}
+              verhaeltnis={v.verhaeltnis ?? postVerhaeltnis}
               medien={v.medien}
-              entfernen={mediumEntfernen}
+              geerbt={geerbteMedien}
+              video={v.video}
+              entfernen={medienVerwerfen.bind(null, v.id)}
             />
           </Feld>
 
