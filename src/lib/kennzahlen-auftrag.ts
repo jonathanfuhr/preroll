@@ -29,14 +29,20 @@ export type Aktualisierung =
 export async function aktualisiereKennzahlen(kundeId: string): Promise<Aktualisierung> {
   const kunde = await prisma.kunde.findUnique({
     where: { id: kundeId },
-    select: { id: true, handle: true, logoId: true },
+    select: {
+      id: true,
+      logoId: true,
+      profile: { where: { plattform: 'INSTAGRAM' }, select: { handle: true } },
+    },
   })
   if (!kunde) return { ok: false, fehler: 'Kunde nicht gefunden.' }
-  if (!kunde.handle?.trim()) {
+
+  const handle = kunde.profile[0]?.handle?.trim()
+  if (!handle) {
     return { ok: false, fehler: 'Für diesen Kunden ist kein Instagram-Handle hinterlegt.' }
   }
 
-  const ergebnis = await holeProfilwerte(kunde.handle)
+  const ergebnis = await holeProfilwerte(handle)
   // Bewusst ohne `merkeAbgelaufen`: Gefragt wird ohne Sitzung, ein
   // Fehlschlag sagt also nichts über sie aus. Die erste Fassung meldete hier
   // eine abgelaufene Sitzung — und das rote Band im Backend behauptete, die
@@ -46,8 +52,10 @@ export async function aktualisiereKennzahlen(kundeId: string): Promise<Aktualisi
   const { werte } = ergebnis
   const jetzt = new Date()
 
-  await prisma.kunde.update({
-    where: { id: kundeId },
+  // Geschrieben wird ins Instagram-Profil, nicht an den Kunden: Facebook und
+  // LinkedIn führen ihre eigenen Zahlen, und nur Instagram holt Preroll selbst.
+  await prisma.plattformProfil.update({
+    where: { kundeId_plattform: { kundeId, plattform: 'INSTAGRAM' } },
     data: {
       follower: werte.follower,
       gefolgt: werte.gefolgt,
@@ -56,17 +64,19 @@ export async function aktualisiereKennzahlen(kundeId: string): Promise<Aktualisi
       // ein leeres Feld dort soll eine gepflegte Angabe hier nicht löschen.
       ...(werte.bio ? { bio: werte.bio } : {}),
       ...(werte.website ? { website: werte.website } : {}),
-      kennzahlenAm: jetzt,
-      kennzahlenTyp: 'INSTAGRAM_WEB',
+      standAm: jetzt,
+      quelle: 'INSTAGRAM_WEB',
     },
   })
 
-  // Ein Tageswert je Kunde — mehrere Läufe am selben Tag überschreiben ihn.
+  // Ein Tageswert je Kunde und Plattform — mehrere Läufe am selben Tag
+  // überschreiben ihn.
   const tag = new Date(Date.UTC(jetzt.getFullYear(), jetzt.getMonth(), jetzt.getDate()))
   await prisma.kennzahlVerlauf.upsert({
-    where: { kundeId_datum: { kundeId, datum: tag } },
+    where: { kundeId_plattform_datum: { kundeId, plattform: 'INSTAGRAM', datum: tag } },
     create: {
       kundeId,
+      plattform: 'INSTAGRAM',
       datum: tag,
       follower: werte.follower,
       gefolgt: werte.gefolgt,
@@ -118,24 +128,22 @@ export async function wacheUeberKennzahlen(): Promise<void> {
 
     if (e.kennzahlenLaufAm && Date.now() - e.kennzahlenLaufAm.getTime() < LAUFABSTAND) return
 
-    const faellig = await prisma.kunde.findFirst({
+    const faellig = await prisma.plattformProfil.findFirst({
       where: {
-        archiviert: false,
+        plattform: 'INSTAGRAM',
         handle: { not: null },
-        OR: [
-          { kennzahlenAm: null },
-          { kennzahlenAm: { lt: new Date(Date.now() - HALTBARKEIT) } },
-        ],
+        kunde: { archiviert: false },
+        OR: [{ standAm: null }, { standAm: { lt: new Date(Date.now() - HALTBARKEIT) } }],
       },
       // Das am längsten Ungeprüfte zuerst; `null` sortiert Prisma nach vorn.
-      orderBy: { kennzahlenAm: 'asc' },
-      select: { id: true },
+      orderBy: { standAm: 'asc' },
+      select: { kundeId: true },
     })
     if (!faellig) return
 
     // Sofort vormerken, damit nicht mehrere Seitenaufrufe gleichzeitig losziehen.
     await speichereEinstellungen({ kennzahlenLaufAm: new Date() })
-    await aktualisiereKennzahlen(faellig.id)
+    await aktualisiereKennzahlen(faellig.kundeId)
   } catch (fehler) {
     console.warn('[kennzahlen] Lauf fehlgeschlagen:', fehler)
   }

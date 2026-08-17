@@ -22,6 +22,9 @@ export default async function KundenSeite() {
     orderBy: { name: 'asc' },
     include: {
       logo: true,
+      // Nur das Instagram-Profil: Die Kachel zeigt den Handle, und der ist
+      // dort gemeint.
+      profile: { where: { plattform: 'INSTAGRAM' }, select: { plattform: true, handle: true } },
       posts: {
         where: { postenAm: { gte: new Date() } },
         orderBy: { postenAm: 'asc' },
@@ -73,7 +76,7 @@ export default async function KundenSeite() {
     angeheftet: angeheftet.has(kunde.id),
     slug: kunde.slug,
     name: kunde.name,
-    handle: kunde.handle,
+    handle: kunde.profile.find((pr) => pr.plattform === 'INSTAGRAM')?.handle ?? null,
     logo: thumbUrl(kunde.logoId),
     naechsterTermin: kunde.posts[0]?.postenAm ?? null,
     naechsterStatus: kunde.posts[0]?.status ?? null,

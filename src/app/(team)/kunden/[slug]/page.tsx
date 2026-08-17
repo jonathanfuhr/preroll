@@ -101,11 +101,13 @@ export default async function PostsSeite({
         <FeedPlanung
           kunde={{
             name: kunde.name,
-            handle: kunde.handle,
+            // Die Feed-Vorschau ist ein Instagram-Profil und wird keines von
+            // LinkedIn — sie nimmt deshalb ausdrücklich dessen Werte.
+            handle: kunde.profil.INSTAGRAM.handle,
             logo: thumbUrl(kunde.logoId),
-            beitraege: kunde.beitraege,
-            follower: kunde.follower,
-            gefolgt: kunde.gefolgt,
+            beitraege: kunde.profil.INSTAGRAM.beitraege,
+            follower: kunde.profil.INSTAGRAM.follower,
+            gefolgt: kunde.profil.INSTAGRAM.gefolgt,
           }}
           kacheln={[...posts]
             .sort((a, b) => (b.postenAm?.getTime() ?? 0) - (a.postenAm?.getTime() ?? 0))

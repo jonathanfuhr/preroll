@@ -72,16 +72,38 @@ async function main() {
   const kunde = await prisma.kunde.upsert({
     where: { slug: 'beispiel-handwerk' },
     update: {},
+    create: { name: 'Beispiel Handwerk GmbH', slug: 'beispiel-handwerk' },
+  })
+
+  // Handle, Bio und Kennzahlen liegen je Plattform. Instagram gepflegt,
+  // LinkedIn mit Zahlen aber ohne Bio — so sieht der Alltag aus, und der
+  // Leerzustand von Facebook ist dann auch einmal zu sehen.
+  await prisma.plattformProfil.upsert({
+    where: { kundeId_plattform: { kundeId: kunde.id, plattform: 'INSTAGRAM' } },
+    update: {},
     create: {
-      name: 'Beispiel Handwerk GmbH',
-      slug: 'beispiel-handwerk',
+      kundeId: kunde.id,
+      plattform: 'INSTAGRAM',
       handle: 'beispiel.handwerk',
       bio: 'Beispielbranche · Musterstadt',
       website: 'www.beispiel-handwerk.de',
       follower: 2847,
       gefolgt: 312,
       beitraege: 148,
-      kennzahlenAm: new Date('2026-08-05T04:00:00Z'),
+      standAm: new Date('2026-08-05T04:00:00Z'),
+    },
+  })
+
+  await prisma.plattformProfil.upsert({
+    where: { kundeId_plattform: { kundeId: kunde.id, plattform: 'LINKEDIN' } },
+    update: {},
+    create: {
+      kundeId: kunde.id,
+      plattform: 'LINKEDIN',
+      handle: 'beispiel-handwerk',
+      follower: 412,
+      beitraege: 23,
+      standAm: new Date('2026-08-05T04:00:00Z'),
     },
   })
 

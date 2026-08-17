@@ -11,6 +11,7 @@ import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
+import { profilKarte } from '@/lib/plattform-profil'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { angezeigtePlattformen } from '@/lib/plattformen'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
@@ -62,7 +63,11 @@ export default async function ExportSeite({
     where: { token },
     include: {
       kunde: {
-        include: { logo: true, hauptAnsprechpartner: { include: { foto: true } } },
+        include: {
+          logo: true,
+          hauptAnsprechpartner: { include: { foto: true } },
+          profile: true,
+        },
       },
       zusatzAnsprechpartner: { include: { foto: true } },
       /*
@@ -88,6 +93,10 @@ export default async function ExportSeite({
     : nutzer
       ? { art: 'nutzer', id: nutzer.id, rolle: nutzer.rolle }
       : null
+
+  // Die Feed-Vorschau ist ein Instagram-Profil und wird keines von LinkedIn —
+  // Handle und Zahlen darüber kommen deshalb ausdrücklich von dort.
+  const igProfil = profilKarte(exp.kunde.profile).INSTAGRAM
 
   const einstellungen = await ladeEinstellungen()
 
@@ -287,11 +296,11 @@ export default async function ExportSeite({
         <aside className="justify-self-center lg:justify-self-end">
           <IPhoneFeed
             kunde={exp.kunde.name}
-            handle={exp.kunde.handle}
+            handle={igProfil.handle}
             logo={thumbUrl(exp.kunde.logoId)}
-            beitraege={exp.kunde.beitraege}
-            follower={exp.kunde.follower}
-            gefolgt={exp.kunde.gefolgt}
+            beitraege={igProfil.beitraege}
+            follower={igProfil.follower}
+            gefolgt={igProfil.gefolgt}
             /*
               Kacheln des Zeitraums springen zu ihrem Beitrag weiter unten —
               dieselbe Sprungmarke wie im Kalender. Die älteren, schon
