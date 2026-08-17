@@ -2,6 +2,7 @@ import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import { Readable } from 'node:stream'
 import type { NextRequest } from 'next/server'
+import { leseBereich } from '@/lib/bereich'
 import { prisma } from '@/lib/db'
 import { absoluterPfad } from '@/lib/medien'
 
@@ -67,23 +68,33 @@ export async function GET(
     kopfzeilen.set('etag', kennzeichen)
   }
 
-  // Videos brauchen Bereichsanfragen, damit im Browser gespult werden kann.
-  const bereich = anfrage.headers.get('range')
-  if (bereich && typ.startsWith('video/')) {
-    const treffer = /bytes=(\d*)-(\d*)/.exec(bereich)
-    if (treffer) {
-      const start = treffer[1] ? Number(treffer[1]) : 0
-      const ende = treffer[2] ? Number(treffer[2]) : groesse - 1
-      if (start >= groesse || ende >= groesse || start > ende) {
-        return new Response('Bereich ungültig', {
-          status: 416,
-          headers: { 'content-range': `bytes */${groesse}` },
-        })
-      }
-      kopfzeilen.set('content-range', `bytes ${start}-${ende}/${groesse}`)
-      kopfzeilen.set('content-length', String(ende - start + 1))
+  /*
+    Videos brauchen Bereichsanfragen, damit im Browser gespult werden kann —
+    und damit der Player überhaupt anfängt: Ein MP4 ohne `faststart` trägt sein
+    `moov`-Kästchen am Dateiende, und danach fragt er mit `bytes=-100000`.
+
+    Ausgewertet wird das in `leseBereich`, geprüft und mit dem Grund. Die
+    frühere Auswertung hier las die leere Zahl vor dem Bindestrich als 0 und
+    lieferte den Dateianfang — der Player fand die Metadaten nie und blieb
+    stehen, ohne dass irgendwo ein Fehler auftauchte.
+  */
+  if (typ.startsWith('video/')) {
+    const bereich = leseBereich(anfrage.headers.get('range'), groesse)
+
+    if (bereich === 'ungueltig') {
+      return new Response('Bereich ungültig', {
+        status: 416,
+        headers: { 'content-range': `bytes */${groesse}` },
+      })
+    }
+
+    if (bereich) {
+      kopfzeilen.set('content-range', `bytes ${bereich.start}-${bereich.ende}/${groesse}`)
+      kopfzeilen.set('content-length', String(bereich.ende - bereich.start + 1))
       kopfzeilen.set('accept-ranges', 'bytes')
-      const strom = Readable.toWeb(createReadStream(pfad, { start, end: ende }))
+      const strom = Readable.toWeb(
+        createReadStream(pfad, { start: bereich.start, end: bereich.ende }),
+      )
       return new Response(strom as ReadableStream, { status: 206, headers: kopfzeilen })
     }
   }

@@ -3,6 +3,7 @@ import { readFile, stat } from 'node:fs/promises'
 import { Readable } from 'node:stream'
 import type { NextRequest } from 'next/server'
 import sharp from 'sharp'
+import { leseBereich } from '@/lib/bereich'
 import { prisma } from '@/lib/db'
 import { absoluterPfad } from '@/lib/medien'
 import { pruefeUnterschrift } from '@/lib/medien-signatur'
@@ -80,23 +81,29 @@ export async function GET(
   kopfzeilen.set('content-type', medium.mimeTyp)
   kopfzeilen.set('content-length', String(groesse))
 
-  // Meta lädt Videos mit Bereichsanfragen — ohne das bricht der Abruf ab.
-  const bereich = anfrage.headers.get('range')
-  if (bereich && medium.mimeTyp.startsWith('video/')) {
-    const treffer = /bytes=(\d*)-(\d*)/.exec(bereich)
-    if (treffer) {
-      const start = treffer[1] ? Number(treffer[1]) : 0
-      const ende = treffer[2] ? Number(treffer[2]) : groesse - 1
-      if (start >= groesse || ende >= groesse || start > ende) {
-        return new Response('Bereich ungültig', {
-          status: 416,
-          headers: { 'content-range': `bytes */${groesse}` },
-        })
-      }
-      kopfzeilen.set('content-range', `bytes ${start}-${ende}/${groesse}`)
-      kopfzeilen.set('content-length', String(ende - start + 1))
+  /*
+    Meta lädt Videos mit Bereichsanfragen — ohne das bricht der Abruf ab. Auch
+    hier über `leseBereich`: Dieselbe fehlerhafte Auswertung stand zweimal im
+    Code, und dass sie an *beiden* Stellen gleich falsch war, hat gerade
+    niemandem geholfen.
+  */
+  if (medium.mimeTyp.startsWith('video/')) {
+    const bereich = leseBereich(anfrage.headers.get('range'), groesse)
+
+    if (bereich === 'ungueltig') {
+      return new Response('Bereich ungültig', {
+        status: 416,
+        headers: { 'content-range': `bytes */${groesse}` },
+      })
+    }
+
+    if (bereich) {
+      kopfzeilen.set('content-range', `bytes ${bereich.start}-${bereich.ende}/${groesse}`)
+      kopfzeilen.set('content-length', String(bereich.ende - bereich.start + 1))
       kopfzeilen.set('accept-ranges', 'bytes')
-      const teil = Readable.toWeb(createReadStream(pfad, { start, end: ende }))
+      const teil = Readable.toWeb(
+        createReadStream(pfad, { start: bereich.start, end: bereich.ende }),
+      )
       return new Response(teil as ReadableStream, { status: 206, headers: kopfzeilen })
     }
   }
