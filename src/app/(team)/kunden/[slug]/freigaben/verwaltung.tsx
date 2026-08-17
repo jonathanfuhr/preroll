@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Auswahl, Eingabe, Feld, Karte, Knopf, Schalter } from '@/components/ui'
+import { Auswahl, Eingabe, Feld, Karte, Knopf } from '@/components/ui'
 import {
   einladungZuruecknehmen,
-  exportAnlegen,
   exportLoeschen,
   exportSpeichern,
   gastEinladen,
@@ -16,19 +15,21 @@ import type { Rolle } from '@prisma/client'
 /** Konten, die als zusätzlicher Ansprechpartner in Frage kommen. */
 type Waehlbar = { id: string; name: string; rolle: Rolle }
 
-type ExportDaten = {
+export type ZugangDaten = {
   id: string
   token: string
   titel: string | null
-  /** `2026-08` — der Wert des Monatsfeldes. */
-  monat: string
-  /** „August 2026" — die Überschrift. */
-  monatTitel: string
   zusatzAnsprechpartnerId: string | null
   aufrufe: number
   zuletztGeoeffnet: string | null
-  stand: { erledigt: number; gesamt: number; vollstaendig: boolean }
   kommentare: number
+}
+
+export type MonatStand = {
+  monat: string
+  titel: string
+  erledigt: number
+  gesamt: number
 }
 
 function AnsprechpartnerWahl({
@@ -50,76 +51,15 @@ function AnsprechpartnerWahl({
   )
 }
 
-export function ExportAnlegen({ kundeId, waehlbare }: { kundeId: string; waehlbare: Waehlbar[] }) {
-  const [offen, setOffen] = useState(false)
-  const heute = new Date()
-  const dieserMonat = `${heute.getFullYear()}-${String(heute.getMonth() + 1).padStart(2, '0')}`
-
-  if (!offen) {
-    return (
-      <Knopf art="primaer" onClick={() => setOffen(true)}>
-        Neue Freigabe
-      </Knopf>
-    )
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-3 sm:px-6">
-      <div className="w-full max-w-[460px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6">
-        <h3 className="mb-5 text-[16px] font-semibold">Neue Freigabe</h3>
-
-        {/* Schließt nach dem Anlegen — ein Dialog, der stehen bleibt, sieht
-            aus, als wäre nichts passiert. */}
-        <form
-          action={async (formular: FormData) => {
-            await exportAnlegen(kundeId, formular)
-            setOffen(false)
-          }}
-          className="grid gap-4"
-        >
-          <Feld beschriftung="Titel" hinweis="Erscheint als Überschrift auf der Kundenseite.">
-            <Eingabe name="titel" placeholder="Content-Plan August 2026" />
-          </Feld>
-
-          <Feld
-            beschriftung="Monat"
-            hinweis="Eine Freigabe umfasst immer den ganzen Monat. Gibt es ihn schon, wird er aktualisiert."
-          >
-            <Eingabe name="monat" type="month" defaultValue={dieserMonat} required />
-          </Feld>
-
-          <Feld
-            beschriftung="Zusätzlicher Ansprechpartner"
-            hinweis="Erscheint neben dem Hauptansprechpartner des Kunden und bekommt dessen Rückmeldungen mit — ersetzt ihn also nicht."
-          >
-            <AnsprechpartnerWahl liste={waehlbare} />
-          </Feld>
-
-          <div className="mt-1 flex justify-end gap-2">
-            <Knopf type="button" art="leise" onClick={() => setOffen(false)}>
-              Abbrechen
-            </Knopf>
-            <Knopf type="submit" art="primaer">
-              Freigabe erstellen
-            </Knopf>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
 /**
  * Dateien eines frei gewählten Zeitraums als ZIP.
  *
- * Steht über den Monatskarten, weil ein Zeitraum quer zu ihnen liegen kann —
- * „von der Konzeptrunde bis zum Dreh" hält sich nicht an Monatsgrenzen. Der
- * Knopf an der einzelnen Karte bleibt daneben stehen; er ist der schnelle Weg
- * für genau diesen Monat.
+ * Steht über dem Zugang, weil ein Zeitraum quer zu den Monaten liegen kann —
+ * „von der Konzeptrunde bis zum Dreh" hält sich nicht an Monatsgrenzen.
  *
  * Der Zeitraum geht als Adresse an die Route und nicht durch ein Formular:
- * Ein `<a download>` bekommt den Strom direkt vom Server, ohne dass der Browser
- * das ganze Archiv erst im Speicher sammelt.
+ * Ein `<a>` bekommt den Strom direkt vom Server, ohne dass der Browser das
+ * ganze Archiv erst im Speicher sammelt.
  */
 export function ZipZeitraum({ exportId, von, bis }: { exportId: string; von: string; bis: string }) {
   const [vonWert, setVon] = useState(von)
@@ -191,56 +131,54 @@ export function ZipZeitraum({ exportId, von, bis }: { exportId: string; von: str
         )}
       </div>
 
-      {!gueltig && (
-        <p className="mt-2 text-[11.5px] text-stiller">Das Ende liegt vor dem Beginn.</p>
-      )}
+      {!gueltig && <p className="mt-2 text-[11.5px] text-stiller">Das Ende liegt vor dem Beginn.</p>}
     </Karte>
   )
 }
 
-export function ExportKarte({
-  exp,
+/**
+ * Der Freigabezugang des Kunden — eine Karte, ein Link.
+ *
+ * Vorher stand hier eine Karte je Monat, jede mit eigenem Link, eigener
+ * Gästeliste und eigener Einladung. Das war dieselbe Arbeit jeden Monat, und
+ * ein Gast, der im August eingeladen war, kam im September nicht hinein. Der
+ * Monat ist keine Eigenschaft des Zugangs — er steht in der Adresse.
+ */
+export function ZugangKarte({
+  zugang,
   basisUrl,
   waehlbare,
   gaeste,
+  monate,
+  mitFreigaben,
 }: {
-  exp: ExportDaten
+  zugang: ZugangDaten
   basisUrl: string
   waehlbare: Waehlbar[]
   gaeste: Array<{ id: string; name: string; email: string; geoeffnet: string | null }>
+  monate: MonatStand[]
+  mitFreigaben: boolean
 }) {
   const [bearbeiten, setBearbeiten] = useState(false)
   const [kopiert, setKopiert] = useState(false)
-  const url = `${basisUrl}/f/${exp.token}`
+  const url = `${basisUrl}/f/${zugang.token}`
 
   return (
     <Karte className="p-5">
+      {/* ------------------------------------------------------------- Link */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="text-[14.5px] font-semibold">{exp.titel ?? exp.monatTitel}</h3>
-            {exp.stand.vollstaendig ? (
-              <span className="rounded-[3px] bg-final-flaeche px-2 py-0.5 text-[11px] font-medium text-final">
-                alle freigegeben
-              </span>
-            ) : (
-              <span className="rounded-[3px] bg-vorschau-flaeche px-2 py-0.5 text-[11px] font-medium text-vorschau">
-                {exp.stand.gesamt > 0
-                  ? `${exp.stand.erledigt} von ${exp.stand.gesamt} freigegeben`
-                  : 'im Review'}
-              </span>
-            )}
-          </div>
+          <h3 className="text-[14.5px] font-semibold">{zugang.titel ?? 'Freigabelink'}</h3>
           <p className="mt-1 text-[12px] text-leiser">
-            {exp.monatTitel} · {exp.aufrufe} Aufrufe
-            {exp.zuletztGeoeffnet && ` · zuletzt geöffnet ${exp.zuletztGeoeffnet}`}
-            {exp.kommentare > 0 && ` · ${exp.kommentare} Kommentare`}
+            {zugang.aufrufe} Aufrufe
+            {zugang.zuletztGeoeffnet && ` · zuletzt geöffnet ${zugang.zuletztGeoeffnet}`}
+            {zugang.kommentare > 0 && ` · ${zugang.kommentare} Kommentare`}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <a
-            href={`/f/${exp.token}`}
+            href={`/f/${zugang.token}`}
             target="_blank"
             rel="noreferrer"
             title="Öffnet die Kundenseite mit Ihrem Konto — ohne Gast-Anmeldung."
@@ -258,21 +196,18 @@ export function ExportKarte({
           >
             {kopiert ? 'Kopiert' : 'Link kopieren'}
           </Knopf>
-          <a
-            href={`/api/export/${exp.id}/zip`}
-            className="rounded-[5px] border border-rahmen-3 px-3 py-1.5 text-[12px] font-medium text-tinte hover:border-rahmen-4"
-          >
-            Dateien als ZIP
-          </a>
           <Knopf klein art="leise" onClick={() => setBearbeiten((v) => !v)}>
             {bearbeiten ? 'Schließen' : 'Bearbeiten'}
           </Knopf>
         </div>
       </div>
 
-      <p className="mt-3 font-mono text-[11.5px] text-stiller">{url}</p>
+      <p className="mt-3 break-all font-mono text-[11.5px] text-stiller">{url}</p>
+      <p className="mt-1 text-[11.5px] text-stiller">
+        Ein Link für alle Monate. Der Kunde wechselt sie in der Leiste am Rand.
+      </p>
 
-      {/* ------------------------------------------------------------- Gäste */}
+      {/* ----------------------------------------------------------- Einladen */}
       <div className="mt-5 border-t border-rahmen pt-4">
         <h4 className="mb-2.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
           Eingeladen
@@ -290,7 +225,7 @@ export function ExportKarte({
                     </span>
                   )}
                 </span>
-                <form action={einladungZuruecknehmen.bind(null, exp.id, gast.id)}>
+                <form action={einladungZuruecknehmen.bind(null, zugang.id, gast.id)}>
                   <button type="submit" className="text-[11.5px] text-stiller hover:text-akzent">
                     entfernen
                   </button>
@@ -300,7 +235,10 @@ export function ExportKarte({
           </ul>
         )}
 
-        <form action={gastEinladen.bind(null, exp.id)} className="flex flex-wrap items-end gap-2">
+        <form
+          action={gastEinladen.bind(null, zugang.id)}
+          className="flex flex-wrap items-end gap-2"
+        >
           <div className="w-[190px]">
             <Eingabe name="email" type="email" required placeholder="kunde@beispiel.de" />
           </div>
@@ -312,38 +250,81 @@ export function ExportKarte({
           </Knopf>
         </form>
         <p className="mt-2 text-[11.5px] text-stiller">
-          Eingeladene sehen den Link nach der Anmeldung auch in ihrer eigenen Übersicht.
+          Die Einladung geht als Mail mit dem Link heraus. Eingeladene sehen ihn nach der Anmeldung
+          auch in ihrer eigenen Übersicht.
         </p>
       </div>
+
+      {/* ------------------------------------------------------------ Monate */}
+      {monate.length > 0 && (
+        <div className="mt-5 border-t border-rahmen pt-4">
+          <h4 className="mb-2.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
+            Monate
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            {monate.map((m) => {
+              const fertig = mitFreigaben && m.gesamt > 0 && m.erledigt === m.gesamt
+              return (
+                <a
+                  key={m.monat}
+                  href={`/f/${zugang.token}?monat=${m.monat}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={
+                    mitFreigaben
+                      ? `${m.erledigt} von ${m.gesamt} freigegeben`
+                      : `${m.gesamt} Beiträge`
+                  }
+                  className="flex items-center gap-2 rounded-[5px] border border-rahmen-3 px-2.5 py-1.5 text-[12px] text-tinte hover:border-rahmen-4"
+                >
+                  {m.titel}
+                  {mitFreigaben && (
+                    <span
+                      aria-hidden
+                      className={`block size-[7px] shrink-0 rounded-full ${
+                        fertig ? 'bg-final' : 'bg-vorschau'
+                      }`}
+                    />
+                  )}
+                </a>
+              )
+            })}
+          </div>
+          <p className="mt-2 text-[11.5px] text-stiller">
+            Aus den Beiträgen abgeleitet — ein Monat erscheint, sobald ein vorzeigbarer Beitrag mit
+            Termin darin steht.
+          </p>
+        </div>
+      )}
 
       {/* --------------------------------------------------------- Bearbeiten */}
       {bearbeiten && (
         <form
-          action={exportSpeichern.bind(null, exp.id)}
+          action={exportSpeichern.bind(null, zugang.id)}
           className="mt-5 grid gap-4 border-t border-rahmen pt-5"
         >
-          <Feld beschriftung="Titel">
-            <Eingabe name="titel" defaultValue={exp.titel ?? ''} />
-          </Feld>
-
-          <Feld beschriftung="Monat">
-            <Eingabe name="monat" type="month" defaultValue={exp.monat} required />
+          <Feld
+            beschriftung="Titel"
+            hinweis="Steht in der Kopfzeile der Kundenseite. Leer heißt: Content-Plan plus Monat."
+          >
+            <Eingabe name="titel" defaultValue={zugang.titel ?? ''} />
           </Feld>
 
           <Feld
             beschriftung="Zusätzlicher Ansprechpartner"
-            hinweis="Nur für diesen Link. Kommt zum Hauptansprechpartner dazu, ersetzt ihn nicht."
+            hinweis="Kommt zum Hauptansprechpartner dazu, ersetzt ihn nicht."
           >
-            <AnsprechpartnerWahl liste={waehlbare} ausgewaehlt={exp.zusatzAnsprechpartnerId} />
+            <AnsprechpartnerWahl liste={waehlbare} ausgewaehlt={zugang.zusatzAnsprechpartnerId} />
           </Feld>
 
           <div className="flex justify-between gap-2">
             <button
               type="submit"
-              formAction={exportLoeschen.bind(null, exp.id)}
+              formAction={exportLoeschen.bind(null, zugang.id)}
               className="text-[12px] text-stiller hover:text-akzent"
+              title="Der Link wird ungültig. Kommentare und Freigaben bleiben."
             >
-              Freigabe löschen
+              Zugang löschen
             </button>
             <Knopf art="primaer" type="submit">
               Speichern

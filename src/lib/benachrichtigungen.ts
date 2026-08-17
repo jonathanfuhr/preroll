@@ -320,9 +320,8 @@ export async function ladeGastEin(exportId: string, gastId: string): Promise<voi
   ])
   if (!gast || !exp) return
 
-  const zeitraum = zeitraumText(exp.zeitraumVon, exp.zeitraumBis)
   await stilleZustellung(
-    sendeMail(vorlageEinladung(gast.email, exp.kunde.name, zeitraum, `${env.appUrl}/f/${exp.token}`)),
+    sendeMail(vorlageEinladung(gast.email, exp.kunde.name, `${env.appUrl}/f/${exp.token}`)),
     `Einladung an ${gast.email}`,
   )
 }

@@ -5,7 +5,7 @@ import type { Verhaeltnis } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
-import { monatsgrenzen } from '@/lib/datum'
+
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
@@ -433,32 +433,26 @@ export async function betreuungSpeichern(kundeId: string, formular: FormData) {
 // ---------------------------------------------------------------- Freigaben
 
 /**
- * Eine Freigabe umfasst immer einen ganzen Monat — gewählt wird deshalb nur
- * der Monat, nicht Von und Bis. Je Kunde und Monat gibt es genau eine; ein
- * zweiter Anlauf aktualisiert die vorhandene, statt einen zweiten Link
- * anzulegen, von dem der Kunde nie erfahren würde.
+ * Der Freigabezugang eines Kunden — genau einer, und ohne Monat.
+ *
+ * Vorher entstand je Monat ein eigener Link. Das hieß: jeden Monat eine neue
+ * Einladung, und ein Gast, der im August eingeladen war, kam im September
+ * nicht mehr hinein. Der Monat steht jetzt in der Adresse; der Zugang bleibt.
+ *
+ * `upsert` statt `create`: Ein zweiter Anlauf soll den vorhandenen Zugang
+ * zeigen und nicht mit einer Eindeutigkeitsverletzung abbrechen. Der **Token
+ * bleibt dabei unangetastet** — ihn neu zu vergeben hieße, jeden verschickten
+ * Link stillzulegen.
  */
-export async function exportAnlegen(kundeId: string, formular: FormData) {
+export async function freigabelinkErzeugen(kundeId: string) {
   await nutzerOderRaus()
 
   const kunde = await prisma.kunde.findUniqueOrThrow({ where: { id: kundeId } })
-  const grenzen = monatsgrenzen(String(formular.get('monat') ?? ''))
-  if (!grenzen) return
 
   await prisma.export.upsert({
-    where: { kundeId_zeitraumVon: { kundeId, zeitraumVon: grenzen.von } },
-    create: {
-      kundeId,
-      token: erzeugeExportToken(),
-      titel: text(formular, 'titel'),
-      zeitraumVon: grenzen.von,
-      zeitraumBis: grenzen.bis,
-      zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
-    },
-    update: {
-      titel: text(formular, 'titel'),
-      zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
-    },
+    where: { kundeId },
+    create: { kundeId, token: erzeugeExportToken() },
+    update: {},
   })
 
   revalidatePath(`/kunden/${kunde.slug}/freigaben`)
@@ -467,13 +461,10 @@ export async function exportAnlegen(kundeId: string, formular: FormData) {
 export async function exportSpeichern(exportId: string, formular: FormData) {
   await nutzerOderRaus()
 
-  const grenzen = monatsgrenzen(String(formular.get('monat') ?? ''))
-
   const exp = await prisma.export.update({
     where: { id: exportId },
     data: {
       titel: text(formular, 'titel'),
-      ...(grenzen ? { zeitraumVon: grenzen.von, zeitraumBis: grenzen.bis } : {}),
       zusatzAnsprechpartnerId: text(formular, 'zusatzAnsprechpartnerId'),
     },
     include: { kunde: true },
