@@ -1,0 +1,108 @@
+# Preroll hinter dem Reverse Proxy von Klappe.
+#
+# ## Warum überhaupt
+#
+# Preroll liefert fast nur Medien aus, und der Cloudflare-Tunnel war dabei der
+# Engpass. Nachgemessen an derselben 98-MB-Datei:
+#
+#   App und Platte (Loopback)             137 MB/s
+#   Mac mini → Arbeitsplatz (Tailscale)    49 MB/s
+#   durch den Tunnel, kalt                0,7 MB/s
+#   durch den Tunnel, warm aus dem Cache   29 MB/s
+#
+# Kalt verschenkt der Tunnel das Siebzigfache. Dass warm 29 MB/s ankommen,
+# zeigt, wo es klemmt: nicht zwischen Cloudflare und Browser, sondern beim
+# Nachladen vom Ursprung. Auf der Kundenseite hängen 156 MB Medien — damit lud
+# sie minutenlang.
+#
+# ## Warum bei Klappes Caddy und nicht bei einem eigenen
+#
+# Port 443 kann nur einer halten, und Klappe hält ihn schon — samt
+# DNS-01-Prüfung und der Doppel-Bauweise mit Rückfahrkarte. Ein zweiter Proxy
+# müsste sich den Port teilen, und das geht nicht.
+#
+# Die Projekte bleiben trotzdem getrennt: Diese Datei gehört zu Preroll und
+# wird in Klappes Caddy nur **hineingelegt** (`/etc/caddy/fremde/`). Klappes
+# Konfiguration nennt Preroll an keiner Stelle; sie liest schlicht, was in
+# diesem Verzeichnis liegt. Und die Container teilen kein Netz — Caddy erreicht
+# Preroll über `host.docker.internal`.
+#
+# ## Warum host.docker.internal und nicht ein gemeinsames Docker-Netz
+#
+# Ein gemeinsames Netz wäre etwas schneller, würde aber beide Compose-Dateien
+# aneinander binden: ein externes Netz, das jemand vorher anlegt, und eine
+# Startreihenfolge, die niemand dokumentiert hat. Nachgemessen kostet der Umweg
+# über den Host nichts, was zählt — 98 MB in 0,89 s, also rund 110 MB/s.
+#
+# Preroll veröffentlicht seinen Port bewusst nur auf der Loopback-Adresse
+# (`127.0.0.1:4400`). Docker Desktop reicht `host.docker.internal` trotzdem
+# dorthin durch; nachgemessen und der Grund, warum die Bindung so bleiben darf.
+#
+# ## Voraussetzungen
+#
+#   * PREROLL_DOMAIN in Klappes .env — der Name, unter dem Preroll läuft
+#   * CF_API_TOKEN dort ebenfalls (hat Klappe schon)
+#   * diese Datei nach ~/docker/klappe/docker/fremde/ gelegt oder verlinkt
+#   * APP_URL in Prerolls .env auf https://<PREROLL_DOMAIN>
+
+# Einmal beschrieben, von beiden Wegen benutzt — ein zweiter Satz Regeln wären
+# zwei Stellen, die auseinanderlaufen können.
+#
+# Steht **vor** den Blöcken, nicht darunter: Caddy kennt einen Baustein erst,
+# wenn er ihn gelesen hat, und eine eingelesene Datei wird an ihrer Stelle von
+# oben nach unten gelesen. Andersherum bricht der Start ab mit „File to import
+# not found: preroll-weiterleitung".
+(preroll-weiterleitung) {
+	# Der Blockupload schickt Teile von 4 MB. Die Grenze stammte vom Tunnel
+	# (keine Anfrage über 100 MB); hier ist sie großzügig gesetzt, damit der
+	# Proxy nie der Grund ist, warum ein Upload scheitert.
+	request_body {
+		max_size 256MB
+	}
+
+	# X-Forwarded-* setzt Caddy von selbst — ausdrücklich hingeschrieben quittiert
+	# es mit „Unnecessary header_up".
+	reverse_proxy host.docker.internal:4400 {
+		# Videos kommen als Strom und in Bereichen. Ohne das puffert Caddy die
+		# Antwort, und der Player wartet auf ein Ende, das erst nach 98 MB kommt.
+		flush_interval -1
+	}
+}
+
+# ------------------------------------------------------------- Weg 1: Tunnel
+#
+# Unverschlüsselt auf Port 80, so wie bisher; TLS bringt Cloudflare mit. Der
+# Name steht ausdrücklich davor: Klappes `:80`-Block fängt alles, was keinen
+# eigenen Namen hat, und Caddy nimmt bei zwei passenden Blöcken den genaueren.
+# Ohne den Namen hier gingen Preroll-Anfragen an Klappe.
+http://{$PREROLL_DOMAIN} {
+	encode zstd gzip
+
+	log {
+		output stdout
+		format json
+	}
+
+	import preroll-weiterleitung
+}
+
+# ------------------------------------------------------------- Weg 2: direkt
+https://{$PREROLL_DOMAIN} {
+	# Zertifikat über die DNS-Prüfung — dieselbe Begründung wie bei Klappe:
+	# DNS-01 braucht keine eingehende Verbindung. Caddy holt das Zertifikat
+	# also, **solange der Name noch auf Cloudflare zeigt**, und wenn
+	# umgeschaltet wird, liegt es längst bereit. Nebenbei hängt die
+	# Verlängerung nicht daran, dass Port 443 von außen erreichbar ist.
+	tls {
+		dns cloudflare {$CF_API_TOKEN}
+	}
+
+	encode zstd gzip
+
+	log {
+		output stdout
+		format json
+	}
+
+	import preroll-weiterleitung
+}
