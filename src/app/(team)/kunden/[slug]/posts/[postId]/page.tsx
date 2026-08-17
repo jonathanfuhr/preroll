@@ -8,7 +8,9 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { freigabeStand } from '@/lib/freigabe'
 import { anzeigePhase } from '@/lib/status'
 import { effektivePlattformen } from '@/lib/plattformen'
+import { freiePlattformen } from '@/lib/varianten'
 import { klappeEingerichtet } from '@/lib/klappe'
+import { varianteAnlegen, varianteLoeschen, varianteSpeichern } from '../../aktionen'
 import { ladeKlappeVideos } from '../../klappe-aktionen'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { medienUrl, thumbUrl } from '@/lib/urls'
@@ -125,6 +127,25 @@ export default async function PostSeite({
         phase={anzeigePhase(post.status, post.postenAm, veroeffentlichungen)}
         gleichzeitig={gleichzeitig}
         plattformen={{ gewaehlt: post.plattformen, moeglich: effektivePlattformen(post.kunde) }}
+        varianten={{
+          zeilen: post.varianten.map((v) => ({
+            id: v.id,
+            plattformen: v.plattformen,
+            caption: v.caption,
+            verhaeltnis: v.verhaeltnis,
+            medienAnzahl: v._count.medien,
+          })),
+          /*
+            Wählbar ist nur, was der Beitrag überhaupt bespielt **und** was in
+            keiner anderen Fassung steht. Zwei Fassungen für dieselbe Plattform
+            wären nicht entscheidbar; die Sperre hier ist Bequemlichkeit, die
+            Regel steht am Server.
+          */
+          frei: freiePlattformen(post.plattformen, post.varianten as never),
+          anlegen: varianteAnlegen.bind(null, post.id, slug),
+          speichern: varianteSpeichern.bind(null, post.id, slug),
+          loeschen: varianteLoeschen.bind(null, post.id, slug),
+        }}
         post={{
           id: post.id,
           typ: post.typ,
