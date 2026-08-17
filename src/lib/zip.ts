@@ -1,5 +1,7 @@
-import type { MediumRolle, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
+import type { MediumRolle, Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import { zipDateiname, zipStempel } from './format'
+import { PLATTFORM_TEXT, sortierePlattformen } from './plattformen'
+import { fassungFuer, type Variante } from './varianten'
 import { postBezeichnung } from './verhaeltnis'
 
 /**
@@ -30,6 +32,10 @@ export type ZipPost = {
   postenAm: Date
   klappeVersionId: string | null
   medien: ZipMedium[]
+  /** Wohin der Beitrag geht — nur nötig, wenn nach Plattform getrennt wird. */
+  plattformen?: Plattform[]
+  /** Abweichende Fassungen je Plattform, sonst leer. */
+  varianten?: Variante<ZipMedium>[]
 }
 
 export type ZipEintrag =
@@ -52,20 +58,72 @@ export function zipPostOrdner(post: {
 
 export function zipEintraege(
   posts: ZipPost[],
+  optionen: {
+    mitCaptions: boolean
+    klappeFassung?: 'original' | 'proxy'
+    /**
+     * Für welche Plattformen exportiert wird.
+     *
+     * Leer heißt „wie bisher": ein Ordner je Beitrag, das Hauptformat, keine
+     * Plattformebene. Mit **einer** Plattform bleibt es bei dieser Struktur —
+     * ein Ordner, in dem nur „Instagram" steht, ist eine Ebene ohne Aussage.
+     * Erst ab zwei kommt sie dazu, weil dann dieselben Beiträge mehrfach
+     * vorkommen und nur der Ordner sie auseinanderhält.
+     */
+    plattformen?: readonly Plattform[]
+  },
+): ZipEintrag[] {
+  const ziele = sortierePlattformen(optionen.plattformen ?? [])
+  if (ziele.length === 0) return fuerFassung(posts, optionen, null, '')
+
+  const mitOrdner = ziele.length > 1
+  const eintraege: ZipEintrag[] = []
+
+  for (const plattform of ziele) {
+    // Nur Beiträge, die diese Plattform auch ansteuern. Ein Beitrag, der
+    // ausdrücklich nicht auf Facebook geht, hat im Facebook-Ordner nichts
+    // verloren — auch nicht „sicherheitshalber".
+    const passend = posts.filter((p) => (p.plattformen ?? []).includes(plattform))
+    const wurzel = mitOrdner ? `${PLATTFORM_TEXT[plattform]}/` : ''
+    eintraege.push(...fuerFassung(passend, optionen, plattform, wurzel))
+  }
+
+  return eintraege
+}
+
+/**
+ * Die Einträge für **eine** Sicht auf die Beiträge: entweder das Hauptformat
+ * (`plattform === null`) oder die Fassung einer Plattform.
+ *
+ * Gerechnet wird die Fassung mit `fassungFuer` — derselben Regel, nach der die
+ * Kundenseite anzeigt. Ein zweiter Weg im ZIP hieße, dass der Kunde etwas
+ * freigibt und etwas anderes ins Archiv kommt.
+ */
+function fuerFassung(
+  posts: ZipPost[],
   optionen: { mitCaptions: boolean; klappeFassung?: 'original' | 'proxy' },
+  plattform: Plattform | null,
+  wurzel: string,
 ): ZipEintrag[] {
   const eintraege: ZipEintrag[] = []
 
   for (const post of posts) {
-    const ordner = zipPostOrdner(post)
+    const fassung = plattform
+      ? fassungFuer(post, post.varianten ?? [], plattform)
+      : null
 
-    for (const eintrag of post.medien) {
+    const verhaeltnis = fassung?.verhaeltnis ?? post.verhaeltnis
+    const medien = fassung?.medien ?? post.medien
+    const caption = fassung?.caption ?? post.caption
+    const ordner = `${wurzel}${zipPostOrdner({ ...post, verhaeltnis })}`
+
+    for (const eintrag of medien) {
       const basis = zipDateiname(
         post.postenAm,
         post.typ,
         eintrag.rolle,
         eintrag.position,
-        post.verhaeltnis,
+        verhaeltnis,
       )
       const endung = eintrag.medium.dateiname.split('.').pop() ?? 'jpg'
       eintraege.push({
@@ -78,11 +136,11 @@ export function zipEintraege(
     // Ein Reel, dessen Video nur als Klappe-Fassung vorliegt, kommt im Moment
     // des Abrufs von dort. Liegt ein eigenes Video am Beitrag, gilt das — sonst
     // lägen zwei Videos im Ordner und keines wäre erkennbar das gültige.
-    const hatEigenesMedium = post.medien.some((m) => m.rolle === 'MEDIUM')
+    const hatEigenesMedium = medien.some((m) => m.rolle === 'MEDIUM')
     if (post.typ === 'REEL' && post.klappeVersionId && !hatEigenesMedium) {
       eintraege.push({
         // Die Endung kennt erst die Antwort aus Klappe.
-        pfad: `${ordner}/${zipDateiname(post.postenAm, 'REEL', 'MEDIUM', 0, post.verhaeltnis)}`,
+        pfad: `${ordner}/${zipDateiname(post.postenAm, 'REEL', 'MEDIUM', 0, verhaeltnis)}`,
         art: 'klappe',
         fassungId: post.klappeVersionId,
         // Das Team bekommt das Original, der Kunde die Abspielfassung.
@@ -94,7 +152,7 @@ export function zipEintraege(
       eintraege.push({
         pfad: `${ordner}/${zipStempel(post.postenAm)}_Caption.txt`,
         art: 'text',
-        inhalt: captionText(post),
+        inhalt: captionText({ ...post, caption, verhaeltnis }),
       })
     }
   }

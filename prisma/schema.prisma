@@ -232,6 +232,17 @@ model Kunde {
   plattformen Plattform[] @default([INSTAGRAM, FACEBOOK])
 
   /**
+   * Die Teilmenge von `plattformen`, die Preroll **selbst** postet. Der Rest
+   * wird nur geplant und von Hand veröffentlicht — der Normalfall, solange
+   * kein Kanal zugeordnet ist.
+   *
+   * `postenAktiv` bleibt daneben als Hauptschalter je Kunde und wird beim
+   * Speichern daraus abgeleitet: leer heißt aus. Zwei Wahrheiten wären es
+   * nur, wenn beide von Hand gepflegt würden.
+   */
+  postenPlattformen Plattform[] @default([])
+
+  /**
    * Über welchen Zugang. Facebook und Instagram teilen sich einen: Das
    * Instagram-Konto hängt an der Facebook-Seite, und der Seiten-Token bedient
    * beide.

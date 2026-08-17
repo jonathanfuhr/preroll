@@ -71,17 +71,9 @@ export default async function KalenderSeite({
         postenAm: true,
         plattformen: true,
         veroeffentlichungen: { select: { stand: true } },
-        // Die Kanäle kommen mit, weil ohne sie keine Marke gezeigt wird —
-        // was nicht rausgeht, soll auch kein Zeichen tragen.
-        kunde: {
-          select: {
-            slug: true,
-            name: true,
-            fbSeitenId: true,
-            igKontoId: true,
-            liOrganisationId: true,
-          },
-        },
+        // Die Plattformwahl des Kunden kommt mit: Marken stehen für das, was
+        // geplant ist — nicht dafür, wer es hochlädt.
+        kunde: { select: { slug: true, name: true, plattformen: true } },
       },
     }),
   ])

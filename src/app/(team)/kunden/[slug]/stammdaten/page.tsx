@@ -152,7 +152,7 @@ export default async function StammdatenSeite({
             <PlattformwahlKarte
               speichern={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
               plattformen={kunde.plattformen}
-              postenAktiv={kunde.postenAktiv}
+              postenPlattformen={kunde.postenPlattformen}
               seitenId={kunde.fbSeitenId}
               igKontoId={kunde.igKontoId}
               liOrganisationId={kunde.liOrganisationId}
@@ -248,7 +248,6 @@ export default async function StammdatenSeite({
             speichern={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
             zugangSteht={zugaenge.length > 0}
             zugangFehler={zugaenge.find((z) => z.fehler)?.fehler ?? null}
-            postenAktiv={kunde.postenAktiv}
             seitenId={kunde.fbSeitenId}
             seitenName={kunde.fbSeitenName}
             igName={kunde.igName}

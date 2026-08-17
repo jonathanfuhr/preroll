@@ -1,7 +1,7 @@
 import 'server-only'
 import type { Plattform } from '@prisma/client'
 import { prisma } from './db'
-import { zielPlattformen } from './plattformen'
+import { postenZiele } from './plattformen'
 import { posteAufLinkedIn } from './linkedin'
 import { gueltigesToken } from './linkedin-zugang'
 import {
@@ -88,14 +88,28 @@ export async function gleicheVeroeffentlichungenAb(jetzt = new Date()): Promise<
       kunde: {
         postenAktiv: true,
         archiviert: false,
-        fbSeitenToken: { not: null },
+        /*
+          Mindestens ein brauchbarer Kanal. Vorher stand hier allein
+          `fbSeitenToken` — ein Kunde, für den nur LinkedIn gepostet wird,
+          kam damit nie in die Auswahl. Aufgefallen, als der Modus je
+          Plattform genau diese Lage erreichbar machte.
+        */
+        OR: [{ fbSeitenToken: { not: null } }, { liOrganisationId: { not: null } }],
       },
     },
     select: {
       id: true,
       postenAm: true,
       plattformen: true,
-      kunde: { select: { fbSeitenId: true, igKontoId: true, liOrganisationId: true } },
+      kunde: {
+        select: {
+          plattformen: true,
+          postenPlattformen: true,
+          fbSeitenId: true,
+          igKontoId: true,
+          liOrganisationId: true,
+        },
+      },
       veroeffentlichungen: { select: { id: true, plattform: true, stand: true, geplantFuer: true } },
     },
   })
@@ -103,7 +117,9 @@ export async function gleicheVeroeffentlichungenAb(jetzt = new Date()): Promise<
   for (const post of posts) {
     if (!post.postenAm) continue
 
-    const ziele = zielPlattformen(post.plattformen, post.kunde)
+    // Der Beitrag will es, der Kunde hat die Plattform auf „planen und
+    // posten", und der Kanal ist da — alle drei, sonst tut Preroll nichts.
+    const ziele = postenZiele(post, post.kunde)
 
     /*
       Eine abgewählte Plattform nimmt ihre geplante Zeile wieder mit. Nur die

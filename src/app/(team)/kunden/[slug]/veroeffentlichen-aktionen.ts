@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db'
 import { uebernehmePlattformen } from '@/lib/kunde-plattformen'
 import { ladeLinkedInZugang, linkedInOrganisationen } from '@/lib/linkedin-zugang'
 import { metaSeiten } from '@/lib/plattform-zugang'
-import { moeglichePlattformen, plattformenAusFormular } from '@/lib/plattformen'
+import { moeglichePlattformen, wahlAusFormular } from '@/lib/plattformen'
 
 async function angemeldetOderRaus() {
   const nutzer = await aktuellerNutzer()
@@ -43,14 +43,19 @@ export async function veroeffentlichenSpeichern(
   const kanalDa = formular.get('kanalGesetzt') === '1'
 
   if (kanalDa) {
-    const postenAktiv = formular.get('postenAktiv') === 'on'
     const seitenId = String(formular.get('fbSeitenId') ?? '').trim()
 
     if (!seitenId) {
       await prisma.kunde.update({
         where: { id: kundeId },
         data: {
-          postenAktiv: false,
+          /*
+            Ohne Seite kann Preroll für Meta nicht mehr posten — die beiden
+            fliegen deshalb aus `postenPlattformen`. **Aus `plattformen`
+            nicht:** Geplant bleibt geplant, nur eben von Hand. Genau dafür
+            gibt es den mittleren Modus.
+          */
+          postenPlattformen: { set: [] },
           metaZugangId: null,
           fbSeitenId: null,
           fbSeitenName: null,
@@ -75,7 +80,7 @@ export async function veroeffentlichenSpeichern(
       const seite = seiten.find((s) => s.id === seitenId)
 
       if (!seite && unveraendert) {
-        await prisma.kunde.update({ where: { id: kundeId }, data: { postenAktiv } })
+        // Nichts zu tun: Die Zuordnung steht, Meta antwortet nur gerade nicht.
       } else if (!seite) {
         redirect(
           `${ziel}?meta=fehler&meldung=${encodeURIComponent(
@@ -86,7 +91,6 @@ export async function veroeffentlichenSpeichern(
         await prisma.kunde.update({
           where: { id: kundeId },
           data: {
-            postenAktiv,
             // Der Zugang kommt von der Seite, nicht „der eine": Bei mehreren
             // Portfolios hängt jede Seite an ihrem eigenen Systemnutzer.
             metaZugangId: seite.zugangId,
@@ -108,13 +112,40 @@ export async function veroeffentlichenSpeichern(
       where: { id: kundeId },
       select: { fbSeitenId: true, igKontoId: true, liOrganisationId: true },
     })
-    const moeglich = moeglichePlattformen(kanaele)
-    const plattformen = plattformenAusFormular(formular).filter((p) => moeglich.includes(p))
+    const { plattformen, postenPlattformen } = wahlAusFormular(formular, kanaele)
 
-    await prisma.kunde.update({ where: { id: kundeId }, data: { plattformen } })
+    await prisma.kunde.update({
+      where: { id: kundeId },
+      data: {
+        plattformen,
+        postenPlattformen,
+        // Abgeleitet, nicht zweitgepflegt: Der Hauptschalter je Kunde ist
+        // wahr, sobald irgendeine Plattform auf „planen und posten" steht.
+        // Er bleibt als Spalte, weil Zeitplaner und Einstellungen darauf
+        // filtern — zwei Wahrheiten wären es nur, wenn beide von Hand
+        // gesetzt würden.
+        postenAktiv: postenPlattformen.length > 0,
+      },
+    })
     if (formular.get('plattformenUebernehmen') === 'on') {
       await uebernehmePlattformen(kundeId, plattformen)
     }
+  }
+
+  /*
+    Fällt ein Kanal weg, muss auch der Hauptschalter nachziehen — sonst stünde
+    er auf „an", während `postenPlattformen` leer ist. Steht hier am Ende,
+    weil beide Blöcke daran drehen können.
+  */
+  const stand = await prisma.kunde.findUniqueOrThrow({
+    where: { id: kundeId },
+    select: { postenPlattformen: true, postenAktiv: true },
+  })
+  if (stand.postenAktiv !== stand.postenPlattformen.length > 0) {
+    await prisma.kunde.update({
+      where: { id: kundeId },
+      data: { postenAktiv: stand.postenPlattformen.length > 0 },
+    })
   }
 
   revalidatePath(ziel, 'layout')

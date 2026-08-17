@@ -7,6 +7,7 @@ import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { kommentarPdf } from '@/lib/pdf'
 import { zipEintraege } from '@/lib/zip'
 import { archivAntwort, schreibeArchiv } from '@/lib/zip-schreiben'
+import { GEBAUTE_PLATTFORMEN } from '@/lib/plattformen'
 
 /**
  * Alle Medien eines Zeitraums als ZIP — der Weg für alles, was Preroll nicht
@@ -62,7 +63,20 @@ export async function GET(
       ...(alsGast ? { status: 'FINAL' as const } : {}),
     },
     orderBy: { postenAm: 'asc' },
-    include: { medien: POST_MEDIEN },
+    include: {
+      medien: POST_MEDIEN,
+      // Die Fassungen kommen mit, weil das ZIP je Plattform die ihre nimmt —
+      // dieselbe Regel, nach der die Kundenseite anzeigt.
+      varianten: {
+        orderBy: { position: 'asc' },
+        include: {
+          medien: {
+            orderBy: { position: 'asc' },
+            include: { medium: { select: { pfad: true, dateiname: true } } },
+          },
+        },
+      },
+    },
   })
 
   /*
@@ -82,7 +96,17 @@ export async function GET(
 
   const posts = postsImZeitraum(alle, { zeitraumVon, zeitraumBis })
 
-  const eintraege = zipEintraege(posts, { mitCaptions })
+  /*
+    Für welche Plattformen. Ohne Angabe bleibt es beim Hauptformat und einem
+    Ordner je Beitrag — so wie bisher, damit ein alter Link dasselbe liefert.
+    Der Gast darf ebenfalls wählen: Er sieht die Fassungen ohnehin auf seiner
+    Seite; ihm den Download danach zu verweigern wäre eine Hürde ohne Zweck.
+  */
+  const gewaehlt = GEBAUTE_PLATTFORMEN.filter((p) =>
+    suche.getAll('plattform').includes(p),
+  )
+
+  const eintraege = zipEintraege(posts, { mitCaptions, plattformen: gewaehlt })
 
   if (mitKommentaren) {
     const kommentare = await prisma.kommentar.findMany({

@@ -10,7 +10,7 @@ import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
 import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
-import { moeglichePlattformen, plattformenAusFormular } from '@/lib/plattformen'
+import { effektivePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
@@ -182,9 +182,10 @@ export async function postAnlegen(kundeId: string, formular: FormData) {
         einen eigenen Haken.
       */
       plattformen: (() => {
-        const moeglich = moeglichePlattformen(kunde).filter((p) =>
-          kunde.plattformen.includes(p),
-        )
+        // Geschnitten wird gegen das, was der **Kunde bespielt** — nicht
+        // gegen seine Kanäle. Ob Preroll dort selbst postet, ist eine andere
+        // Frage und steht am Kunden, nicht am Beitrag.
+        const moeglich = effektivePlattformen(kunde)
         return formular.get('plattformenGesetzt') === '1'
           ? plattformenAusFormular(formular).filter((p) => moeglich.includes(p))
           : moeglich
@@ -260,15 +261,15 @@ export async function postSpeichern(postId: string, formular: FormData) {
       /*
         Ohne Merkerfeld unangetastet lassen: „nichts angehakt" ist eine
         gültige Wahl, „Feld war nicht im Formular" darf sie nicht auslösen.
-        Geschnitten wird gegen das, was der Kunde führt **und** wofür ein
-        Kanal zugeordnet ist — die Sperre im Formular ist Bequemlichkeit,
-        entschieden wird hier.
+        Geschnitten wird gegen das, was der Kunde bespielt — die Sperre im
+        Formular ist Bequemlichkeit, entschieden wird hier. Der Kanal spielt
+        hier keine Rolle: Auch eine Plattform, die von Hand bespielt wird,
+        gehört an den Beitrag.
       */
       ...(formular.get('plattformenGesetzt') === '1'
         ? {
-            plattformen: plattformenAusFormular(formular).filter(
-              (p) =>
-                kanaele.plattformen.includes(p) && moeglichePlattformen(kanaele).includes(p),
+            plattformen: plattformenAusFormular(formular).filter((p) =>
+              kanaele.plattformen.includes(p),
             ),
           }
         : {}),

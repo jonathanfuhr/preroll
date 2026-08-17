@@ -105,7 +105,12 @@ export default async function FreigabenSeite({ params }: { params: Promise<{ slu
       <Kopf name={kunde.name} monate={monate.length} />
 
       <div className="grid gap-6">
-        <ZipZeitraum exportId={zugang.id} von={alsTag(von)} bis={alsTag(bis)} />
+        <ZipZeitraum
+          exportId={zugang.id}
+          von={alsTag(von)}
+          bis={alsTag(bis)}
+          plattformen={kunde.plattformen}
+        />
 
         <ZugangKarte
           zugang={{

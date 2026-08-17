@@ -29,29 +29,36 @@ export type VariantenMedium = {
   medium: { mimeTyp: string }
 }
 
-export type Variante = {
+export type Variante<M = VariantenMedium> = {
   id: string
   plattformen: Plattform[]
   caption: string | null
   verhaeltnis: Verhaeltnis | null
-  medien: VariantenMedium[]
+  medien: M[]
   position: number
 }
 
-export type Hauptbeitrag = {
+/**
+ * Über das Medium ist die Erbregel **generisch**: Sie reicht Listen durch und
+ * sieht nie hinein. Die Anzeige braucht den MIME-Typ, das ZIP Pfad und
+ * Dateinamen — dieselbe Regel, zwei Sichten auf dasselbe Medium. Ohne den
+ * Typparameter stünde die Regel ein zweites Mal im ZIP, und die zweite
+ * Fassung liefe irgendwann auseinander.
+ */
+export type Hauptbeitrag<M = VariantenMedium> = {
   caption: string
   verhaeltnis: Verhaeltnis
-  medien: VariantenMedium[]
+  medien: M[]
 }
 
 /** Was auf einer Plattform gilt, nachdem geerbt wurde. */
-export type Fassung = {
+export type Fassung<M = VariantenMedium> = {
   /** Die Variante, aus der abgewichen wird — `null` beim Hauptformat. */
   varianteId: string | null
   plattformen: Plattform[]
   caption: string
   verhaeltnis: Verhaeltnis
-  medien: VariantenMedium[]
+  medien: M[]
   /** Was tatsächlich abweicht — trägt die Beschriftung beim Kunden. */
   eigeneCaption: boolean
   eigeneMedien: boolean
@@ -65,7 +72,10 @@ export type Fassung = {
  * hier zu werfen: Eine Anzeige, die an einer widersprüchlichen Eingabe
  * abstürzt, ist schlechter als eine, die sich entscheidet.
  */
-export function varianteFuer(varianten: Variante[], plattform: Plattform): Variante | null {
+export function varianteFuer<M>(
+  varianten: Variante<M>[],
+  plattform: Plattform,
+): Variante<M> | null {
   const passend = [...varianten]
     .sort((a, b) => a.position - b.position)
     .find((v) => v.plattformen.includes(plattform))
@@ -79,11 +89,11 @@ export function varianteFuer(varianten: Variante[], plattform: Plattform): Varia
  * Ein Karussell, dessen zweiter Slide aus der Variante und dessen dritter aus
  * dem Beitrag kommt, wäre eine Zusammenstellung, die niemand so gemeint hat.
  */
-export function fassungFuer(
-  post: Hauptbeitrag,
-  varianten: Variante[],
+export function fassungFuer<M>(
+  post: Hauptbeitrag<M>,
+  varianten: Variante<M>[],
   plattform: Plattform,
-): Fassung {
+): Fassung<M> {
   const variante = varianteFuer(varianten, plattform)
   if (!variante) {
     return {

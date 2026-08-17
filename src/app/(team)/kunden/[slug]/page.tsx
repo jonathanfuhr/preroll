@@ -1,3 +1,4 @@
+import type { Plattform } from '@prisma/client'
 import { ersteMedien, ladeKunde, ladePosts, rasterMedium } from '@/lib/abfragen'
 import { prisma } from '@/lib/db'
 import { offeneStufe } from '@/lib/freigabe'
@@ -139,8 +140,8 @@ function Kalender({
 }: {
   slug: string
   posts: Posts
-  /** Ohne Kanal keine Marken — dieselbe Regel wie in der Liste. */
-  kanaele: { fbSeitenId: string | null; igKontoId: string | null }
+  /** Was der Kunde bespielt — nur dafür stehen Marken. */
+  kanaele: { plattformen: Plattform[] }
 }) {
   const eintraege: Kalendereintrag[] = posts.map((post) => ({
     id: post.id,

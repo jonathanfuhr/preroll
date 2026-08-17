@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   angezeigtePlattformen,
+  modusFuer,
+  postenZiele,
+  wahlAusFormular,
   effektivePlattformen,
   GEBAUTE_PLATTFORMEN,
   moeglichePlattformen,
@@ -48,7 +51,7 @@ describe('zielPlattformen', () => {
 })
 
 describe('moeglichePlattformen', () => {
-  it('sind die, für die ein Kanal zugeordnet ist', () => {
+  it('sind die, für die ein Kanal zugeordnet ist — nur die dürfen „posten"', () => {
     expect(moeglichePlattformen(BEIDE)).toEqual(['FACEBOOK', 'INSTAGRAM'])
     expect(moeglichePlattformen(NUR_FB)).toEqual(['FACEBOOK'])
     expect(moeglichePlattformen(KEINER)).toEqual([])
@@ -56,22 +59,17 @@ describe('moeglichePlattformen', () => {
 })
 
 describe('effektivePlattformen', () => {
-  it('schneidet die Wahl des Kunden auf das Eingerichtete', () => {
-    expect(effektivePlattformen({ plattformen: ['FACEBOOK', 'INSTAGRAM'], ...NUR_FB })).toEqual([
+  it('ist alles, was der Kunde bespielt — Kanal hin oder her', () => {
+    // Fürs Planen braucht es keinen Kanal. Genau das war vorher nicht
+    // ausdrückbar: „für Instagram planen, von Hand posten".
+    expect(effektivePlattformen({ plattformen: ['FACEBOOK', 'INSTAGRAM'] })).toEqual([
       'FACEBOOK',
+      'INSTAGRAM',
     ])
   })
 
-  it('lässt eine Wahl stehen, die gerade keinen Kanal hat — sie kommt zurück', () => {
-    // Die Wahl bleibt in der Datenbank; wirksam ist sie nur mit Kanal. Wird
-    // die Seite wieder zugeordnet, steht die alte Wahl ohne Zutun wieder da.
-    const kunde = { plattformen: ['FACEBOOK', 'INSTAGRAM'] as const }
-    expect(effektivePlattformen({ ...kunde, ...KEINER })).toEqual([])
-    expect(effektivePlattformen({ ...kunde, ...BEIDE })).toEqual(['FACEBOOK', 'INSTAGRAM'])
-  })
-
   it('gibt nichts, wenn der Kunde nichts gewählt hat', () => {
-    expect(effektivePlattformen({ plattformen: [], ...BEIDE })).toEqual([])
+    expect(effektivePlattformen({ plattformen: [] })).toEqual([])
   })
 })
 
@@ -144,13 +142,91 @@ describe('LinkedIn hängt an seiner eigenen Zuordnung', () => {
 })
 
 describe('angezeigtePlattformen', () => {
-  it('zeigt nur, was auch rausginge', () => {
-    const post = { plattformen: ['FACEBOOK', 'INSTAGRAM'] as const }
-    expect(angezeigtePlattformen(post, BEIDE)).toEqual(['FACEBOOK', 'INSTAGRAM'])
-    expect(angezeigtePlattformen(post, NUR_FB)).toEqual(['FACEBOOK'])
+  const post = { plattformen: ['FACEBOOK', 'INSTAGRAM'] as const }
+
+  it('zeigt, was der Kunde bespielt — mit Kanal oder ohne', () => {
+    expect(angezeigtePlattformen(post, { plattformen: ['FACEBOOK', 'INSTAGRAM'] })).toEqual([
+      'FACEBOOK',
+      'INSTAGRAM',
+    ])
   })
 
-  it('zeigt ohne zugeordneten Kanal gar nichts — auch wenn der Beitrag es will', () => {
-    expect(angezeigtePlattformen({ plattformen: ['FACEBOOK', 'INSTAGRAM'] }, KEINER)).toEqual([])
+  it('lässt weg, was der Kunde abgeschaltet hat — die rohe Wahl bleibt stehen', () => {
+    expect(angezeigtePlattformen(post, { plattformen: ['FACEBOOK'] })).toEqual(['FACEBOOK'])
+    expect(angezeigtePlattformen(post, { plattformen: [] })).toEqual([])
+  })
+
+  it('hängt nicht am Kanal — geplant ist geplant, auch wenn von Hand gepostet wird', () => {
+    expect(angezeigtePlattformen(post, { plattformen: ['INSTAGRAM'] })).toEqual(['INSTAGRAM'])
+  })
+})
+
+describe('modusFuer', () => {
+  const kunde = { plattformen: ['FACEBOOK', 'INSTAGRAM'], postenPlattformen: ['FACEBOOK'] } as const
+
+  it('nennt die drei Zustände', () => {
+    expect(modusFuer(kunde, 'FACEBOOK')).toBe('POSTEN')
+    expect(modusFuer(kunde, 'INSTAGRAM')).toBe('PLANEN')
+    expect(modusFuer(kunde, 'LINKEDIN')).toBe('AUS')
+  })
+})
+
+describe('wahlAusFormular', () => {
+  const formular = (werte: Record<string, string>) => {
+    const f = new FormData()
+    for (const [k, v] of Object.entries(werte)) f.set(k, v)
+    return f
+  }
+
+  it('trennt Planen von Posten', () => {
+    const wahl = wahlAusFormular(
+      formular({ modus_FACEBOOK: 'POSTEN', modus_INSTAGRAM: 'PLANEN', modus_LINKEDIN: 'AUS' }),
+      BEIDE,
+    )
+    expect(wahl.plattformen).toEqual(['FACEBOOK', 'INSTAGRAM'])
+    expect(wahl.postenPlattformen).toEqual(['FACEBOOK'])
+  })
+
+  it('stuft „posten" ohne Kanal auf „planen" herunter, statt abzuweisen', () => {
+    // Passiert, wenn jemand in einem Zug den Kanal entfernt und den Modus
+    // stehen lässt. Die Absicht ist eindeutig: geplant bleibt geplant.
+    const wahl = wahlAusFormular(formular({ modus_INSTAGRAM: 'POSTEN' }), NUR_FB)
+    expect(wahl.plattformen).toEqual(['INSTAGRAM'])
+    expect(wahl.postenPlattformen).toEqual([])
+  })
+
+  it('nimmt ein fehlendes Feld als „aus"', () => {
+    expect(wahlAusFormular(formular({}), BEIDE).plattformen).toEqual([])
+  })
+})
+
+describe('postenZiele', () => {
+  const post = { plattformen: ['FACEBOOK', 'INSTAGRAM'] as const }
+
+  it('verlangt alle drei: Beitrag, Modus und Kanal', () => {
+    const kunde = {
+      plattformen: ['FACEBOOK', 'INSTAGRAM'],
+      postenPlattformen: ['FACEBOOK', 'INSTAGRAM'],
+      ...BEIDE,
+    } as const
+    expect(postenZiele(post, kunde)).toEqual(['FACEBOOK', 'INSTAGRAM'])
+  })
+
+  it('postet nicht, wo der Kunde nur plant', () => {
+    const kunde = {
+      plattformen: ['FACEBOOK', 'INSTAGRAM'],
+      postenPlattformen: ['FACEBOOK'],
+      ...BEIDE,
+    } as const
+    expect(postenZiele(post, kunde)).toEqual(['FACEBOOK'])
+  })
+
+  it('postet nicht ohne Kanal, auch wenn der Modus es sagt', () => {
+    const kunde = {
+      plattformen: ['FACEBOOK', 'INSTAGRAM'],
+      postenPlattformen: ['FACEBOOK', 'INSTAGRAM'],
+      ...NUR_FB,
+    } as const
+    expect(postenZiele(post, kunde)).toEqual(['FACEBOOK'])
   })
 })

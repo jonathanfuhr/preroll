@@ -100,56 +100,112 @@ export function zielPlattformen(
 }
 
 /**
- * Was an einem Beitrag **angezeigt** wird — und zwar genau das, was auch
- * rausginge.
+ * Was eine Plattform bei diesem Kunden ist.
  *
- * Die Marken am Beitrag sind eine Aussage über die Wirklichkeit: „erscheint
- * auf Instagram und Facebook". Ohne zugeordneten Kanal stimmt sie nicht —
- * dann plant die Agentur bloß und postet von Hand, und ein Instagram-Zeichen
- * behauptete etwas, das niemand versprochen hat.
+ * Drei Zustände, weil zwei zu wenig waren: Bis hierher hieß „gewählt"
+ * zugleich „Preroll postet das", und wählbar war nur, wofür ein Kanal
+ * zugeordnet war. Damit ließ sich der Normalfall nicht ausdrücken — für
+ * Instagram planen und von Hand posten. Genau dafür ist `PLANEN` da.
  *
- * Deshalb nimmt **keine** Anzeige `post.plattformen` roh. Die rohe Wahl ist
- * die Absicht und bleibt stehen, auch wenn der Kanal fehlt; angezeigt wird
- * der Schnitt mit dem, was der Kunde wirklich hat. Dieselbe Rechnung macht
- * `veroeffentlichung.ts` beim Anlegen der Läufe — Anzeige und Wirkung
- * stammen damit aus derselben Quelle.
+ * `POSTEN` setzt einen Kanal voraus; ohne ihn wäre es ein Versprechen, das
+ * niemand halten kann.
  */
-export function angezeigtePlattformen(
-  post: { plattformen: readonly Plattform[] },
-  kunde: Kanaele,
-): Plattform[] {
-  return zielPlattformen(post.plattformen, kunde)
+export type PlattformModus = 'AUS' | 'PLANEN' | 'POSTEN'
+
+export const MODUS_TEXT: Record<PlattformModus, string> = {
+  AUS: 'aus',
+  PLANEN: 'nur planen',
+  POSTEN: 'planen und posten',
+}
+
+export type Plattformwahl = {
+  plattformen: readonly Plattform[]
+  postenPlattformen: readonly Plattform[]
+}
+
+export function modusFuer(kunde: Plattformwahl, plattform: Plattform): PlattformModus {
+  if (kunde.postenPlattformen.includes(plattform)) return 'POSTEN'
+  if (kunde.plattformen.includes(plattform)) return 'PLANEN'
+  return 'AUS'
 }
 
 /**
- * Was bei diesem Kunden überhaupt eingerichtet ist.
+ * Die Wahl aus einem Formular mit einem Auswahlfeld je Plattform.
  *
- * **Nur das ist wählbar.** Eine Plattform ohne zugeordneten Kanal ließe sich
- * zwar anhaken, aber nie bespielen — und ein Häkchen, das nichts bewirkt, ist
- * eine Lüge im Formular. Statt hinterher zu warnen, kommt man gar nicht erst
- * in den Zustand.
+ * `POSTEN` ohne Kanal wird auf `PLANEN` heruntergestuft, nicht abgewiesen:
+ * Das passiert, wenn jemand in einem Zug den Kanal entfernt und den Modus
+ * stehen lässt. Ein Fehler wäre hier lästig und die Absicht ist eindeutig —
+ * die Plattform bleibt geplant, nur eben von Hand.
+ */
+export function wahlAusFormular(formular: FormData, kanaele: Kanaele): {
+  plattformen: Plattform[]
+  postenPlattformen: Plattform[]
+} {
+  const mitKanal = moeglichePlattformen(kanaele)
+  const plattformen: Plattform[] = []
+  const postenPlattformen: Plattform[] = []
+
+  for (const p of GEBAUTE_PLATTFORMEN) {
+    const modus = String(formular.get(`modus_${p}`) ?? 'AUS')
+    if (modus === 'AUS') continue
+    plattformen.push(p)
+    if (modus === 'POSTEN' && mitKanal.includes(p)) postenPlattformen.push(p)
+  }
+
+  return { plattformen: sortierePlattformen(plattformen), postenPlattformen: sortierePlattformen(postenPlattformen) }
+}
+
+/**
+ * Was an einem Beitrag **angezeigt** wird.
  *
- * Der Preis ist eine Kopplung: Ohne Meta-Zuordnung hat ein Kunde keine
- * Plattformen, also auch keine Marken auf der Kundenseite. Wer nur planen und
- * weiter von Hand posten will, ordnet die Seite trotzdem zu — `postenAktiv`
- * bleibt davon unberührt.
+ * Die Marken sind eine Aussage über die Planung: „erscheint auf Instagram und
+ * Facebook". Ob Preroll das selbst postet oder jemand von Hand, ändert daran
+ * nichts — der Kunde soll sehen, wo sein Beitrag erscheint, nicht wer ihn
+ * hochlädt. Deshalb zählt hier `plattformen`, nicht `postenPlattformen`.
+ *
+ * Gezeigt wird trotzdem nicht `post.plattformen` roh: Die rohe Wahl ist die
+ * Absicht und bleibt stehen, auch wenn der Kunde die Plattform später
+ * abschaltet. Angezeigt wird der Schnitt mit dem, was heute gilt.
+ */
+export function angezeigtePlattformen(
+  post: { plattformen: readonly Plattform[] },
+  kunde: { plattformen: readonly Plattform[] },
+): Plattform[] {
+  return sortierePlattformen(post.plattformen).filter((p) => kunde.plattformen.includes(p))
+}
+
+/**
+ * Was bei diesem Kunden einen Kanal hat — und damit für `POSTEN` in Frage
+ * kommt. Fürs Planen braucht es keinen.
  */
 export function moeglichePlattformen(kanaele: Kanaele): Plattform[] {
   return zielPlattformen(GEBAUTE_PLATTFORMEN, kanaele)
 }
 
 /**
- * Was bei diesem Kunden tatsächlich gilt: seine Wahl, beschnitten auf das,
- * wofür ein Kanal da ist.
- *
- * Abgeleitet statt nachgeführt. Wird einem Kunden die Seite entzogen, muss
- * nicht erst jemand seine Plattformliste aufräumen — sie schrumpft von
- * selbst, und sobald der Kanal wieder da ist, steht die alte Wahl wieder.
+ * Was ein Beitrag dieses Kunden überhaupt ansteuern darf: alles, was der
+ * Kunde bespielt — mit oder ohne Kanal. Mehr als sein Kunde kann ein Beitrag
+ * nie.
  */
-export function effektivePlattformen(
-  kunde: Kanaele & { plattformen: readonly Plattform[] },
+export function effektivePlattformen(kunde: { plattformen: readonly Plattform[] }): Plattform[] {
+  return sortierePlattformen(kunde.plattformen)
+}
+
+/**
+ * Wohin Preroll für diesen Beitrag **selbst** postet.
+ *
+ * Drei Bedingungen, alle nötig: Der Beitrag muss die Plattform wollen, der
+ * Kunde muss sie auf „planen und posten" stehen haben, und der Kanal muss da
+ * sein. Abgeleitet statt nachgeführt — fällt eine der drei weg, schrumpft das
+ * Ergebnis von selbst und steht wieder da, sobald sie zurück ist.
+ */
+export function postenZiele(
+  post: { plattformen: readonly Plattform[] },
+  kunde: Plattformwahl & Kanaele,
 ): Plattform[] {
-  return zielPlattformen(kunde.plattformen, kunde)
+  return zielPlattformen(post.plattformen, kunde).filter((p) =>
+    kunde.postenPlattformen.includes(p),
+  )
 }
 
 /**

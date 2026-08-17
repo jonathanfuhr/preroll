@@ -1,6 +1,6 @@
 import type { Plattform } from '@prisma/client'
 import { moeglichePlattformen } from '@/lib/plattformen'
-import { PlattformWahl } from '@/components/plattform-wahl'
+import { PlattformModusWahl } from '@/components/plattform-modus'
 import { Auswahl, Feld, Fehler, Hinweis, Knopf, Schalter, Warnung } from '@/components/ui'
 
 export type MetaSeitenZeile = {
@@ -36,24 +36,22 @@ function sperren(seitenId: string | null, igKontoId: string | null, liOrgId: str
 }
 
 /**
- * Wohin dieser Kunde bespielt wird — und ob Preroll das selbst übernimmt.
+ * Wohin dieser Kunde bespielt wird — und wo Preroll das selbst übernimmt.
  *
- * Zwei Fragen, die leicht verwechselt werden:
+ * Beides steht jetzt in **einer** Zeile je Plattform: aus, nur planen, planen
+ * und posten. Vorher waren es zwei Fragen an zwei Orten — Kästchen oben, ein
+ * Schalter darunter — und dazwischen fehlte der häufigste Fall: für Instagram
+ * planen und von Hand posten. „Wählbar ist nur, wofür ein Kanal da ist" war
+ * dafür die falsche Regel; sie band die Planung an das Posten.
  *
- * 1. **Wohin geht der Content?** Das ist Planung. Sie gilt auch dann, wenn die
- *    Agentur von Hand postet — der Kunde soll ja sehen, dass ein Beitrag auf
- *    Instagram *und* Facebook erscheint.
- * 2. **Postet Preroll das selbst?** Der Schalter darunter.
- *
- * Beides hängt an der Kanalzuordnung im Abschnitt **Meta**: Wählbar ist nur,
- * wofür ein Kanal hinterlegt ist. Ein Häkchen, das nichts bewirken kann, wäre
- * eine Falle — lieber gesperrt mit Grund als anhakbar mit Warnung. Der Preis
- * ist die Kopplung über zwei Abschnitte hinweg; sie steht im Hinweistext.
+ * Geblieben ist die Bindung nur dort, wo sie stimmt: **„planen und posten"
+ * braucht einen Kanal.** Der steht im Abschnitt darunter, deshalb nennt der
+ * Grund ihn beim Namen.
  */
 export function PlattformwahlKarte({
   speichern,
   plattformen,
-  postenAktiv,
+  postenPlattformen,
   seitenId,
   igKontoId,
   liOrganisationId,
@@ -61,7 +59,7 @@ export function PlattformwahlKarte({
 }: {
   speichern: (formular: FormData) => Promise<void>
   plattformen: Plattform[]
-  postenAktiv: boolean
+  postenPlattformen: Plattform[]
   seitenId: string | null
   igKontoId: string | null
   liOrganisationId: string | null
@@ -72,17 +70,19 @@ export function PlattformwahlKarte({
 
   return (
     <form action={speichern} className="grid gap-5">
-      <input type="hidden" name="plattformenGesetzt" value="1" />
-
       <Feld
         beschriftung="Plattformen"
         hinweis={
-          Object.keys(gesperrt).length > 0
-            ? 'Wählbar ist nur, wofür weiter unten ein Kanal zugeordnet ist — ein Häkchen, das nichts bewirkt, wäre eine Falle. YouTube kommt später dazu.'
-            : 'Vorbelegung für neue Beiträge. Am einzelnen Beitrag lässt sich davon abweichen. YouTube kommt später dazu.'
+          'Vorbelegung für neue Beiträge; am einzelnen Beitrag lässt sich davon abweichen. ' +
+          '„Planen und posten" braucht einen Kanal aus den Abschnitten darunter — ohne ihn ' +
+          'bleibt es beim Posten von Hand. YouTube kommt später dazu.'
         }
       >
-        <PlattformWahl auswahl={plattformen} moeglich={moeglich} gesperrt={gesperrt} />
+        <PlattformModusWahl
+          wahl={{ plattformen, postenPlattformen }}
+          mitKanal={moeglich}
+          gruende={gesperrt}
+        />
       </Feld>
 
       {/*
@@ -100,28 +100,14 @@ export function PlattformwahlKarte({
         />
       )}
 
-      {/*
-        Der Schalter hängt an der Zuordnung, nicht am Zugang eines einzelnen
-        Anbieters: Ein Kunde, für den nur LinkedIn eingerichtet ist, soll ihn
-        auch bekommen. Vorher war er an den Meta-Zugang gebunden — und wäre
-        damit unerreichbar geblieben.
-      */}
-      {moeglich.length > 0 ? (
-        <Schalter
-          name="postenAktiv"
-          beschriftung="Preroll veröffentlicht für diesen Kunden"
-          hinweis="Freigegebene Beiträge gehen zum geplanten Termin von selbst raus — auf die oben gewählten Plattformen. Aus heißt: Es bleibt beim Posten von Hand."
-          defaultChecked={postenAktiv}
-        />
-      ) : (
+      {moeglich.length === 0 && (
         <Hinweis>
           Preroll kann für diesen Kunden noch nicht selbst posten — es ist kein Kanal zugeordnet.
           Das geht in den Abschnitten darunter; fehlt dort auch der Zugang, zuerst unter{' '}
           <a href="/einstellungen/veroeffentlichen" className="text-akzent">
             Einstellungen → Veröffentlichen
           </a>
-          . Zuordnen allein schaltet das Posten übrigens nicht ein — wer nur planen und weiter von
-          Hand posten will, hinterlegt den Kanal trotzdem.
+          . Planen lässt sich eine Plattform trotzdem — dafür braucht es keinen Kanal.
         </Hinweis>
       )}
 
@@ -150,7 +136,6 @@ export function MetaKanaele({
   speichern,
   zugangSteht,
   zugangFehler,
-  postenAktiv,
   seitenId,
   seitenName,
   igName,
@@ -162,7 +147,6 @@ export function MetaKanaele({
   zugangSteht: boolean
   zugangFehler: string | null
   /** Wird mitgeschickt, damit das Speichern der Seite ihn nicht ausschaltet. */
-  postenAktiv: boolean
   seitenId: string | null
   seitenName: string | null
   igName: string | null
@@ -191,14 +175,6 @@ export function MetaKanaele({
   return (
     <form action={speichern} className="grid gap-4">
       <input type="hidden" name="kanalGesetzt" value="1" />
-      {/*
-        Der Schalter „Preroll veröffentlicht" steht im Abschnitt Profil, sein
-        Wert muss hier trotzdem mitkommen: Die Aktion schreibt `postenAktiv` im
-        Kanalblock, und ohne das Feld stünde er nach jedem Speichern der Seite
-        auf aus.
-      */}
-      {postenAktiv && <input type="hidden" name="postenAktiv" value="on" />}
-
       {meldung && <Fehler>{meldung}</Fehler>}
       {zugangFehler && <Warnung>Der Meta-Zugang wird gerade abgelehnt: {zugangFehler}</Warnung>}
 

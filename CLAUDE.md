@@ -162,15 +162,26 @@ Seite zu bewachen wäre die schlechtere Regel.
   Geräterahmen, Medien-Dialog —, gehört `medienUrl()` hin: das schon
   geschnittene Thumbnail in eine 9:16-Fläche gelegt wird ein zweites Mal
   beschnitten, und übrig bleibt die Mitte der Mitte.
-- **Ohne Kanal keine Marke.** Die Plattform-Zeichen an einem Beitrag sind
-  eine Aussage über die Wirklichkeit — „erscheint auf Instagram und
-  Facebook". Ist beim Kunden keine Facebook-Seite zugeordnet, plant die
-  Agentur bloß und postet von Hand; dann darf **nirgends** ein Zeichen
-  stehen: nicht in der Post-Liste, nicht im Kunden- und nicht im
-  Gesamtkalender, nicht auf der Kundenseite. Keine Anzeige nimmt
-  `post.plattformen` roh — die rohe Wahl ist die **Absicht** und bleibt
-  stehen, auch wenn der Kanal fehlt. Gezeigt wird `angezeigtePlattformen`,
-  dieselbe Rechnung, mit der `veroeffentlichung.ts` die Läufe anlegt.
+- **Je Plattform drei Zustände: aus, nur planen, planen und posten.** Der
+  mittlere ist der Normalfall — für Instagram planen, von Hand posten. Vorher
+  hieß „gewählt" zugleich „Preroll postet das", und wählbar war nur, wofür ein
+  Kanal zugeordnet war; damit ließ sich der Normalfall nicht ausdrücken.
+  **Einen Kanal braucht nur „planen und posten"** (`moeglichePlattformen`);
+  ohne ihn steht die Stufe gesperrt da, und der Server stuft sie auf „planen"
+  herunter, falls sie doch ankommt. Gespeichert wird als zwei Listen —
+  `plattformen` (bespielt) und `postenPlattformen` (davon selbst gepostet);
+  `postenAktiv` bleibt als Spalte, wird aber beim Speichern **abgeleitet**
+  (`postenPlattformen.length > 0`), weil Zeitplaner und Einstellungen darauf
+  filtern. Wohin Preroll wirklich postet, rechnet `postenZiele`: Beitrag ∩
+  Modus ∩ Kanal.
+- **Die Marken zeigen die Planung, nicht den Kanal.** „Erscheint auf
+  Instagram und Facebook" — ob Preroll das hochlädt oder jemand von Hand,
+  ändert daran nichts. Gezeigt wird deshalb `angezeigtePlattformen`: die Wahl
+  am Beitrag, geschnitten mit dem, was der Kunde **bespielt** (Modus ≠ aus).
+  Keine Anzeige nimmt `post.plattformen` roh — die rohe Wahl ist die
+  **Absicht** und bleibt stehen, auch wenn der Kunde die Plattform später
+  abschaltet. (Bis zum 17.08.2026 hing die Marke am Kanal; das war richtig,
+  solange es „nur planen" nicht gab.)
 - **LinkedIn hat einen Zugang, Meta mehrere.** Bei Meta braucht es je
   Business-Portfolio einen Systemnutzer; bei LinkedIn hängt alles an *einem*
   Konto der Agentur, das an den Firmenseiten der Kunden Administrator ist. Ein
@@ -308,6 +319,14 @@ Seite zu bewachen wäre die schlechtere Regel.
   `Kunde.freigabenNoetig`, Konzepte werden immer gezeigt, und eine
   Ablauffrist gibt es nicht mehr. Heißt in der Oberfläche **Freigaben**,
   nicht mehr Export.
+- **Der ZIP kann nach Plattform getrennt werden.** Ohne Wahl bleibt es beim
+  Hauptformat und einem Ordner je Beitrag — ein alter Link liefert dasselbe
+  wie vorher. Bei **einer** Plattform ebenso: Ein Ordner, in dem nur
+  „Instagram" steht, ist eine Ebene ohne Aussage. Erst ab **zwei** kommt
+  `Plattform/Beitrag/Dateien`, weil dann dieselben Beiträge mehrfach
+  vorkommen und nur der Ordner sie auseinanderhält. Je Plattform gilt ihre
+  Fassung (`fassungFuer` — dieselbe Regel wie auf der Kundenseite), und ein
+  Beitrag, der eine Plattform nicht ansteuert, fehlt in deren Ordner.
 - **Der ZIP-Zeitraum ist frei wählbar, der des Kunden nicht.** Das Team gibt
   `von`/`bis` in der Adresse mit — „von der Konzeptrunde bis zum Dreh" hält
   sich nicht an Monatsgrenzen. Ein Gast bekommt immer genau einen Monat und

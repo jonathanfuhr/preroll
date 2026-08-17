@@ -11,6 +11,8 @@ import {
 
 import { ROLLE_TEXT } from '@/lib/rollen'
 import type { Rolle } from '@prisma/client'
+import type { Plattform } from '@prisma/client'
+import { PLATTFORM_TEXT, sortierePlattformen } from '@/lib/plattformen'
 
 /** Konten, die als zusätzlicher Ansprechpartner in Frage kommen. */
 type Waehlbar = { id: string; name: string; rolle: Rolle }
@@ -61,15 +63,34 @@ function AnsprechpartnerWahl({
  * Ein `<a>` bekommt den Strom direkt vom Server, ohne dass der Browser das
  * ganze Archiv erst im Speicher sammelt.
  */
-export function ZipZeitraum({ exportId, von, bis }: { exportId: string; von: string; bis: string }) {
+export function ZipZeitraum({
+  exportId,
+  von,
+  bis,
+  plattformen,
+}: {
+  exportId: string
+  von: string
+  bis: string
+  /** Was dieser Kunde bespielt — nur das steht zur Wahl. */
+  plattformen: Plattform[]
+}) {
   const [vonWert, setVon] = useState(von)
   const [bisWert, setBis] = useState(bis)
   const [captions, setCaptions] = useState(true)
   const [kommentare, setKommentare] = useState(false)
+  /*
+    Voreingestellt keine — dann kommt das Hauptformat in einem Ordner je
+    Beitrag, so wie bisher. Wer nach Plattform trennen will, sagt es
+    ausdrücklich; ein voreingestelltes „alle" gäbe jedem, der nur schnell die
+    Dateien braucht, plötzlich die doppelte Menge.
+  */
+  const [ziele, setZiele] = useState<Plattform[]>([])
 
   const suche = new URLSearchParams({ von: vonWert, bis: bisWert })
   if (!captions) suche.set('captions', '0')
   if (kommentare) suche.set('kommentare', '1')
+  for (const p of ziele) suche.append('plattform', p)
 
   const gueltig = Boolean(vonWert && bisWert && vonWert <= bisWert)
 
@@ -78,6 +99,7 @@ export function ZipZeitraum({ exportId, von, bis }: { exportId: string; von: str
       <h3 className="text-[14px] font-semibold">Dateien als ZIP</h3>
       <p className="mt-1 text-[12.5px] leading-relaxed text-leiser">
         Ein Ordner je Beitrag, darin die Dateien mit Termin im Namen.
+        {ziele.length > 1 && ' Bei mehreren Plattformen liegt darüber ein Ordner je Plattform.'}
       </p>
 
       <div className="mt-4 flex flex-wrap items-end gap-3">
@@ -97,6 +119,33 @@ export function ZipZeitraum({ exportId, von, bis }: { exportId: string; von: str
             className="w-[150px]"
           />
         </Feld>
+
+        {plattformen.length > 0 && (
+          <div className="grid gap-1.5 pb-0.5">
+            <span className="text-[10.5px] uppercase tracking-[0.1em] text-still">Plattformen</span>
+            {sortierePlattformen(plattformen).map((p) => (
+              <label key={p} className="flex items-center gap-2 text-[12px] text-tinte-3">
+                <input
+                  type="checkbox"
+                  checked={ziele.includes(p)}
+                  onChange={(e) => {
+                    // Erst lesen, dann setzen: Die Updater-Funktion läuft
+                    // beim Rendern, und bis dahin hat React das Ereignis
+                    // geleert — `e.currentTarget` wäre dort `null`.
+                    const an = e.currentTarget.checked
+                    setZiele((vorher) =>
+                      an ? [...vorher, p] : vorher.filter((x) => x !== p),
+                    )
+                  }}
+                />
+                {PLATTFORM_TEXT[p]}
+              </label>
+            ))}
+            <span className="text-[10.5px] leading-relaxed text-stiller">
+              Keine gewählt: nur das Hauptformat.
+            </span>
+          </div>
+        )}
 
         <div className="grid gap-1.5 pb-0.5">
           <label className="flex items-center gap-2 text-[12px] text-tinte-3">

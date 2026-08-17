@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { zipEintraege, zipPostOrdner } from './zip'
 import type { ZipPost } from './zip'
+import type { MediumRolle, Plattform } from '@prisma/client'
 
 /**
  * Der ZIP-Aufbau.
@@ -142,5 +143,82 @@ describe('zipEintraege', () => {
 
     expect(eintraege.some((e) => e.art === 'klappe')).toBe(false)
     expect(eintraege.map((e) => e.pfad)).toEqual(['260805_1100_Reel/260805_1100_Reel.mp4'])
+  })
+})
+
+describe('zipEintraege je Plattform', () => {
+  const medium = (name: string, rolle: MediumRolle = 'MEDIUM', position = 0) => ({
+    rolle,
+    position,
+    medium: { pfad: `p/${name}`, dateiname: `${name}.jpg` },
+  })
+
+  const post = {
+    id: 'p1',
+    typ: 'BEITRAG' as const,
+    verhaeltnis: 'HOCH_4_5' as const,
+    status: 'FINAL' as const,
+    titel: 'Ein Beitrag',
+    caption: 'Haupttext',
+    postenAm: new Date('2026-08-11T10:00:00'),
+    klappeVersionId: null,
+    medien: [medium('haupt')],
+    plattformen: ['FACEBOOK', 'INSTAGRAM'] as Plattform[],
+    varianten: [
+      {
+        id: 'v1',
+        plattformen: ['INSTAGRAM'] as Plattform[],
+        caption: 'Für Instagram',
+        verhaeltnis: null,
+        position: 0,
+        medien: [medium('insta')],
+      },
+    ],
+  }
+
+  it('bleibt ohne Plattformwahl beim Ordner je Beitrag', () => {
+    const e = zipEintraege([post], { mitCaptions: false })
+    expect(e.map((x) => x.pfad)).toEqual(['260811_1000_Beitrag/260811_1000_Post.jpg'])
+  })
+
+  it('legt bei einer Plattform keine zusätzliche Ebene an', () => {
+    // Ein Ordner, in dem nur „Instagram" steht, ist eine Ebene ohne Aussage.
+    const e = zipEintraege([post], { mitCaptions: false, plattformen: ['INSTAGRAM'] })
+    expect(e.map((x) => x.pfad)).toEqual(['260811_1000_Beitrag/260811_1000_Post.jpg'])
+  })
+
+  it('trennt ab zwei Plattformen nach Ordnern', () => {
+    const e = zipEintraege([post], {
+      mitCaptions: false,
+      plattformen: ['FACEBOOK', 'INSTAGRAM'],
+    })
+    expect(e.map((x) => x.pfad)).toEqual([
+      'Facebook/260811_1000_Beitrag/260811_1000_Post.jpg',
+      'Instagram/260811_1000_Beitrag/260811_1000_Post.jpg',
+    ])
+  })
+
+  it('nimmt je Plattform ihre Fassung — Medium und Caption', () => {
+    const e = zipEintraege([post], {
+      mitCaptions: true,
+      plattformen: ['FACEBOOK', 'INSTAGRAM'],
+    })
+    const fb = e.find((x) => x.pfad.startsWith('Facebook/') && x.art === 'datei')
+    const ig = e.find((x) => x.pfad.startsWith('Instagram/') && x.art === 'datei')
+    expect(fb).toMatchObject({ quelle: 'p/haupt' })
+    expect(ig).toMatchObject({ quelle: 'p/insta' })
+
+    const igText = e.find((x) => x.pfad.startsWith('Instagram/') && x.art === 'text')
+    expect(igText?.art === 'text' && igText.inhalt).toContain('Für Instagram')
+  })
+
+  it('lässt einen Beitrag weg, der die Plattform nicht ansteuert', () => {
+    const nurFb = { ...post, plattformen: ['FACEBOOK'] as Plattform[] }
+    const e = zipEintraege([nurFb], {
+      mitCaptions: false,
+      plattformen: ['FACEBOOK', 'INSTAGRAM'],
+    })
+    expect(e.every((x) => x.pfad.startsWith('Facebook/'))).toBe(true)
+    expect(e).toHaveLength(1)
   })
 })
