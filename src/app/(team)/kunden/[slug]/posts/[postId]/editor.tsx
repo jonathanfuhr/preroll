@@ -455,29 +455,6 @@ export function PostEditor({
           />
         </Abschnitt>
 
-        {/*
-          Abweichende Fassungen stehen unter der Caption, weil sie Abweichungen
-          davon sind. Sie liegen bewusst **außerhalb** des Beitragsformulars:
-          Jede Fassung speichert für sich, sonst nähme ein Klick auf „Fassung
-          speichern" ungespeicherte Änderungen am Beitrag mit — oder umgekehrt.
-        */}
-        {varianten && plattformen.gewaehlt.length > 1 && (
-          <Abschnitt
-            titel="Andere Fassungen"
-            hinweis="Dieselbe Sache liest sich auf LinkedIn anders als auf Instagram. Was hier leer bleibt, wird vom Beitrag geerbt."
-          >
-            <VariantenFeld
-              postTyp={post.typ}
-              varianten={varianten.zeilen}
-              frei={varianten.frei}
-              ausserhalb={varianten.ausserhalb}
-              anlegen={varianten.anlegen}
-              speichern={varianten.speichern}
-              loeschen={varianten.loeschen}
-            />
-          </Abschnitt>
-        )}
-
         {/* --------------------------------------------------- Reel: Szenen */}
         {post.typ === 'REEL' && (
           <Abschnitt
@@ -526,6 +503,34 @@ export function PostEditor({
         )}
 
       </form>
+
+      {/*
+        Abweichende Fassungen liegen **außerhalb** des Beitragsformulars, und
+        zwar zwingend: Jede Fassung ist ein eigenes Formular, und ein `<form>`
+        im `<form>` wirft der Browser weg. Genau daran lag es, dass „Fassung
+        anlegen" eine Weile nichts tat — der Knopf gehörte dem Beitragsformular
+        und löste dessen Speichern aus.
+
+        Fachlich passt es ohnehin hierher: Jede Fassung speichert für sich,
+        sonst nähme ein Klick auf „Fassung speichern" ungespeicherte Änderungen
+        am Beitrag mit — oder umgekehrt.
+      */}
+      {varianten && plattformen.gewaehlt.length > 1 && (
+        <Abschnitt
+          titel="Andere Fassungen"
+          hinweis="Dieselbe Sache liest sich auf LinkedIn anders als auf Instagram. Was hier leer bleibt, wird vom Beitrag geerbt."
+        >
+          <VariantenFeld
+            postTyp={post.typ}
+            varianten={varianten.zeilen}
+            frei={varianten.frei}
+            ausserhalb={varianten.ausserhalb}
+            anlegen={varianten.anlegen}
+            speichern={varianten.speichern}
+            loeschen={varianten.loeschen}
+          />
+        </Abschnitt>
+      )}
 
       {/* ---------------------------------------------------------- Kommentare */}
       <Abschnitt
