@@ -1,7 +1,8 @@
 import Link from 'next/link'
 
 export type Monatseintrag = {
-  token: string
+  /** `2026-08` — landet als `?monat=` in der Adresse. */
+  monat: string
   titel: string
   /** Freigegebene von insgesamt sichtbaren Beiträgen. */
   erledigt: number
@@ -13,8 +14,9 @@ export type Monatseintrag = {
  * Freigaben wechselt.
  *
  * Bis hierher war ein Link eine Sackgasse: Wer den Plan vom Juli noch einmal
- * sehen wollte, musste die alte Mail suchen. Da jede Freigabe genau einen
- * Monat umfasst, ist die Liste der Monate zugleich die Navigation.
+ * sehen wollte, musste die alte Mail suchen. Inzwischen hat ein Kunde genau
+ * einen Link, und der Monat steht in der Adresse — die Leiste wechselt ihn,
+ * ohne den Zugang zu wechseln.
  *
  * Gebaut wie die Seitenleiste im Backend: am Bildschirmrand, über die volle
  * Höhe, beim Scrollen stehenbleibend. Am Telefon gibt es dafür keinen Platz —
@@ -22,10 +24,13 @@ export type Monatseintrag = {
  */
 export function Monatsleiste({
   monate,
+  token,
   aktiv,
   mitFreigaben,
 }: {
   monate: Monatseintrag[]
+  token: string
+  /** Der Monat, der gerade gezeigt wird — `2026-08`. */
   aktiv: string
   /** Bei eigenen Kanälen entfällt der Freigabestand. */
   mitFreigaben: boolean
@@ -50,7 +55,7 @@ export function Monatsleiste({
 
       <nav className="grid gap-0.5 overflow-y-auto px-3">
         {monate.map((monat) => (
-          <Eintrag key={monat.token} monat={monat} aktiv={aktiv} mitFreigaben={mitFreigaben} />
+          <Eintrag key={monat.monat} monat={monat} token={token} aktiv={aktiv} mitFreigaben={mitFreigaben} />
         ))}
       </nav>
     </aside>
@@ -60,10 +65,12 @@ export function Monatsleiste({
 /** Dieselben Monate als waagerechte Reihe — für Telefon und Tablet. */
 export function MonatsleisteMobil({
   monate,
+  token,
   aktiv,
   mitFreigaben,
 }: {
   monate: Monatseintrag[]
+  token: string
   aktiv: string
   mitFreigaben: boolean
 }) {
@@ -75,7 +82,7 @@ export function MonatsleisteMobil({
       className="flex gap-1.5 overflow-x-auto border-b border-rahmen bg-flaeche-leise px-4 py-2 lg:hidden"
     >
       {monate.map((monat) => (
-        <Eintrag key={monat.token} monat={monat} aktiv={aktiv} mitFreigaben={mitFreigaben} />
+        <Eintrag key={monat.monat} monat={monat} token={token} aktiv={aktiv} mitFreigaben={mitFreigaben} />
       ))}
     </nav>
   )
@@ -83,19 +90,21 @@ export function MonatsleisteMobil({
 
 function Eintrag({
   monat,
+  token,
   aktiv,
   mitFreigaben,
 }: {
   monat: Monatseintrag
+  token: string
   aktiv: string
   mitFreigaben: boolean
 }) {
-  const hier = monat.token === aktiv
+  const hier = monat.monat === aktiv
   const fertig = mitFreigaben && monat.gesamt > 0 && monat.erledigt === monat.gesamt
 
   return (
     <Link
-      href={`/f/${monat.token}`}
+      href={`/f/${token}?monat=${monat.monat}`}
       aria-current={hier ? 'page' : undefined}
       className={`flex shrink-0 items-center gap-2.5 rounded-[5px] px-3 py-2.5 text-[13px] transition-colors lg:justify-between ${
         hier

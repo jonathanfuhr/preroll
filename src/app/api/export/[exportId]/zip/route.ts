@@ -3,6 +3,7 @@ import { POST_MEDIEN } from '@/lib/abfragen'
 import { aktuellerGast, aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { postsImZeitraum } from '@/lib/export-sicht'
+import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { kommentarPdf } from '@/lib/pdf'
 import { zipEintraege } from '@/lib/zip'
 import { archivAntwort, schreibeArchiv } from '@/lib/zip-schreiben'
@@ -52,13 +53,6 @@ export async function GET(
   const mitCaptions = suche.get('captions') !== '0'
   const mitKommentaren = suche.get('kommentare') === '1' && !alsGast
 
-  // Das Team darf den Zeitraum frei wählen; für den Kunden gilt sein Monat.
-  const zeitraumVon = (!alsGast && datumOder(suche.get('von'))) || exp.zeitraumVon
-  const zeitraumBis = (!alsGast && datumOder(suche.get('bis'))) || exp.zeitraumBis
-  if (zeitraumVon > zeitraumBis) {
-    return new Response('Der Zeitraum endet vor seinem Beginn.', { status: 400 })
-  }
-
   const alle = await prisma.post.findMany({
     where: {
       kundeId: exp.kundeId,
@@ -70,6 +64,21 @@ export async function GET(
     orderBy: { postenAm: 'asc' },
     include: { medien: POST_MEDIEN },
   })
+
+  /*
+    Der Zeitraum steht nicht mehr am Zugang — ein Zugang umfasst alle Monate.
+    Das Team wählt ihn frei über `von`/`bis`; der Kunde bekommt einen Monat,
+    entweder den aus `monat` oder den neuesten. Ihm einen freien Zeitraum zu
+    erlauben hieße, ihm über die Adresse den ganzen Bestand zu geben.
+  */
+  const monate = monateAusPosts(alle)
+  const monat = gewaehlterMonat(monate, suche.get('monat') ?? undefined, new Date())
+
+  const zeitraumVon = (!alsGast && datumOder(suche.get('von'))) || monat.von
+  const zeitraumBis = (!alsGast && datumOder(suche.get('bis'))) || monat.bis
+  if (zeitraumVon > zeitraumBis) {
+    return new Response('Der Zeitraum endet vor seinem Beginn.', { status: 400 })
+  }
 
   const posts = postsImZeitraum(alle, { zeitraumVon, zeitraumBis })
 

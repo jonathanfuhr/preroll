@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { aktuellerGast } from '@/lib/auth'
-import { zeitraumText } from '@/lib/benachrichtigungen'
 import { prisma } from '@/lib/db'
 import { postsImZeitraum } from '@/lib/export-sicht'
 import { freigabeFortschritt } from '@/lib/freigabe'
+import { monateAusPosts } from '@/lib/monate'
 import { formatiereTag } from '@/lib/datum'
 import { thumbUrl } from '@/lib/urls'
 import { Karte, Leerzustand } from '@/components/ui'
@@ -32,7 +32,7 @@ export default async function PortalSeite() {
 
   const beteiligungen = await prisma.exportGast.findMany({
     where: { gastId: gast.id },
-    orderBy: { export: { zeitraumVon: 'desc' } },
+    orderBy: { eingeladenAm: 'desc' },
     include: {
       export: {
         include: {
@@ -53,14 +53,26 @@ export default async function PortalSeite() {
     },
   })
 
-  // Der Stand ergibt sich aus den einzelnen Posts — es gibt keine pauschale
-  // Freigabe mehr, die man abfragen könnte.
+  /*
+    Der Stand ergibt sich aus den einzelnen Posts — es gibt keine pauschale
+    Freigabe mehr, die man abfragen könnte.
+
+    Gezeigt wird der **neueste Monat mit Beiträgen**: Ein Zugang umfasst
+    inzwischen alle Monate, und „alles seit Beginn zusammengezählt" wäre keine
+    brauchbare Auskunft — nach einem halben Jahr stünde dort dauerhaft
+    „37 von 44 freigegeben". Wer die älteren sehen will, öffnet den Link; dort
+    steht die Monatsleiste.
+  */
   const mitStand = beteiligungen.map(({ export: exp }) => {
-    const sichtbar = postsImZeitraum(exp.kunde.posts, {
-      zeitraumVon: exp.zeitraumVon,
-      zeitraumBis: exp.zeitraumBis,
-    })
-    return { exp, stand: freigabeFortschritt(sichtbar) }
+    const monate = monateAusPosts(exp.kunde.posts)
+    const neuester = monate[0]
+    const sichtbar = neuester
+      ? postsImZeitraum(exp.kunde.posts, {
+          zeitraumVon: neuester.von,
+          zeitraumBis: neuester.bis,
+        })
+      : []
+    return { exp, monat: neuester, stand: freigabeFortschritt(sichtbar) }
   })
 
   const offen = mitStand.filter((e) => !e.stand.vollstaendig)
@@ -108,7 +120,7 @@ export default async function PortalSeite() {
                     {gruppe.titel}
                   </h2>
                   <div className="grid gap-3">
-                    {gruppe.liste.map(({ exp, stand }) => {
+                    {gruppe.liste.map(({ exp, monat, stand }) => {
                       return (
                         <Karte key={exp.id} className="p-5">
                           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -125,10 +137,11 @@ export default async function PortalSeite() {
                               )}
                               <div>
                                 <div className="text-[14.5px] font-semibold">
-                                  {exp.titel ?? zeitraumText(exp.zeitraumVon, exp.zeitraumBis)}
+                                  {exp.titel ?? `Content-Plan ${exp.kunde.name}`}
                                 </div>
                                 <div className="mt-0.5 text-[12px] text-leiser">
-                                  {exp.kunde.name} · {zeitraumText(exp.zeitraumVon, exp.zeitraumBis)}
+                                  {exp.kunde.name}
+                                  {monat && ` · ${monat.titel}`}
                                   {exp._count.kommentare > 0 &&
                                     ` · ${exp._count.kommentare} Kommentare`}
                                 </div>

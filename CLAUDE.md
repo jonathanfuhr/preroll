@@ -256,16 +256,33 @@ Seite zu bewachen wäre die schlechtere Regel.
   Zutritt hat. Erwähnte bekommen eine eigene Meldung und sind vom allgemeinen
   Verteiler ausgenommen — zwei Mails zum selben Kommentar liest niemand gern.
   In Mail, Push und PDF steht schlichtes `@Name` (`alsKlartext`).
-- **Eine Freigabe ist immer ein ganzer Monat.** Gewählt wird der Monat, nicht
-  Von und Bis; je Kunde und Monat gibt es genau eine (`@@unique`). Der Kunde
-  wechselt über die **Monats-Seitenleiste** zwischen ihnen — am linken
+- **Ein Freigabelink je Kunde, nicht je Monat.** `Export` ist `@@unique` auf
+  `kundeId`; der Monat steht in der Adresse (`/f/<token>?monat=2026-08`).
+  Zwischenzeitlich war jeder Monat eine eigene Zeile mit eigenem Token — das
+  hieß jeden Monat eine neue Einladung, und ein Gast aus dem August kam im
+  September nicht mehr hinein. Der Monat ist keine Eigenschaft des Zugangs,
+  sondern eine Sicht darin.
+- **Welche Monate es gibt, sagen die Beiträge** (`monateAusPosts`): Ein Monat
+  erscheint, sobald ein vorzeigbarer Beitrag mit Termin darin steht —
+  `ENTWURF` und Ungeplantes zählen nicht. Vorher konnte ein Monat mit
+  Beiträgen unerreichbar sein, weil niemand eine Freigabe dafür angelegt
+  hatte, und ein angelegter leerer Monat stand in der Leiste. Ohne Angabe
+  zeigt die Seite den **neuesten** Monat: Wer einen Link bekommt, will den
+  Plan sehen, für den er ihn bekommen hat (`gewaehlterMonat`). Ein Monat, den
+  es nicht gibt, fällt still auf diesen zurück statt zu scheitern.
+- Der Kunde wechselt über die **Monats-Seitenleiste** — am linken
   Bildschirmrand, über die volle Höhe, gebaut wie die Navigation im Backend
   (samt Marke; die Topbar lässt ihre dann weg). Am Telefon wird daraus eine
-  waagerechte Reihe unter der Kopfzeile. Bis dahin war ein Link eine
-  Sackgasse. Was früher je Link einstellbar war, ist entfallen: Kommentare
-  sind immer erlaubt, Freigaben richten sich nach `Kunde.freigabenNoetig`,
-  Konzepte werden immer gezeigt, und eine Ablauffrist gibt es nicht mehr.
-  Heißt in der Oberfläche **Freigaben**, nicht mehr Export.
+  waagerechte Reihe unter der Kopfzeile. Was früher je Link einstellbar war,
+  ist entfallen: Kommentare sind immer erlaubt, Freigaben richten sich nach
+  `Kunde.freigabenNoetig`, Konzepte werden immer gezeigt, und eine
+  Ablauffrist gibt es nicht mehr. Heißt in der Oberfläche **Freigaben**,
+  nicht mehr Export.
+- **Der ZIP-Zeitraum ist frei wählbar, der des Kunden nicht.** Das Team gibt
+  `von`/`bis` in der Adresse mit — „von der Konzeptrunde bis zum Dreh" hält
+  sich nicht an Monatsgrenzen. Ein Gast bekommt immer genau einen Monat und
+  nur `FINAL`: Ihm einen freien Zeitraum zu erlauben hieße, ihm über die
+  Adresse den ganzen Bestand zu geben.
 - **Export ist eine Live-Sicht, kein Schnappschuss.** Änderungen an Posts
   erscheinen sofort im Freigabe-Link.
 - **Sprungmarken sind schlichte `<a>`, kein `next/link`.** Kalender und
