@@ -12,6 +12,7 @@ import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { profilKarte } from '@/lib/plattform-profil'
+import { fassungenFuerAnzeige } from '@/lib/varianten'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { angezeigtePlattformen } from '@/lib/plattformen'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
@@ -114,6 +115,7 @@ export default async function ExportSeite({
       medien: POST_MEDIEN,
       szenen: { orderBy: { position: 'asc' } },
       freigaben: { orderBy: { erstelltAm: 'asc' } },
+      varianten: { orderBy: { position: 'asc' }, include: { medien: POST_MEDIEN } },
     },
   })
 
@@ -144,7 +146,15 @@ export default async function ExportSeite({
 
   const regeln = { zeitraumVon: monat.von, zeitraumBis: monat.bis }
   const sektionen = postsImZeitraum(alle, regeln)
-  const kacheln = feedVorschau(alle, regeln)
+  /*
+    Das Raster ist ein Instagram-Profil. Ein Beitrag, der nur auf LinkedIn
+    erscheint, gehört nicht hinein — er würde dem Kunden ein Profil zeigen, das
+    es nicht gibt. Gefiltert wird über `angezeigtePlattformen`, also über das,
+    was wirklich rausgeht, nicht über die rohe Wahl.
+  */
+  const kacheln = feedVorschau(alle, regeln, (p) =>
+    angezeigtePlattformen(p, exp.kunde).includes('INSTAGRAM'),
+  )
 
   // Aufruf zählen, ohne die Antwort zu blockieren — aber nur den des Kunden.
   if (angemeldeterGast) {
@@ -339,12 +349,68 @@ export default async function ExportSeite({
           // Klappe-Fassung landen alle hier, nicht in einer Extra-Anzeige.
           const reelVideo = post.typ === 'REEL' ? reelVideoQuelle(post) : null
 
+          /*
+            Die abweichenden Fassungen. Das Hauptformat steht schon oben im
+            Geräterahmen — hier bleiben nur die Abweichungen, deshalb `slice(1)`.
+
+            Gerechnet wird gegen `angezeigtePlattformen`: eine Variante für eine
+            Plattform ohne Kanal erscheint nicht, sonst versprächen wir dem
+            Kunden eine Fassung, die nie irgendwo auftaucht.
+          */
+          const fassungen = fassungenFuerAnzeige(
+            post,
+            post.varianten,
+            angezeigtePlattformen(post, exp.kunde),
+          )
+            .slice(1)
+            .map((f) => {
+              const eigeneSlides = f.medien
+                .filter((m) => m.rolle === 'SLIDE')
+                .sort((a, b) => a.position - b.position)
+                .map((m) => medienUrl(m.mediumId)!)
+              const eigenesMedium = f.medien.find((m) => m.rolle === 'MEDIUM')
+              const eigenesThumb = f.medien.find((m) => m.rolle === 'THUMBNAIL')
+              const video = Boolean(eigenesMedium?.medium.mimeTyp.startsWith('video/'))
+
+              return {
+                plattformen: f.plattformen,
+                // Der öffentliche Name auf diesen Plattformen — er steht in der
+                // Fassung, weil der Kunde daran erkennt, wo sie erscheint.
+                handles: f.plattformen
+                  .map((pl) => profile[pl].handle)
+                  .filter((h): h is string => Boolean(h))
+                  .map((h) => (h.startsWith('/') ? h : `@${h}`)),
+                caption: f.caption,
+                verhaeltnis: f.verhaeltnis,
+                medien: eigeneSlides.length > 0
+                  ? eigeneSlides
+                  : eigenesMedium
+                    ? [medienUrl(eigenesMedium.mediumId)!]
+                    : post.typ === 'KARUSSELL'
+                      ? slides
+                      : reelVideo
+                        ? [reelVideo.url]
+                        : medium
+                          ? [medienUrl(medium.medium.id)!]
+                          : [],
+                istVideo: f.eigeneMedien ? video : post.typ === 'REEL',
+                thumbnail: eigenesThumb
+                  ? medienUrl(eigenesThumb.mediumId)
+                  : thumb
+                    ? medienUrl(thumb.medium.id)
+                    : null,
+                eigeneCaption: f.eigeneCaption,
+                eigeneMedien: f.eigeneMedien,
+              }
+            })
+
           return (
             <PostSektion
               key={post.id}
               post={post}
               plattformen={angezeigtePlattformen(post, exp.kunde)}
               liFollower={liProfil.follower}
+              fassungen={fassungen}
               kunde={exp.kunde.name}
               logo={thumbUrl(exp.kunde.logoId)}
               medien={

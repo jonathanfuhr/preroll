@@ -68,6 +68,12 @@ export async function ladePost(postId: string) {
       szenen: { orderBy: { position: 'asc' } },
       freigaben: { orderBy: { erstelltAm: 'asc' } },
       customWerte: { include: { definition: true } },
+      // Abweichende Fassungen je Plattform. `_count` statt der Medien selbst:
+      // Der Editor braucht nur zu wissen, ob eigene hängen.
+      varianten: {
+        orderBy: { position: 'asc' },
+        include: { _count: { select: { medien: true } } },
+      },
       verantwortlich: true,
       kommentare: {
         orderBy: { erstelltAm: 'asc' },

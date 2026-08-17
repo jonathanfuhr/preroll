@@ -5,6 +5,7 @@ import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
 import { LinkedInVorschau } from './linkedin-vorschau'
+import { WeitereFassung, type AnzeigeFassung } from './weitere-fassung'
 import { PlattformMarken } from './plattform-marken'
 import { StatusLeiste } from './status-leiste'
 
@@ -159,6 +160,7 @@ export function PostSektion({
   szenen,
   kommentare,
   liFollower = null,
+  fassungen = [],
 }: {
   post: {
     id: string
@@ -199,6 +201,11 @@ export function PostSektion({
    * Namen. Nur nötig, wenn der Beitrag dorthin geht.
    */
   liFollower?: number | null
+  /**
+   * Abweichende Fassungen — Caption oder Medien je Plattform. Das Hauptformat
+   * steht darüber; hier stehen nur die Abweichungen davon.
+   */
+  fassungen?: AnzeigeFassung[]
 }) {
   const { text, hashtags } = teileCaption(post.caption)
   const status = STATUS_STIL[post.status]
@@ -288,7 +295,8 @@ export function PostSektion({
             Gezeigt wird nur, was auch rausgeht: `plattformen` ist bereits der
             Schnitt aus Wahl und zugeordnetem Kanal (`angezeigtePlattformen`).
           */}
-          {plattformen.includes('LINKEDIN') && (
+          {plattformen.includes('LINKEDIN') &&
+            !fassungen.some((f) => f.plattformen.includes('LINKEDIN')) && (
             <div className="mt-6 sm:mt-[34px]">
               <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
                 Auf LinkedIn
@@ -352,6 +360,21 @@ export function PostSektion({
             )
           )}
 
+          {/*
+            Die Abweichungen stehen unter dem Hauptformat, nicht daneben: Sie
+            sind Abweichungen *von etwas*, und nebeneinander stünden sie auf
+            derselben Stufe. Am Telefon wäre daraus außerdem ein Stapel
+            gleichrangiger Rahmen geworden.
+          */}
+          {fassungen.map((fassung) => (
+            <WeitereFassung
+              key={fassung.plattformen.join('-')}
+              fassung={fassung}
+              kunde={kunde}
+              logo={logo}
+              liFollower={liFollower}
+            />
+          ))}
         </div>
 
         <div className="min-w-0">{kommentare}</div>
