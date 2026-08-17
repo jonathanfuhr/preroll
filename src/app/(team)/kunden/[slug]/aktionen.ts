@@ -76,6 +76,7 @@ export async function kundeSpeichern(kundeId: string, formular: FormData) {
       website: text(formular, 'website'),
       notiz: text(formular, 'notiz'),
       freigabenNoetig: formular.get('freigabenNoetig') === 'on',
+      zipFuerKunden: formular.get('zipFuerKunden') === 'on',
       follower: zahl('follower'),
       gefolgt: zahl('gefolgt'),
       beitraege: zahl('beitraege'),

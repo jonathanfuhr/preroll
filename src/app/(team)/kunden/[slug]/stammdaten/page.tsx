@@ -113,6 +113,13 @@ export default async function StammdatenSeite({
               defaultChecked={kunde.freigabenNoetig}
             />
 
+            <Schalter
+              name="zipFuerKunden"
+              beschriftung="Kunde darf die Dateien herunterladen"
+              hinweis="Setzt auf der Freigabe-Seite einen Knopf, der die finalen Beiträge des Monats als ZIP liefert. Nur Finales — ein Konzept, das noch umgebaut wird, gehört nicht in fremde Ordner."
+              defaultChecked={kunde.zipFuerKunden}
+            />
+
             <div className="border-t border-rahmen pt-4">
               <h3 className="mb-1 text-[13px] font-semibold">Profil-Kennzahlen</h3>
               <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">

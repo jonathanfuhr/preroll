@@ -6,7 +6,14 @@ import { postsImZeitraum } from '@/lib/export-sicht'
 import { freigabeFortschritt } from '@/lib/freigabe'
 import { darfAnsprechpartnerSein } from '@/lib/rollen'
 import { Leerzustand } from '@/components/ui'
-import { ExportAnlegen, ExportKarte } from './verwaltung'
+import { ExportAnlegen, ExportKarte, ZipZeitraum } from './verwaltung'
+
+/** `2026-08-01` — der Wert eines Datumsfeldes, ohne Zeitzonen-Rutsch. */
+function alsTag(datum: Date): string {
+  return `${datum.getFullYear()}-${String(datum.getMonth() + 1).padStart(2, '0')}-${String(
+    datum.getDate(),
+  ).padStart(2, '0')}`
+}
 
 const ZEITSTEMPEL = new Intl.DateTimeFormat('de-DE', {
   day: '2-digit',
@@ -78,6 +85,14 @@ export default async function FreigabenSeite({
       </div>
 
       <div className="grid gap-10">
+        {freigaben.length > 0 && (
+          <ZipZeitraum
+            exportId={freigaben[0].id}
+            von={alsTag(freigaben.at(-1)!.zeitraumVon)}
+            bis={alsTag(freigaben[0].zeitraumBis)}
+          />
+        )}
+
         {freigaben.length === 0 ? (
           <Leerzustand
             titel="Noch keine Freigabe"

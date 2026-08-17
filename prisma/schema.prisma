@@ -197,6 +197,17 @@ model Kunde {
    */
   freigabenNoetig Boolean @default(true)
 
+  /**
+   * Darf der Kunde die Dateien selbst herunterladen? Dann steht auf seiner
+   * Seite ein Knopf, der die **finalen** Beiträge des Monats als ZIP liefert.
+   *
+   * Bewusst je Kunde und standardmäßig aus: Wer selbst postet, braucht die
+   * Dateien; wer von der Agentur betreut wird, soll sie nicht versehentlich
+   * schon im Konzeptstand in der Hand haben. Und bewusst nur Finales — ein
+   * Konzept, das noch einmal umgebaut wird, gehört nicht in fremde Ordner.
+   */
+  zipFuerKunden Boolean @default(false)
+
   // Verbindet den Kunden mit seinem Projekt in Klappe. Ohne diese Zuordnung
   // zeigt die Videoauswahl nichts an — sonst stünden dort alle Videos aller
   // Kunden, und das wird auf Dauer unübersichtlich.
@@ -907,6 +918,22 @@ model Einstellungen {
   klappeApiKey      String?
   klappeGekoppeltAm DateTime?
   klappeKonto       String?
+
+  /**
+   * Kurzer Weg zu den Videodaten, falls Klappe auf derselben Maschine läuft.
+   *
+   * Der Grund ist gemessen: Über die öffentliche Adresse verließ eine
+   * 115-MB-Fassung den Rechner, lief durch Cloudflare und kam zurück — 131
+   * Sekunden. Über die lokale Adresse dieselbe Fassung in 1,1 Sekunden. Im
+   * ZIP-Abruf schrieb der Server in dieser Zeit kein Byte an den Browser, und
+   * der Proxy davor legte die Verbindung still: Der Download „hing bei X MB"
+   * und lief in eine Zeitüberschreitung.
+   *
+   * Gilt nur fürs Abholen von Medien. Die Kopplung und die Links, die jemand
+   * anklickt, brauchen weiterhin die öffentliche Adresse. Leer heißt: alles
+   * über `klappeBasisUrl`.
+   */
+  klappeMedienUrl   String?
 
   // Was beim Konzipieren eines Reels automatisch in Klappe entsteht.
   klappeVideoAnlegen   Boolean @default(true)

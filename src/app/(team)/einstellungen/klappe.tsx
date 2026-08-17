@@ -1,5 +1,10 @@
 import { Eingabe, Feld, Fehler, Hinweis, Karte, Knopf } from '@/components/ui'
-import { kopplungAnstossen, kopplungFertigstellen, kopplungLoesen } from './klappe-aktionen'
+import {
+  kopplungAnstossen,
+  kopplungFertigstellen,
+  kopplungLoesen,
+  medienwegSpeichern,
+} from './klappe-aktionen'
 
 const ZEIT = new Intl.DateTimeFormat('de-DE', { dateStyle: 'long', timeStyle: 'short' })
 
@@ -10,6 +15,7 @@ const ZEIT = new Intl.DateTimeFormat('de-DE', { dateStyle: 'long', timeStyle: 's
  */
 export function KlappeEinrichtung({
   basisUrl,
+  medienUrl,
   gekoppeltAm,
   konto,
   zustand,
@@ -19,6 +25,7 @@ export function KlappeEinrichtung({
   meldung,
 }: {
   basisUrl: string | null
+  medienUrl: string | null
   gekoppeltAm: Date | null
   konto: string | null
   zustand?: string
@@ -95,10 +102,31 @@ export function KlappeEinrichtung({
               die Videoauswahl nichts an.
             </p>
           </div>
-          <form action={kopplungLoesen}>
+          <form action={kopplungLoesen} className="shrink-0">
             <Knopf klein art="gefahr" type="submit">
               Kopplung lösen
             </Knopf>
+          </form>
+        </div>
+
+        <div className="mt-5 border-t border-rahmen pt-5">
+          <form action={medienwegSpeichern} className="grid gap-4">
+            <Feld
+              beschriftung="Kurzer Weg zu den Videodaten (optional)"
+              hinweis="Läuft Klappe auf derselben Maschine, holt Preroll die Videos direkt von dort statt über die öffentliche Adresse. Gemessen: eine 115-MB-Fassung braucht öffentlich gut zwei Minuten, direkt eine Sekunde. Nur fürs Abholen — Kopplung und Links bleiben öffentlich."
+            >
+              <Eingabe
+                name="klappeMedienUrl"
+                type="url"
+                defaultValue={medienUrl ?? ''}
+                placeholder="http://host.docker.internal:3000"
+              />
+            </Feld>
+            <div className="flex justify-end">
+              <Knopf klein type="submit">
+                Speichern
+              </Knopf>
+            </div>
           </form>
         </div>
       </Karte>

@@ -72,3 +72,20 @@ export async function kopplungLoesen() {
   })
   revalidatePath('/einstellungen')
 }
+
+/**
+ * Der kurze Weg zu den Videodaten. Getrennt von der Kopplung, weil er mit der
+ * Anmeldung nichts zu tun hat und sich jederzeit nachtragen lässt — leer heißt:
+ * alles über die öffentliche Adresse.
+ */
+export async function medienwegSpeichern(formular: FormData) {
+  await adminOderRaus()
+
+  const url = String(formular.get('klappeMedienUrl') ?? '')
+    .trim()
+    .replace(/\/$/, '')
+
+  await speichereEinstellungen({ klappeMedienUrl: url || null })
+  revalidatePath('/einstellungen')
+  revalidatePath('/einstellungen/klappe')
+}
