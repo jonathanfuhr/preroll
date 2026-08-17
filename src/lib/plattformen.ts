@@ -18,7 +18,7 @@ export type PlattformInfo = {
 export const PLATTFORMEN: Record<Plattform, PlattformInfo> = {
   FACEBOOK: { name: 'Facebook', gebaut: true },
   INSTAGRAM: { name: 'Instagram', gebaut: true },
-  LINKEDIN: { name: 'LinkedIn', gebaut: false },
+  LINKEDIN: { name: 'LinkedIn', gebaut: true },
   YOUTUBE: { name: 'YouTube', gebaut: false },
 }
 
@@ -71,17 +71,30 @@ export function plattformenAusFormular(formular: FormData, feld = 'plattformen')
  * hier die falsche Auskunft: Nicht das Posten ist misslungen, es war nie
  * eines möglich.
  *
- * LinkedIn und YouTube fallen bis auf Weiteres heraus. Sie stehen im Enum,
- * damit sie später ohne Migration danebenpassen — ein Ziel sind sie erst,
- * wenn es dafür auch einen Zugang gibt.
+ * YouTube fällt bis auf Weiteres heraus. Es steht im Enum, damit es später
+ * ohne Migration danebenpasst — ein Ziel ist es erst, wenn es dafür auch einen
+ * Zugang gibt.
+ *
+ * LinkedIn hängt an einer eigenen Zuordnung (`liOrganisationId`) und nicht am
+ * Meta-Kanal. Die beiden Anbieter haben nichts miteinander zu tun: Wer eine
+ * Facebook-Seite zugeordnet hat, hat damit keine LinkedIn-Seite, und
+ * umgekehrt.
  */
+export type Kanaele = {
+  fbSeitenId: string | null
+  igKontoId: string | null
+  /** Optional, damit alte Aufrufstellen ohne LinkedIn weiter übersetzen. */
+  liOrganisationId?: string | null
+}
+
 export function zielPlattformen(
   gewaehlt: readonly Plattform[],
-  kanaele: { fbSeitenId: string | null; igKontoId: string | null },
+  kanaele: Kanaele,
 ): Plattform[] {
   return sortierePlattformen(gewaehlt).filter((p) => {
     if (p === 'FACEBOOK') return Boolean(kanaele.fbSeitenId)
     if (p === 'INSTAGRAM') return Boolean(kanaele.igKontoId)
+    if (p === 'LINKEDIN') return Boolean(kanaele.liOrganisationId)
     return false
   })
 }
@@ -103,7 +116,7 @@ export function zielPlattformen(
  */
 export function angezeigtePlattformen(
   post: { plattformen: readonly Plattform[] },
-  kunde: { fbSeitenId: string | null; igKontoId: string | null },
+  kunde: Kanaele,
 ): Plattform[] {
   return zielPlattformen(post.plattformen, kunde)
 }
@@ -121,10 +134,7 @@ export function angezeigtePlattformen(
  * weiter von Hand posten will, ordnet die Seite trotzdem zu — `postenAktiv`
  * bleibt davon unberührt.
  */
-export function moeglichePlattformen(kanaele: {
-  fbSeitenId: string | null
-  igKontoId: string | null
-}): Plattform[] {
+export function moeglichePlattformen(kanaele: Kanaele): Plattform[] {
   return zielPlattformen(GEBAUTE_PLATTFORMEN, kanaele)
 }
 
@@ -136,19 +146,17 @@ export function moeglichePlattformen(kanaele: {
  * nicht erst jemand seine Plattformliste aufräumen — sie schrumpft von
  * selbst, und sobald der Kanal wieder da ist, steht die alte Wahl wieder.
  */
-export function effektivePlattformen(kunde: {
-  plattformen: readonly Plattform[]
-  fbSeitenId: string | null
-  igKontoId: string | null
-}): Plattform[] {
+export function effektivePlattformen(
+  kunde: Kanaele & { plattformen: readonly Plattform[] },
+): Plattform[] {
   return zielPlattformen(kunde.plattformen, kunde)
 }
 
 /**
  * Facebook und Instagram teilen sich einen Zugang: Das Instagram-Konto hängt
- * an der Facebook-Seite, und der Seiten-Token bedient beide. Wer später
- * LinkedIn ergänzt, bekommt hier einen eigenen Eintrag — die Zuordnung
- * „welcher Zugang bedient welche Plattform" gehört an eine Stelle.
+ * an der Facebook-Seite, und der Seiten-Token bedient beide. LinkedIn hat
+ * seinen eigenen — die Zuordnung „welcher Zugang bedient welche Plattform"
+ * gehört an eine Stelle.
  */
 export function zugangsPlattform(plattform: Plattform): Plattform {
   return plattform === 'INSTAGRAM' ? 'FACEBOOK' : plattform

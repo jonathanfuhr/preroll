@@ -20,13 +20,18 @@ export type MetaSeitenZeile = {
  * Plattformwahl (Abschnitt Profil), ihr Grund liegt in der Kanalzuordnung
  * (Abschnitt Meta). Beide brauchen dieselbe Rechnung.
  */
-function sperren(seitenId: string | null, igKontoId: string | null) {
-  const moeglich = moeglichePlattformen({ fbSeitenId: seitenId, igKontoId })
+function sperren(seitenId: string | null, igKontoId: string | null, liOrgId: string | null) {
+  const moeglich = moeglichePlattformen({
+    fbSeitenId: seitenId,
+    igKontoId,
+    liOrganisationId: liOrgId,
+  })
   const gesperrt: Partial<Record<Plattform, string>> = {}
   if (!moeglich.includes('FACEBOOK')) gesperrt.FACEBOOK = 'keine Seite zugeordnet'
   if (!moeglich.includes('INSTAGRAM')) {
     gesperrt.INSTAGRAM = seitenId ? 'kein Konto an der Seite' : 'keine Seite zugeordnet'
   }
+  if (!moeglich.includes('LINKEDIN')) gesperrt.LINKEDIN = 'keine Firmenseite zugeordnet'
   return { moeglich, gesperrt }
 }
 
@@ -51,7 +56,7 @@ export function PlattformwahlKarte({
   postenAktiv,
   seitenId,
   igKontoId,
-  zugangSteht,
+  liOrganisationId,
   offeneBeitraege,
 }: {
   speichern: (formular: FormData) => Promise<void>
@@ -59,11 +64,11 @@ export function PlattformwahlKarte({
   postenAktiv: boolean
   seitenId: string | null
   igKontoId: string | null
-  zugangSteht: boolean
+  liOrganisationId: string | null
   /** Beiträge, die noch nicht veröffentlicht sind — nur die lassen sich nachziehen. */
   offeneBeitraege: number
 }) {
-  const { moeglich, gesperrt } = sperren(seitenId, igKontoId)
+  const { moeglich, gesperrt } = sperren(seitenId, igKontoId, liOrganisationId)
 
   return (
     <form action={speichern} className="grid gap-5">
@@ -73,8 +78,8 @@ export function PlattformwahlKarte({
         beschriftung="Plattformen"
         hinweis={
           Object.keys(gesperrt).length > 0
-            ? 'Wählbar ist nur, wofür im Abschnitt Meta ein Kanal zugeordnet ist — ein Häkchen, das nichts bewirkt, wäre eine Falle. LinkedIn und YouTube kommen später dazu.'
-            : 'Vorbelegung für neue Beiträge. Am einzelnen Beitrag lässt sich davon abweichen. LinkedIn und YouTube kommen später dazu.'
+            ? 'Wählbar ist nur, wofür weiter unten ein Kanal zugeordnet ist — ein Häkchen, das nichts bewirkt, wäre eine Falle. YouTube kommt später dazu.'
+            : 'Vorbelegung für neue Beiträge. Am einzelnen Beitrag lässt sich davon abweichen. YouTube kommt später dazu.'
         }
       >
         <PlattformWahl auswahl={plattformen} moeglich={moeglich} gesperrt={gesperrt} />
@@ -95,7 +100,13 @@ export function PlattformwahlKarte({
         />
       )}
 
-      {zugangSteht ? (
+      {/*
+        Der Schalter hängt an der Zuordnung, nicht am Zugang eines einzelnen
+        Anbieters: Ein Kunde, für den nur LinkedIn eingerichtet ist, soll ihn
+        auch bekommen. Vorher war er an den Meta-Zugang gebunden — und wäre
+        damit unerreichbar geblieben.
+      */}
+      {moeglich.length > 0 ? (
         <Schalter
           name="postenAktiv"
           beschriftung="Preroll veröffentlicht für diesen Kunden"
@@ -104,12 +115,13 @@ export function PlattformwahlKarte({
         />
       ) : (
         <Hinweis>
-          Preroll kann für diesen Kunden noch nicht selbst posten — es ist kein Meta-Zugang
-          hinterlegt. Das geht unter{' '}
+          Preroll kann für diesen Kunden noch nicht selbst posten — es ist kein Kanal zugeordnet.
+          Das geht in den Abschnitten darunter; fehlt dort auch der Zugang, zuerst unter{' '}
           <a href="/einstellungen/veroeffentlichen" className="text-akzent">
             Einstellungen → Veröffentlichen
           </a>
-          . Solange keine Seite zugeordnet ist, lässt sich hier auch keine Plattform wählen.
+          . Zuordnen allein schaltet das Posten übrigens nicht ein — wer nur planen und weiter von
+          Hand posten will, hinterlegt den Kanal trotzdem.
         </Hinweis>
       )}
 
@@ -233,6 +245,115 @@ export function MetaKanaele({
         <p className="text-[11.5px] text-leiser">
           Es ist gerade keine Seite erreichbar. Entweder ist den Systemnutzern noch keine
           zugewiesen, oder der Kunde hat die Partnerfreigabe noch nicht erteilt.
+        </p>
+      )}
+
+      <div className="flex justify-end">
+        <Knopf klein type="submit">
+          Speichern
+        </Knopf>
+      </div>
+    </form>
+  )
+}
+
+export type LinkedInOrgZeile = { id: string; name: string; handle: string | null }
+
+/**
+ * Die LinkedIn-Zuordnung eines Kunden — welche Firmenseite Preroll bespielt.
+ *
+ * Eigenes Formular neben dem Meta-Block: Die beiden Anbieter haben nichts
+ * miteinander zu tun. Eine Facebook-Seite ist keine LinkedIn-Seite, und ein
+ * gemeinsames Speichern hätte bei jedem Anfassen des einen das andere
+ * mitgeschickt.
+ */
+export function LinkedInKanal({
+  speichern,
+  zugangSteht,
+  appSteht,
+  organisationId,
+  organisation,
+  organisationen,
+  fehler,
+  meldung,
+}: {
+  speichern: (formular: FormData) => Promise<void>
+  zugangSteht: boolean
+  appSteht: boolean
+  organisationId: string | null
+  organisation: string | null
+  organisationen: LinkedInOrgZeile[]
+  /** Der Stand des Zugangs, falls die letzte Prüfung schieflief. */
+  fehler: string | null
+  meldung: string | null
+}) {
+  if (!appSteht) {
+    return (
+      <Hinweis>
+        Preroll postet noch nicht auf LinkedIn — dafür braucht es die Community Management API, und
+        die gibt LinkedIn nur nach einer Freigabe heraus. Sobald die App eingetragen ist (
+        <a href="/einstellungen/veroeffentlichen" className="text-akzent">
+          Einstellungen → Veröffentlichen
+        </a>
+        ), lässt sich hier eine Firmenseite zuordnen. Bis dahin wird geplant wie bisher und von Hand
+        gepostet.
+      </Hinweis>
+    )
+  }
+
+  if (!zugangSteht) {
+    return (
+      <Hinweis>
+        Die App steht, aber es ist noch kein Konto verbunden. Das geht unter{' '}
+        <a href="/einstellungen/veroeffentlichen" className="text-akzent">
+          Einstellungen → Veröffentlichen
+        </a>
+        .
+      </Hinweis>
+    )
+  }
+
+  return (
+    <form action={speichern} className="grid gap-4">
+      {meldung && <Fehler>{meldung}</Fehler>}
+      {fehler && <Warnung>Der LinkedIn-Zugang wird gerade abgelehnt: {fehler}</Warnung>}
+
+      {organisationId && (
+        <p className="text-[12.5px] text-leise">
+          Verbunden: <strong className="text-tinte">{organisation ?? organisationId}</strong>
+        </p>
+      )}
+
+      <Feld
+        beschriftung="Firmenseite"
+        hinweis="Angezeigt wird, wofür das verbundene Konto Administrator ist. Fehlt eine Seite, muss sie dort erst freigegeben werden."
+      >
+        <Auswahl name="liOrganisationId" defaultValue={organisationId ?? ''}>
+          <option value="">— keine Zuordnung —</option>
+          {/*
+            Die zugeordnete Seite steht auch dann in der Liste, wenn LinkedIn
+            sie gerade nicht ausliefert. Ohne sie stünde die Auswahl auf „keine
+            Zuordnung", und das nächste Speichern löschte einen Kanal, den
+            niemand anfassen wollte — dieselbe Falle wie bei Meta.
+          */}
+          {organisationId && !organisationen.some((o) => o.id === organisationId) && (
+            <option value={organisationId}>
+              {organisation ?? organisationId} · zurzeit nicht erreichbar
+            </option>
+          )}
+          {organisationen.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+              {o.handle ? ` · /company/${o.handle}` : ''}
+            </option>
+          ))}
+        </Auswahl>
+      </Feld>
+
+      {organisationen.length === 0 && (
+        <p className="text-[11.5px] text-leiser">
+          Es ist gerade keine Firmenseite erreichbar. Entweder ist das verbundene Konto nirgends
+          Administrator, oder der Zugang muss geprüft werden.
         </p>
       )}
 

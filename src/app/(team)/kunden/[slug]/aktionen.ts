@@ -233,7 +233,14 @@ export async function postSpeichern(postId: string, formular: FormData) {
     where: { id: postId },
     select: {
       typ: true,
-      kunde: { select: { plattformen: true, fbSeitenId: true, igKontoId: true } },
+      kunde: {
+        select: {
+          plattformen: true,
+          fbSeitenId: true,
+          igKontoId: true,
+          liOrganisationId: true,
+        },
+      },
     },
   })
   const gewaehlt = formular.get('verhaeltnis') as Verhaeltnis | null
