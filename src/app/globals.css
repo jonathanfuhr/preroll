@@ -199,3 +199,35 @@
     display: none !important;
   }
 }
+
+/*
+  Die Zeitleiste der Video-Player. Ein `input[type=range]` bringt Ziehen,
+  Tastatur und Vorlesehilfen mit; nur aussehen tut es in jedem Browser
+  anders — deshalb hier die Optik, nicht ein nachgebauter Balken.
+  Die Füllung steht am Element selbst, weil sie sich mit dem Stand ändert.
+*/
+.zeitleiste {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.zeitleiste::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+}
+.zeitleiste::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+}
+.zeitleiste::-moz-range-track {
+  background: transparent;
+}

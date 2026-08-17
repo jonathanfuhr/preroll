@@ -206,6 +206,18 @@ Seite zu bewachen wäre die schlechtere Regel.
   Weg an den Dateien vorbei würde beides umgehen, und irgendwann ginge auf
   einer Plattform ein PNG raus, das die andere ablehnt. Meta lädt selbst,
   LinkedIn will die Bytes — deshalb holt Preroll sie von sich selbst.
+- **TikTok bekommt den Geräterahmen von Instagram** (Mockup 4a–4c,
+  `TikTokRahmen`) — dieselben Maße, derselbe Verlauf, derselbe Schirm
+  (320 × 621). Das ist keine Bequemlichkeit: TikTok *ist* genauso eine
+  Telefon-App. Anders ist, was darin steht — Bedienelemente rechts am Rand,
+  Caption ohne „mehr" bis zur Kante, unten eine Tab-Leiste statt der
+  Kommentarzeile. **Einzelbeiträge kennt TikTok nicht**, nur Video und
+  Foto-Karussell; ein Bild erscheint dort deshalb als Karussell mit einem
+  Foto. Was flacher ist als 9:16, steht mittig auf Schwarz statt beschnitten.
+- **TikTok ist „nur planen", dauerhaft.** Es gibt keinen Zugang und damit
+  keinen Kanal — „planen und posten" steht gesperrt da, und der Grund sagt
+  ausdrücklich, dass Preroll dort nicht postet, statt eine Aufgabe
+  anzudeuten, die niemand erledigen kann.
 - **LinkedIn hat einen eigenen Rahmen, aber kein Gerät** (Mockup 5a–5d,
   `LinkedInRahmen`). Das Post-Fenster in Desktop-Breite: 552 px, Kopfzeile mit
   Logo und Firmenseite, Caption nach drei Zeilen eingeklappt mit „… mehr",
@@ -501,6 +513,19 @@ Seite zu bewachen wäre die schlechtere Regel.
   dann vorn, wenn keine Plattform es unverändert nimmt — eine Abweichung ohne
   Bezugspunkt wäre nicht verständlich. Und **kein zweiter Geräterahmen**: Er
   stellte die Abweichung auf dieselbe Stufe wie den Beitrag.
+- **Die Player spielen wirklich ab.** Im LinkedIn-Fenster war die Leiste
+  zuerst nachgezeichnet — sie sah aus wie bei LinkedIn und tat nichts. Für
+  eine Vorschau, in der der Kunde ein Video freigeben soll, ist das die
+  falsche Hälfte. Play/Pause, Zeitleiste (ein `input[type=range]`, damit
+  Ziehen, Tastatur und Vorlesehilfen ohne Nachbau funktionieren), Ton und
+  Vollbild sind gebaut; **Geschwindigkeit und Untertitel bewusst nicht** —
+  das Mockup zeichnet sie, aber ein Knopf, der nichts tut, ist eine Falle.
+- **Der Ton-Knopf sitzt im Handy, oben rechts** — weißes Zeichen ohne
+  Scheibe, in der Kopfzeile neben der Kamera, wie bei Instagram. Vorher stand
+  er außerhalb des Rahmens; der Kommentar dort behauptete, innen ginge es
+  wegen `overflow: hidden` nicht — das stimmte nicht, solange er im Schirm
+  liegt. Im Medien-Dialog, wo es keinen Rahmen gibt, steht er weiter daneben
+  (`tonKnopfAussen`).
 - **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
   beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
   „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim
@@ -617,6 +642,11 @@ Die Mockups liegen unter `design/` und sind die verbindliche Vorlage:
 | `Backend.dc.html` | 2a–2i: Kundenübersicht bis Ansprechpartner |
 | `iPhone-Layer.dc.html` | 3a–3d: Geräterahmen je Post-Typ |
 | `LinkedIn-Layer.dc.html` | 5a–5d: LinkedIn-Post-Fenster je Medienart |
+
+Der **TikTok-Layer** (4a–4d) liegt bisher nur im Claude-Design-Projekt und
+nicht unter `design/`. Er ist von dort lesbar (`DesignSync`, Projekt
+`c1bbcfa1-2661-4167-a94d-1232af825bd5`, Datei `TikTok-Layer.dc.html`); wer
+daran weiterbaut, holt ihn sich und legt ihn dabei ab.
 
 Die **Arbeitsfläche des Backends ist weiß**, die Seitenleiste leicht getönt
 (`flaeche-leise`) — wie in den Mockups. Karten tragen ihren Rahmen, nicht den

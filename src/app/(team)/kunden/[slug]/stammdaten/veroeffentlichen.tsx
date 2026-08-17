@@ -32,6 +32,12 @@ function sperren(seitenId: string | null, igKontoId: string | null, liOrgId: str
     gesperrt.INSTAGRAM = seitenId ? 'kein Konto an der Seite' : 'keine Seite zugeordnet'
   }
   if (!moeglich.includes('LINKEDIN')) gesperrt.LINKEDIN = 'keine Firmenseite zugeordnet'
+  /*
+    TikTok bleibt dauerhaft gesperrt, nicht bis jemand etwas nachträgt:
+    Preroll hat für TikTok keinen Zugang, und einen Kanal, den es nicht gibt,
+    kann niemand zuordnen. Der Grund sagt das, statt eine Aufgabe anzudeuten.
+  */
+  gesperrt.TIKTOK = 'Preroll postet dort nicht — nur planen'
   return { moeglich, gesperrt }
 }
 

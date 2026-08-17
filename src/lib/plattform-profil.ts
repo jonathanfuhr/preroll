@@ -1,4 +1,5 @@
 import type { KennzahlenQuelle, Plattform } from '@prisma/client'
+import { PLATTFORMEN } from './plattformen'
 
 /**
  * Die Profile eines Kunden je Plattform — Handle, Bio, Website und die drei
@@ -48,12 +49,15 @@ export type ProfilKarte = Record<Plattform, Profilwerte>
  * LinkedIn gepflegt hat, hat dort eben leere Werte.
  */
 export function profilKarte(zeilen: ProfilZeile[]): ProfilKarte {
-  const karte = {
-    FACEBOOK: LEERES_PROFIL,
-    INSTAGRAM: LEERES_PROFIL,
-    LINKEDIN: LEERES_PROFIL,
-    YOUTUBE: LEERES_PROFIL,
-  } as ProfilKarte
+  /*
+    Aus den Plattformen selbst gebaut, nicht abgetippt. Vorher stand hier eine
+    Liste mit `as ProfilKarte` dahinter — der Zusicherung glaubte TypeScript,
+    und als TikTok dazukam, fehlte der Eintrag still. Die Seite fiel dann erst
+    beim Aufruf um.
+  */
+  const karte = Object.fromEntries(
+    (Object.keys(PLATTFORMEN) as Plattform[]).map((p) => [p, LEERES_PROFIL]),
+  ) as ProfilKarte
 
   for (const zeile of zeilen) {
     const { plattform, ...werte } = zeile

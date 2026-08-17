@@ -894,6 +894,7 @@ enum Plattform {
   FACEBOOK
   INSTAGRAM
   LINKEDIN
+  TIKTOK
   YOUTUBE
 }
 

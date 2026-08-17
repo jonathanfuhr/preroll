@@ -10,9 +10,10 @@ import { PLATTFORM_TEXT, sortierePlattformen } from '@/lib/plattformen'
  * trägt schon eine Bedeutung tragende Farbe, und eine zweite daneben wäre
  * nicht mehr lesbar. Also `currentColor` und Schluss.
  *
- * Die Glyphen decken **alle** vier Plattformen ab, auch die noch nicht
- * gebauten: Sobald LinkedIn dazukommt, soll hier nichts nachgezogen werden
- * müssen.
+ * Die Glyphen decken **alle** Plattformen ab, auch die noch nicht gebauten:
+ * Sobald eine dazukommt, soll hier nichts nachgezogen werden müssen. Der
+ * Typ `Record<Plattform, …>` erzwingt das — ein neuer Wert im Enum fällt
+ * beim Typecheck auf, nicht erst als leere Stelle in der Oberfläche.
  */
 
 function Facebook() {
@@ -50,6 +51,32 @@ function LinkedIn() {
   )
 }
 
+function TikTok() {
+  /*
+    Die Note mit dem Haken — TikToks Zeichen, auf eine Kontur reduziert.
+    In Markenfarben stünde hier ein Cyan-Magenta-Versatz; einfarbig bleibt
+    davon die Form, und die reicht zum Erkennen.
+  */
+  return (
+    <>
+      {/* Der Notenhals mit Fähnchen … */}
+      <path
+        d="M13.9 3.2v11a3.3 3.3 0 1 1-3.3-3.3c.36 0 .7.06 1.02.17"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* … und der Bogen nach rechts oben, der ihn zum TikTok-Zeichen macht. */}
+      <path
+        d="M13.9 3.2c.45 2.65 2.36 4.35 4.9 4.5"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  )
+}
+
 function YouTube() {
   return (
     <>
@@ -63,6 +90,7 @@ const GLYPH: Record<Plattform, () => React.ReactElement> = {
   FACEBOOK: Facebook,
   INSTAGRAM: Instagram,
   LINKEDIN: LinkedIn,
+  TIKTOK: TikTok,
   YOUTUBE: YouTube,
 }
 

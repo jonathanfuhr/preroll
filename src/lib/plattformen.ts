@@ -19,6 +19,7 @@ export const PLATTFORMEN: Record<Plattform, PlattformInfo> = {
   FACEBOOK: { name: 'Facebook', gebaut: true },
   INSTAGRAM: { name: 'Instagram', gebaut: true },
   LINKEDIN: { name: 'LinkedIn', gebaut: true },
+  TIKTOK: { name: 'TikTok', gebaut: true },
   YOUTUBE: { name: 'YouTube', gebaut: false },
 }
 
@@ -26,6 +27,7 @@ export const PLATTFORM_TEXT: Record<Plattform, string> = {
   FACEBOOK: 'Facebook',
   INSTAGRAM: 'Instagram',
   LINKEDIN: 'LinkedIn',
+  TIKTOK: 'TikTok',
   YOUTUBE: 'YouTube',
 }
 

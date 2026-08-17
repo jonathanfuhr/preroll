@@ -14,10 +14,14 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
  * es nach zwei Sekunden zurück: sofort wäre hektisch, gar nicht ließe den
  * Beitrag im Standbild irgendeiner Sekunde stehen.
  *
- * Der Ton-Knopf sitzt **außerhalb** des Geräts. Im ersten Anlauf steckte er
- * innen und war unsichtbar — der Schirm hat `overflow: hidden`. Deshalb
- * umschließt `ReelRahmen` den Geräterahmen, statt in ihm zu stecken, und die
- * Fläche im Inneren holt sich ihren Zustand über einen kleinen Kontext.
+ * Der Ton-Knopf steht an zwei Stellen zur Wahl. Im Geräterahmen sitzt er
+ * **innen oben rechts**, wie bei Instagram: weißes Zeichen ohne Scheibe, in
+ * der Kopfzeile neben der Kamera. Wo es keinen Rahmen gibt — im Medien-Dialog
+ * —, bleibt er außen daneben.
+ *
+ * Beides teilt sich einen Zustand, deshalb der kleine Kontext: `ReelRahmen`
+ * umschließt den Geräterahmen, und die Fläche wie der Knopf im Inneren holen
+ * sich von dort, was sie brauchen.
  */
 
 type Steuerung = {
@@ -25,6 +29,8 @@ type Steuerung = {
   laeuft: boolean
   zeigeThumbnail: boolean
   schalte: () => void
+  stumm: boolean
+  schalteTon: () => void
   thumbnail: string | null
   quelle: string | null
 }
@@ -34,10 +40,16 @@ const Kontext = createContext<Steuerung | null>(null)
 export function ReelRahmen({
   quelle,
   thumbnail,
+  tonKnopfAussen = true,
   children,
 }: {
   quelle: string | null
   thumbnail: string | null
+  /**
+   * Ob der Ton-Knopf neben dem Rahmen steht. Im Geräterahmen nicht — dort
+   * sitzt er innen über `ReelTonKnopf`, wo ihn auch jeder sucht.
+   */
+  tonKnopfAussen?: boolean
   /** Der Geräterahmen; die Videofläche kommt über `ReelFlaeche` hinein. */
   children: ReactNode
 }) {
@@ -84,14 +96,18 @@ export function ReelRahmen({
     else v.pause()
   }
 
+  const schalteTon = () => setStumm((s) => !s)
+
   return (
-    <Kontext.Provider value={{ video, laeuft, zeigeThumbnail, schalte, thumbnail, quelle }}>
-      {/* Mobil sitzt der Ton-Knopf oben — dafür braucht es dort Luft. */}
-      <div className={`relative ${quelle ? 'pt-11 sm:pt-0' : ''}`}>
-        {quelle && (
+    <Kontext.Provider
+      value={{ video, laeuft, zeigeThumbnail, schalte, stumm, schalteTon, thumbnail, quelle }}
+    >
+      {/* Mobil sitzt der äußere Ton-Knopf oben — dafür braucht es dort Luft. */}
+      <div className={`relative ${quelle && tonKnopfAussen ? 'pt-11 sm:pt-0' : ''}`}>
+        {quelle && tonKnopfAussen && (
           <button
             type="button"
-            onClick={() => setStumm((s) => !s)}
+            onClick={schalteTon}
             aria-label={stumm ? 'Ton einschalten' : 'Stummschalten'}
             title={stumm ? 'Ton einschalten' : 'Stummschalten'}
             /*
@@ -151,6 +167,32 @@ export function ReelFlaeche({ platzhalter }: { platzhalter?: ReactNode }) {
         )}
       </button>
     </>
+  )
+}
+
+/**
+ * Der Ton-Knopf **im** Schirm — weißes Zeichen ohne Scheibe, wie bei
+ * Instagram. Braucht einen `ReelRahmen` um sich herum.
+ *
+ * Ohne Video steht er nicht da: Ein Ton-Knopf an einem Standbild wäre ein
+ * Knopf, der nichts tut.
+ */
+export function ReelTonKnopf() {
+  const s = useContext(Kontext)
+  if (!s?.quelle) return null
+
+  return (
+    <button
+      type="button"
+      onClick={s.schalteTon}
+      aria-label={s.stumm ? 'Ton einschalten' : 'Stummschalten'}
+      title={s.stumm ? 'Ton einschalten' : 'Stummschalten'}
+      // Der Schatten hält das weiße Zeichen auf hellen Videobildern lesbar —
+      // eine Scheibe darunter hätte Instagram an dieser Stelle nicht.
+      className="text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,.55)] transition-opacity hover:opacity-70"
+    >
+      {s.stumm ? <StummZeichen /> : <TonZeichen />}
+    </button>
   )
 }
 

@@ -110,10 +110,10 @@ describe('plattformenAusFormular', () => {
 })
 
 describe('GEBAUTE_PLATTFORMEN', () => {
-  it('sind heute Facebook, Instagram und LinkedIn', () => {
+  it('sind heute Facebook, Instagram, LinkedIn und TikTok', () => {
     // Zieht YouTube ein, ist das hier die Stelle, an der es auffällt — samt
     // der Auswahl, die sich dann automatisch mitändert.
-    expect(GEBAUTE_PLATTFORMEN).toEqual(['FACEBOOK', 'INSTAGRAM', 'LINKEDIN'])
+    expect(GEBAUTE_PLATTFORMEN).toEqual(['FACEBOOK', 'INSTAGRAM', 'LINKEDIN', 'TIKTOK'])
   })
 })
 

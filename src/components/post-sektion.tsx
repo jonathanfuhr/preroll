@@ -5,6 +5,7 @@ import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
 import { LinkedInRahmen } from './linkedin-rahmen'
+import { TikTokRahmen } from './tiktok-rahmen'
 import type { AnzeigeFassung } from './weitere-fassung'
 import { PlattformMarken } from './plattform-marken'
 import { StatusLeiste } from './status-leiste'
@@ -161,6 +162,7 @@ export function PostSektion({
   szenen,
   kommentare,
   liFollower = null,
+  tiktokHandle = null,
   fassungen = [],
 }: {
   post: {
@@ -202,6 +204,8 @@ export function PostSektion({
    * Namen. Nur nötig, wenn der Beitrag dorthin geht.
    */
   liFollower?: number | null
+  /** Das TikTok-Handle — steht in dessen Rahmen über der Caption. */
+  tiktokHandle?: string | null
   /**
    * Abweichende Fassungen — Caption oder Medien je Plattform. Das Hauptformat
    * steht darüber; hier stehen nur die Abweichungen davon.
@@ -333,6 +337,7 @@ export function PostSektion({
                     kunde,
                     logo,
                     liFollower,
+                    tiktokHandle,
                     typ: post.typ,
                     caption: block.caption,
                     verhaeltnis: block.verhaeltnis,
@@ -486,6 +491,7 @@ function vorschauarten({
   kunde,
   logo,
   liFollower,
+  tiktokHandle,
   typ,
   caption,
   verhaeltnis,
@@ -497,6 +503,7 @@ function vorschauarten({
   kunde: string
   logo: string | null
   liFollower: number | null
+  tiktokHandle: string | null
   typ: PostTyp
   caption: string
   verhaeltnis: Verhaeltnis
@@ -520,6 +527,25 @@ function vorschauarten({
           verhaeltnis={verhaeltnis}
           istVideo={istVideo}
           thumbnail={thumbnail}
+        />
+      ),
+    })
+  }
+
+  if (plattformen.includes('TIKTOK')) {
+    arten.push({
+      plattform: 'TIKTOK',
+      inhalt: (
+        <TikTokRahmen
+          kunde={kunde}
+          handle={tiktokHandle}
+          logo={logo}
+          text={caption}
+          medien={medien}
+          istVideo={istVideo}
+          thumbnail={thumbnail}
+          verhaeltnis={verhaeltnis}
+          typ={typ}
         />
       ),
     })

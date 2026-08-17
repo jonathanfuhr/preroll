@@ -410,6 +410,7 @@ export default async function ExportSeite({
               post={post}
               plattformen={angezeigtePlattformen(post, exp.kunde)}
               liFollower={liProfil.follower}
+              tiktokHandle={profile.TIKTOK.handle}
               fassungen={fassungen}
               kunde={exp.kunde.name}
               logo={thumbUrl(exp.kunde.logoId)}

@@ -1,7 +1,7 @@
 'use client'
 
 import type { PostTyp, Verhaeltnis } from '@prisma/client'
-import { useRef, useState, type TouchEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type TouchEvent } from 'react'
 import { VERHAELTNIS_WERT } from '@/lib/verhaeltnis'
 import { teileCaption } from './post-sektion'
 
@@ -64,6 +64,12 @@ export function LinkedInRahmen({
   typ: PostTyp
 }) {
   const { text: fliesstext, hashtags } = teileCaption(text)
+  /*
+    Beim Video steht in `medien` die Videodatei, nicht das Standbild — das
+    kommt als Poster darüber. Vorher wurde hier nur das Standbild gezeigt;
+    ein Player, der nichts abspielt, ist kein Player.
+  */
+  const videoQuelle = istVideo ? (medien[0] ?? null) : null
   const bilder = istVideo ? [thumbnail].filter((b): b is string => Boolean(b)) : medien
   const seite = VERHAELTNIS_WERT[verhaeltnis]
 
@@ -120,11 +126,11 @@ export function LinkedInRahmen({
       </div>
 
       {/* ----------------------------------------------------------- Medien */}
-      {bilder.length > 0 &&
+      {(videoQuelle || bilder.length > 0) &&
         (typ === 'KARUSSELL' && bilder.length > 1 ? (
           <Karussell slides={bilder} seite={seite} />
         ) : (
-          <Flaeche bild={bilder[0]} seite={seite} istVideo={istVideo} />
+          <Flaeche bild={bilder[0] ?? null} video={videoQuelle} seite={seite} />
         ))}
 
       {/* ---------------------------------------------------- Reaktionszeile */}
@@ -208,21 +214,20 @@ function Caption({ text, hashtags }: { text: string; hashtags: string }) {
  */
 function Flaeche({
   bild,
+  video,
   seite,
-  istVideo,
 }: {
-  bild: string
+  bild: string | null
+  video: string | null
   seite: number
-  istVideo: boolean
 }) {
   const gekappt = 1 / seite > HOECHSTES_BILD
+  const inhalt = video ? <Spieler quelle={video} poster={bild} /> : bild ? <Bild bild={bild} /> : null
 
   if (!gekappt) {
     return (
-      <div className="relative bg-black">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={bild} alt="" className="block w-full object-cover" style={{ aspectRatio: seite }} />
-        {istVideo && <Spielleiste />}
+      <div className="relative bg-black" style={{ aspectRatio: seite }}>
+        {inhalt}
       </div>
     )
   }
@@ -230,11 +235,12 @@ function Flaeche({
   return (
     <div
       className="relative flex items-center justify-center overflow-hidden bg-flaeche"
-      style={{ aspectRatio: HOECHSTES_BILD > 0 ? 550 / 690 : 1 }}
+      style={{ aspectRatio: 550 / 690 }}
     >
-      {istVideo && (
-        // Die unscharfen Seitenflächen sind dasselbe Bild, groß gezogen und
-        // weichgezeichnet — genau das macht LinkedIn.
+      {video && bild && (
+        // Die unscharfen Seitenflächen sind dasselbe Standbild, groß gezogen
+        // und weichgezeichnet — genau das macht LinkedIn. Das Video dafür ein
+        // zweites Mal zu laden wäre die doppelte Leitung für einen Effekt.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={bild}
@@ -243,10 +249,175 @@ function Flaeche({
           className="absolute inset-0 size-full scale-110 object-cover blur-2xl"
         />
       )}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={bild} alt="" className="relative block h-full w-auto max-w-full object-contain" />
-      {istVideo && <Spielleiste />}
+      <div className="relative h-full" style={{ aspectRatio: seite }}>
+        {inhalt}
+      </div>
     </div>
+  )
+}
+
+function Bild({ bild }: { bild: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={bild} alt="" className="block size-full object-cover" />
+}
+
+/** `0:11` — mehr braucht die Leiste nicht. */
+function zeit(sekunden: number): string {
+  if (!Number.isFinite(sekunden)) return '0:00'
+  const m = Math.floor(sekunden / 60)
+  const s = Math.floor(sekunden % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
+/**
+ * Der Player im LinkedIn-Fenster — und zwar ein richtiger.
+ *
+ * Die Leiste war zuerst nachgezeichnet: Sie sah aus wie bei LinkedIn und tat
+ * nichts. Für eine Vorschau, in der der Kunde ein Video freigeben soll, ist
+ * das die falsche Hälfte — er muss es sehen und hören können.
+ *
+ * Eigene Bedienelemente statt `controls`: Die Leiste des Browsers sieht in
+ * jedem anders aus und passt in keinem zum Fenster. Was **nicht** gebaut ist,
+ * steht auch nicht da — Geschwindigkeit und Untertitel zeichnet das Mockup,
+ * aber ein Knopf, der nichts tut, ist eine Falle.
+ */
+function Spieler({ quelle, poster }: { quelle: string; poster: string | null }) {
+  const video = useRef<HTMLVideoElement>(null)
+  const [laeuft, setLaeuft] = useState(false)
+  const [stumm, setStumm] = useState(true)
+  const [stand, setStand] = useState(0)
+  const [dauer, setDauer] = useState(0)
+
+  function schalte() {
+    const v = video.current
+    if (!v) return
+    if (v.paused) void v.play()
+    else v.pause()
+  }
+
+  function spule(e: ChangeEvent<HTMLInputElement>) {
+    const v = video.current
+    if (!v || !Number.isFinite(v.duration)) return
+    v.currentTime = (Number(e.target.value) / 100) * v.duration
+  }
+
+  const anteil = dauer > 0 ? (stand / dauer) * 100 : 0
+
+  return (
+    <>
+      <video
+        ref={video}
+        src={quelle}
+        poster={poster ?? undefined}
+        muted={stumm}
+        playsInline
+        preload="metadata"
+        onPlay={() => setLaeuft(true)}
+        onPause={() => setLaeuft(false)}
+        onEnded={() => setLaeuft(false)}
+        onTimeUpdate={(e) => setStand(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => setDauer(e.currentTarget.duration)}
+        className="block size-full object-cover"
+      />
+
+      {/* Die Fläche schaltet mit — wie überall, wo ein Video steht. */}
+      <button
+        type="button"
+        onClick={schalte}
+        aria-label={laeuft ? 'Pause' : 'Abspielen'}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        {!laeuft && (
+          <span className="flex size-14 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm">
+            <span
+              aria-hidden
+              className="ml-1 block size-0 border-y-[11px] border-l-[18px] border-y-transparent border-l-white"
+            />
+          </span>
+        )}
+      </button>
+
+      <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 bg-gradient-to-t from-black/55 to-transparent px-4 py-3.5">
+        <button
+          type="button"
+          onClick={schalte}
+          aria-label={laeuft ? 'Pause' : 'Abspielen'}
+          className="flex shrink-0 items-center transition-opacity hover:opacity-70"
+        >
+          {laeuft ? (
+            <span className="flex gap-[3px]">
+              <span className="block h-4 w-1 rounded-[1px] bg-white" />
+              <span className="block h-4 w-1 rounded-[1px] bg-white" />
+            </span>
+          ) : (
+            <span
+              aria-hidden
+              className="block size-0 border-y-[7px] border-l-[11px] border-y-transparent border-l-white"
+            />
+          )}
+        </button>
+
+        {/*
+          Ein `range` statt eines nachgebauten Balkens: Ziehen, Tastatur und
+          Vorlesehilfen sind damit erledigt, ohne dass es jemand nachbaut.
+          Die Optik kommt aus `globals.css` (`.zeitleiste`).
+        */}
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={0.1}
+          value={anteil}
+          onChange={spule}
+          aria-label="Zeitleiste"
+          className="zeitleiste h-1 min-w-0 flex-1"
+          style={{ background: `linear-gradient(to right,#fff ${anteil}%,rgba(255,255,255,.4) ${anteil}%)` }}
+        />
+
+        <span className="shrink-0 text-[12px] tabular-nums text-white">
+          {zeit(stand)} / {zeit(dauer)}
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setStumm((x) => !x)}
+          aria-label={stumm ? 'Ton einschalten' : 'Stummschalten'}
+          className="shrink-0 text-white transition-opacity hover:opacity-70"
+        >
+          {stumm ? <StummZeichen /> : <TonZeichen />}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => void video.current?.requestFullscreen?.()}
+          aria-label="Vollbild"
+          className="block size-3 shrink-0 rounded-[2px] border-[1.4px] border-white transition-opacity hover:opacity-70"
+        />
+      </div>
+    </>
+  )
+}
+
+function TonZeichen() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M8 2.5 4.5 5.5H2v5h2.5L8 13.5v-11Z" fill="currentColor" />
+      <path
+        d="M10.5 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6.5 6.5 0 0 1 0 9"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function StummZeichen() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M8 2.5 4.5 5.5H2v5h2.5L8 13.5v-11Z" fill="currentColor" />
+      <path d="m10.5 6 4 4M14.5 6l-4 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
   )
 }
 
@@ -332,31 +503,6 @@ function Pfeil({ richtung, aufKlick }: { richtung: 'links' | 'rechts'; aufKlick:
     >
       {richtung === 'links' ? '❮' : '❯'}
     </button>
-  )
-}
-
-/** Die Player-Leiste über dem Video — sichtbar, nicht bedienbar. */
-function Spielleiste() {
-  return (
-    <div className="absolute inset-x-0 bottom-0 flex items-center gap-3.5 bg-gradient-to-t from-black/55 to-transparent px-4 py-3.5">
-      <span className="flex shrink-0 gap-[3px]">
-        <span className="block h-4 w-1 rounded-[1px] bg-white" />
-        <span className="block h-4 w-1 rounded-[1px] bg-white" />
-      </span>
-      <span className="relative h-[3px] min-w-0 flex-1 rounded-sm bg-white/40">
-        <span className="absolute inset-y-0 left-0 block w-[16%] rounded-sm bg-white" />
-        <span className="absolute -top-[3.5px] left-[16%] block size-2.5 rounded-full bg-white" />
-      </span>
-      <span className="shrink-0 text-[12px] text-white">1x</span>
-      <span className="shrink-0 rounded-[3px] border-[1.3px] border-white px-1 py-px text-[9px] font-bold text-white">
-        CC
-      </span>
-      <span
-        className="block size-3 shrink-0 bg-white"
-        style={{ clipPath: 'polygon(0 33%,33% 33%,66% 0,66% 100%,33% 66%,0 66%)' }}
-      />
-      <span className="block size-3 shrink-0 rounded-[2px] border-[1.4px] border-white" />
-    </div>
   )
 }
 

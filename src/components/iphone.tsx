@@ -2,7 +2,7 @@ import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import { KarussellFlaeche } from './karussell-blaettern'
 import { Sprung } from './sprung'
 import { flaechenHoehe, VERHAELTNIS_MASSE, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
-import { ReelFlaeche, ReelRahmen } from './reel-player'
+import { ReelFlaeche, ReelRahmen, ReelTonKnopf } from './reel-player'
 import type { ReactNode } from 'react'
 
 /**
@@ -310,9 +310,11 @@ export function IPhoneReel({
   thumbnail?: string | null
 }) {
   return (
-    // Der Ton-Knopf muss außerhalb des Schirms sitzen — der ist
-    // `overflow: hidden`, innen wäre er unsichtbar.
-    <ReelRahmen quelle={istVideo ? (medium ?? null) : null} thumbnail={thumbnail ?? null}>
+    <ReelRahmen
+      quelle={istVideo ? (medium ?? null) : null}
+      thumbnail={thumbnail ?? null}
+      tonKnopfAussen={false}
+    >
       <Geraet dunkel>
       <div
         className="relative h-[569px] w-[320px] shrink-0 overflow-hidden"
@@ -357,7 +359,12 @@ export function IPhoneReel({
             >
               Reels
             </span>
-            <span className="block h-4 w-[18px] rounded-[4px] border-[1.5px] border-white/85" />
+            {/* Ton links, Kamera rechts — so steht es bei Instagram. Die
+                Kamera bleibt Zierde, der Ton ist bedienbar. */}
+            <span className="flex items-center gap-3.5">
+              <ReelTonKnopf />
+              <span className="block h-4 w-[18px] rounded-[4px] border-[1.5px] border-white/85" />
+            </span>
           </div>
         </div>
 
