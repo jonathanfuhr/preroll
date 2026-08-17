@@ -24,7 +24,9 @@ import { CustomFeldFormular } from './custom-felder'
 import { KlappeProjektWahl } from './klappe-projekt'
 import { LogoAblage } from './logo'
 import { ProfilFelder } from './plattform-profil'
-import { MetaKanaele, PlattformwahlKarte } from './veroeffentlichen'
+import { LinkedInKanal, MetaKanaele, PlattformwahlKarte } from './veroeffentlichen'
+import { linkedInAppSteht, linkedInOrganisationen, ladeLinkedInZugang } from '@/lib/linkedin-zugang'
+import { linkedInKanalSpeichern } from '../veroeffentlichen-aktionen'
 
 /**
  * Stammdaten, nach Plattform gegliedert.
@@ -47,10 +49,15 @@ export default async function StammdatenSeite({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ kennzahlen?: string; meta?: string; meldung?: string }>
+  searchParams: Promise<{
+    kennzahlen?: string
+    meta?: string
+    linkedin?: string
+    meldung?: string
+  }>
 }) {
   const { slug } = await params
-  const { kennzahlen: kennzahlenStand, meta, meldung } = await searchParams
+  const { kennzahlen: kennzahlenStand, meta, linkedin, meldung } = await searchParams
   const kunde = await ladeKunde(slug)
   const einstellungen = await ladeEinstellungen()
 
@@ -84,9 +91,18 @@ export default async function StammdatenSeite({
   // wäre das ein Schalter, dessen Wirkung man erst hinterher sieht.
   const offeneBeitraege = await zaehleOffeneBeitraege(kunde.id)
 
+  /*
+    LinkedIn: App-Daten, Zugang und die Seiten daran. Die Seiten werden nur
+    geholt, wenn ein Zugang steht — und ein Fehlschlag darf die Stammdaten nicht
+    mitnehmen, sonst kommt niemand mehr an das Formular, in dem er ihn
+    reparieren würde.
+  */
+  const [liApp, liZugang] = await Promise.all([linkedInAppSteht(), ladeLinkedInZugang()])
+  const liOrgs = liZugang ? await linkedInOrganisationen() : null
+
   const instagram = kunde.profil.INSTAGRAM
   const facebook = kunde.profil.FACEBOOK
-  const linkedin = kunde.profil.LINKEDIN
+  const linkedinProfil = kunde.profil.LINKEDIN
 
   return (
     <div className="max-w-[760px]">
@@ -139,7 +155,7 @@ export default async function StammdatenSeite({
               postenAktiv={kunde.postenAktiv}
               seitenId={kunde.fbSeitenId}
               igKontoId={kunde.igKontoId}
-              zugangSteht={zugaenge.length > 0}
+              liOrganisationId={kunde.liOrganisationId}
               offeneBeitraege={offeneBeitraege}
             />
           </div>
@@ -254,21 +270,34 @@ export default async function StammdatenSeite({
         hinweis="Angaben und Zahlen der Firmenseite. Das Veröffentlichen über LinkedIn ist noch nicht gebaut."
       >
         <Karte className="p-5">
-          <div className="mb-4">
-            <Hinweis>
-              Preroll postet noch nicht auf LinkedIn — dafür braucht es die Community Management
-              API, und die gibt LinkedIn nur nach einer Freigabe heraus. Bis dahin lässt sich hier
-              pflegen, was zum Profil gehört; geplant wird wie bisher, gepostet von Hand.
-            </Hinweis>
-          </div>
-
           <ProfilFelder
             speichern={profilSpeichern.bind(null, kunde.id, 'LINKEDIN')}
-            werte={linkedin}
+            werte={linkedinProfil}
             handleBeschriftung="Firmenseite"
             handleHinweis="Der Teil hinter linkedin.com/company/ — etwa beispiel-handwerk."
             handlePlatzhalter="beispiel-handwerk"
             beitraegeBeschriftung="Beiträge"
+          />
+        </Karte>
+
+        <Karte className="mt-4 p-5">
+          <h3 className="mb-1 text-[13px] font-semibold">Kanal zum Veröffentlichen</h3>
+          <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
+            Welche Firmenseite Preroll bespielt. Ohne Zuordnung lässt sich im Abschnitt Profil
+            LinkedIn nicht anhaken.
+          </p>
+
+          <LinkedInKanal
+            speichern={linkedInKanalSpeichern.bind(null, kunde.id, slug)}
+            zugangSteht={liZugang !== null}
+            appSteht={liApp}
+            organisationId={kunde.liOrganisationId}
+            organisation={kunde.liOrganisation}
+            organisationen={liOrgs?.ok ? liOrgs.organisationen : []}
+            fehler={liOrgs && !liOrgs.ok ? liOrgs.fehler : null}
+            meldung={
+              linkedin === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null
+            }
           />
         </Karte>
       </Abschnitt>

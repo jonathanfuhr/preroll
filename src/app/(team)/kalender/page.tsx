@@ -73,7 +73,15 @@ export default async function KalenderSeite({
         veroeffentlichungen: { select: { stand: true } },
         // Die Kanäle kommen mit, weil ohne sie keine Marke gezeigt wird —
         // was nicht rausgeht, soll auch kein Zeichen tragen.
-        kunde: { select: { slug: true, name: true, fbSeitenId: true, igKontoId: true } },
+        kunde: {
+          select: {
+            slug: true,
+            name: true,
+            fbSeitenId: true,
+            igKontoId: true,
+            liOrganisationId: true,
+          },
+        },
       },
     }),
   ])

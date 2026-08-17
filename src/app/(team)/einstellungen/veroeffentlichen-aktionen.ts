@@ -10,6 +10,7 @@ import {
   loeseMetaZugang,
   pruefeMetaZugang,
 } from '@/lib/plattform-zugang'
+import { linkedInOrganisationen, loeseLinkedInZugang } from '@/lib/linkedin-zugang'
 import { takt } from '@/lib/veroeffentlichung-lauf'
 
 const SEITE = '/einstellungen/veroeffentlichen'
@@ -95,4 +96,42 @@ export async function laufAnstossen() {
   await adminOderRaus()
   await takt()
   revalidatePath(SEITE)
+}
+
+// ------------------------------------------------------------------ LinkedIn
+
+/**
+ * Die App-Daten. Ohne sie gibt es keinen Autorisierungsablauf — ein Token von
+ * Hand einzutragen wie bei Meta geht bei LinkedIn nicht, denn ein Token für
+ * eine Firmenseite entsteht nur über den Ablauf.
+ *
+ * Das Secret bleibt stehen, wenn das Feld leer abgeschickt wird: Es wird nie
+ * zurück in die Maske geschrieben, und ein leeres Feld heißt „unverändert",
+ * nicht „lösche es".
+ */
+export async function linkedInAppSpeichern(formular: FormData) {
+  await adminOderRaus()
+
+  const clientId = String(formular.get('linkedinClientId') ?? '').trim()
+  const secret = String(formular.get('linkedinClientSecret') ?? '').trim()
+
+  await speichereEinstellungen({
+    linkedinClientId: clientId || null,
+    ...(secret ? { linkedinClientSecret: secret } : {}),
+  })
+
+  revalidatePath('/einstellungen/veroeffentlichen')
+}
+
+export async function linkedInZugangLoesen() {
+  await adminOderRaus()
+  await loeseLinkedInZugang()
+  revalidatePath('/einstellungen/veroeffentlichen')
+}
+
+/** Prüft den Zugang mit dem Aufruf, den das Posten ohnehin braucht. */
+export async function linkedInZugangPruefen() {
+  await adminOderRaus()
+  await linkedInOrganisationen()
+  revalidatePath('/einstellungen/veroeffentlichen')
 }

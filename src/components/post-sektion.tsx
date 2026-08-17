@@ -4,6 +4,7 @@ import { kalenderwoche } from '@/lib/format'
 import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
+import { LinkedInVorschau } from './linkedin-vorschau'
 import { PlattformMarken } from './plattform-marken'
 import { StatusLeiste } from './status-leiste'
 
@@ -157,6 +158,7 @@ export function PostSektion({
   istVideo,
   szenen,
   kommentare,
+  liFollower = null,
 }: {
   post: {
     id: string
@@ -192,6 +194,11 @@ export function PostSektion({
   istVideo: boolean
   szenen: SzenenZeile[]
   kommentare: ReactNode
+  /**
+   * Follower der LinkedIn-Firmenseite — steht in deren Vorschau unter dem
+   * Namen. Nur nötig, wenn der Beitrag dorthin geht.
+   */
+  liFollower?: number | null
 }) {
   const { text, hashtags } = teileCaption(post.caption)
   const status = STATUS_STIL[post.status]
@@ -271,6 +278,32 @@ export function PostSektion({
           )}
 
           <Eckdaten eintraege={eckdaten} />
+
+          {/*
+            Geht der Beitrag auch auf LinkedIn, steht er hier ein zweites Mal —
+            so, wie er dort erscheint. Kein Raster: LinkedIn hat keines, in dem
+            sich Kacheln zu einem Bild fügen, und ein nachgebautes Telefon würde
+            etwas behaupten, was nicht stimmt.
+
+            Gezeigt wird nur, was auch rausgeht: `plattformen` ist bereits der
+            Schnitt aus Wahl und zugeordnetem Kanal (`angezeigtePlattformen`).
+          */}
+          {plattformen.includes('LINKEDIN') && (
+            <div className="mt-6 sm:mt-[34px]">
+              <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
+                Auf LinkedIn
+              </div>
+              <LinkedInVorschau
+                kunde={kunde}
+                logo={logo}
+                follower={liFollower}
+                text={post.caption}
+                medien={medien}
+                istVideo={istVideo}
+                thumbnail={thumbnail}
+              />
+            </div>
+          )}
 
           {/*
             Alle Slides in Reihe. Im Geräterahmen sieht man immer nur einen —

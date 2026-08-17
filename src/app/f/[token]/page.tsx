@@ -96,7 +96,11 @@ export default async function ExportSeite({
 
   // Die Feed-Vorschau ist ein Instagram-Profil und wird keines von LinkedIn —
   // Handle und Zahlen darüber kommen deshalb ausdrücklich von dort.
-  const igProfil = profilKarte(exp.kunde.profile).INSTAGRAM
+  const profile = profilKarte(exp.kunde.profile)
+  const igProfil = profile.INSTAGRAM
+  // Steht in der LinkedIn-Vorschau unter dem Namen — dort zählen die Follower
+  // der Firmenseite, nicht die von Instagram.
+  const liProfil = profile.LINKEDIN
 
   const einstellungen = await ladeEinstellungen()
 
@@ -340,6 +344,7 @@ export default async function ExportSeite({
               key={post.id}
               post={post}
               plattformen={angezeigtePlattformen(post, exp.kunde)}
+              liFollower={liProfil.follower}
               kunde={exp.kunde.name}
               logo={thumbUrl(exp.kunde.logoId)}
               medien={
