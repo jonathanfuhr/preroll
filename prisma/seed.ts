@@ -264,25 +264,18 @@ async function main() {
     void reel
   }
 
-  const bestehenderExport = await prisma.export.findFirst({ where: { kundeId: kunde.id } })
-  if (!bestehenderExport) {
-    await prisma.export.create({
-      data: {
-        kundeId: kunde.id,
-        token: 'beispiel-aug26',
-        titel: 'Content-Plan August 2026',
-        // Eine Freigabe umfasst immer einen ganzen Monat. Die frühere
-        // Ablauffrist `gueltigBis` ist damit entfallen; sie stand hier noch
-        // und ließ `npm run db:seed` mit einem Validierungsfehler abbrechen.
-        zeitraumVon: new Date('2026-08-01T00:00:00.000Z'),
-        zeitraumBis: new Date('2026-08-31T00:00:00.000Z'),
-      },
-    })
-  }
+  // Ein Zugang je Kunde, ohne Zeitraum: Welche Monate der Kunde sieht, ergibt
+  // sich aus seinen Beiträgen. Der Token trägt deshalb auch keinen Monat mehr
+  // im Namen — er gilt dauerhaft.
+  await prisma.export.upsert({
+    where: { kundeId: kunde.id },
+    create: { kundeId: kunde.id, token: 'beispiel-handwerk', titel: 'Content-Plan' },
+    update: {},
+  })
 
   console.log('Beispieldaten angelegt.')
   console.log(`Anmeldung: helena@thdvideo.de / ${START_PASSWORT}`)
-  console.log('Freigabe-Link: /f/beispiel-aug26')
+  console.log('Freigabe-Link: /f/beispiel-handwerk')
 }
 
 await main()

@@ -539,22 +539,30 @@ model CustomFeldWert {
 
 // --------------------------------------------------------------------- Export
 
+/**
+ * Der Freigabezugang eines Kunden — **genau einer**, kein Link je Monat.
+ *
+ * Vorher gab es eine Freigabe je Monat, und damit einen Link je Monat: neue
+ * Einladung, neue Mail, und ein Gast, der im August eingeladen war, kam im
+ * September nicht mehr hinein. Der Monat ist aber keine Eigenschaft des
+ * Zugangs, sondern eine Ansicht darin — er steht deshalb in der Adresse
+ * (`/f/<token>?monat=2026-08`), und welche Monate es gibt, ergibt sich aus den
+ * Beiträgen. Wer den Link einmal hat, sieht jeden Monat, auch die alten.
+ *
+ * Dass der Kunde damit auch den kommenden Monat sieht, ist gewollt und
+ * ungefährlich: Was noch nicht vorzeigbar ist, steht auf `ENTWURF` und
+ * erscheint in keiner Kundenansicht.
+ */
 model Export {
   id      String @id @default(cuid())
-  kundeId String
+  kundeId String @unique
   kunde   Kunde  @relation(fields: [kundeId], references: [id], onDelete: Cascade)
 
   // Öffentlicher Token im Link /f/<token>.
   token String @unique
   titel String?
 
-  // Eine Freigabe umfasst immer genau einen Monat, vom Ersten bis zum
-  // Letzten. `zeitraumVon` ist damit zugleich die Kennung des Monats —
-  // deshalb je Kunde nur einmal.
-  zeitraumVon DateTime @db.Date
-  zeitraumBis DateTime @db.Date
-
-  // Zusätzlicher Ansprechpartner nur für diesen Link. Er erscheint neben dem
+  // Zusätzlicher Ansprechpartner nur für diesen Zugang. Er erscheint neben dem
   // Hauptansprechpartner des Kunden und bekommt dessen Rückmeldungen mit —
   // ersetzt ihn also nicht.
   zusatzAnsprechpartnerId String?
@@ -571,8 +579,6 @@ model Export {
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt
 
-  @@unique([kundeId, zeitraumVon])
-  @@index([kundeId])
   @@map("export")
 }
 
