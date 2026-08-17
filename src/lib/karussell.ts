@@ -30,7 +30,7 @@ export type Auftrennung =
 export function erkenneSlideAnzahl(
   breite: number,
   hoehe: number,
-  verhaeltnis: Verhaeltnis = 'HOCH_3_4',
+  verhaeltnis: Verhaeltnis = 'HOCH_4_5',
 ): number | null {
   const ziel = VERHAELTNIS_WERT[verhaeltnis]
   if (breite <= 0 || hoehe <= 0) return null
@@ -45,7 +45,7 @@ export function erkenneSlideAnzahl(
 export function maximaleSlideAnzahl(
   breite: number,
   hoehe: number,
-  verhaeltnis: Verhaeltnis = 'HOCH_3_4',
+  verhaeltnis: Verhaeltnis = 'HOCH_4_5',
 ): number {
   if (breite <= 0 || hoehe <= 0) return 0
   const ziel = VERHAELTNIS_WERT[verhaeltnis]
@@ -56,7 +56,7 @@ export function berechneAuftrennung(
   breite: number,
   hoehe: number,
   gewuenschteAnzahl?: number,
-  verhaeltnis: Verhaeltnis = 'HOCH_3_4',
+  verhaeltnis: Verhaeltnis = 'HOCH_4_5',
 ): Auftrennung {
   if (breite <= 0 || hoehe <= 0) {
     return { ok: false, fehler: 'Die Bildmaße konnten nicht gelesen werden.' }
@@ -126,20 +126,24 @@ export function schnittfenster(
 /**
  * Beschneiden fürs Raster — oder nicht?
  *
- * **Nur was höher ist als das Raster.** Ein Reel-Thumbnail liegt in 9:16 vor
- * und muss beschnitten werden, sonst passt es nirgends hin; genau so zeigt
- * Instagram Reels im Profil. Ein Beitrag in 4:5 ist dagegen *breiter* als
- * 3:4 — ihn zu beschneiden hieße, seitlich etwas wegzunehmen, was jemand
- * bewusst gestaltet hat. Das Vorschaubild behält deshalb alles; wie die
- * Kachel es zeigt, entscheidet die Anzeige.
+ * **Nur was höher ist als das Raster** (3:4). Ein Reel-Thumbnail liegt in 9:16
+ * vor und muss beschnitten werden, sonst passt es nirgends hin; genau so zeigt
+ * Instagram Reels im Profil.
  *
- * Nebenbei fallen damit auch Logos und Profilbilder heraus — die sind
- * quadratisch oder breiter und standen nie im Raster.
+ * Ein Beitrag in 4:5 — das Standardformat — ist dagegen *breiter* als 3:4.
+ * Auch er erscheint im Raster als Ausschnitt, aber der entsteht an der Kachel
+ * (`aspect-[3/4]` mit `object-cover`) und nicht an der Datei. Ihn schon beim
+ * Upload zu schneiden hieße, seitlich wegzunehmen, was jemand bewusst
+ * gestaltet hat — und im Geräterahmen, wo derselbe Beitrag in voller Breite
+ * steht, fehlte es dann.
+ *
+ * Nebenbei fallen damit Logos und Profilbilder heraus: quadratisch oder
+ * breiter, und nie im Raster.
  */
 export function brauchtZuschnitt(
   breite: number,
   hoehe: number,
-  ziel = VERHAELTNIS.hochkant,
+  ziel = VERHAELTNIS.raster,
 ): boolean {
   if (!breite || !hoehe) return false
   // Ein Prozent Spiel, damit ein krummer Export nicht um zwei Pixel schneidet.
@@ -153,7 +157,7 @@ export function brauchtZuschnitt(
 export function mittigerAusschnitt(
   breite: number,
   hoehe: number,
-  ziel = VERHAELTNIS.hochkant,
+  ziel = VERHAELTNIS.raster,
 ): { left: number; top: number; width: number; height: number } {
   const ist = breite / hoehe
   if (ist > ziel) {
