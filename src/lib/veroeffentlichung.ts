@@ -15,6 +15,7 @@ import {
   meldeVeroeffentlichungFehlgeschlagen,
   meldeZugangAbgelehnt,
 } from './benachrichtigungen'
+import { fassungFuer } from './varianten'
 import { medienFuerPost } from './veroeffentlichung-medien'
 
 export { medienFuerPost } from './veroeffentlichung-medien'
@@ -381,6 +382,7 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
           typ: true,
           caption: true,
           klappeVersionId: true,
+          verhaeltnis: true,
           medien: {
             orderBy: [{ rolle: 'asc' }, { position: 'asc' }],
             select: {
@@ -388,6 +390,27 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
               position: true,
               mediumId: true,
               medium: { select: { mimeTyp: true } },
+            },
+          },
+          // Abweichende Fassungen je Plattform. Was leer bleibt, wird geerbt —
+          // die Regel steht in `varianten.ts`.
+          varianten: {
+            orderBy: { position: 'asc' },
+            select: {
+              id: true,
+              plattformen: true,
+              caption: true,
+              verhaeltnis: true,
+              position: true,
+              medien: {
+                orderBy: [{ rolle: 'asc' }, { position: 'asc' }],
+                select: {
+                  rolle: true,
+                  position: true,
+                  mediumId: true,
+                  medium: { select: { mimeTyp: true } },
+                },
+              },
             },
           },
           kunde: {
@@ -419,7 +442,20 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
     return
   }
 
-  const material = medienFuerPost(post)
+  /*
+    Was auf **dieser** Plattform gilt: Caption und Medien nach der Erbregel.
+    Ohne passende Variante ist das der Beitrag selbst — dann verhält sich alles
+    wie vorher.
+
+    Hat die Fassung eigene Medien, fällt eine Klappe-Fassung weg: Sonst gingen
+    zwei Videos in denselben Beitrag, und keines wäre erkennbar das gültige.
+  */
+  const fassung = fassungFuer(post, post.varianten, zeile.plattform)
+  const material = medienFuerPost({
+    typ: post.typ,
+    klappeVersionId: fassung.eigeneMedien ? null : post.klappeVersionId,
+    medien: fassung.medien,
+  })
   if (!material.ok) {
     await notiereFehlschlag(id, { text: material.fehler, zugangHin: false })
     return
@@ -427,7 +463,7 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
 
   const ergebnis = await posteJePlattform({
     plattform: zeile.plattform,
-    text: post.caption,
+    text: fassung.caption,
     medien: material.medien,
     fbSeitenId,
     fbSeitenToken,

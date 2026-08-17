@@ -59,13 +59,20 @@ export function postsImZeitraum<T extends SichtPost>(
  * Posts — aber nichts, was zeitlich nach dem letzten Post des Zeitraums liegt.
  * So sieht der Kunde, wie sein Profil nach der geplanten Periode aussehen wird.
  *
+ * **Nur Instagram-Beiträge**, sobald `nurFuer` mitgegeben wird. Das Raster ist
+ * ein Instagram-Profil; ein Beitrag, der nur auf LinkedIn erscheint, hat darin
+ * nichts zu suchen — er würde ein Profil zeigen, das es nicht gibt. Ohne
+ * Angabe zählt alles, damit die interne Planung unverändert bleibt.
+ *
  * Neueste zuerst, damit die erste Kachel oben links landet.
  */
 export function feedVorschau<T extends SichtPost>(
   posts: T[],
   regeln: Sichtregeln,
+  nurFuer?: (post: T) => boolean,
 ): Array<Geplant<T>> {
-  const sichtbareImZeitraum = postsImZeitraum(posts, regeln)
+  const gefiltert = nurFuer ? posts.filter(nurFuer) : posts
+  const sichtbareImZeitraum = postsImZeitraum(gefiltert, regeln)
 
   // Ohne freigegebene Posts im Zeitraum gäbe es keine Obergrenze — dann zählt
   // das Ende des Zeitraums.
@@ -74,7 +81,7 @@ export function feedVorschau<T extends SichtPost>(
 
   const von = tagesbeginn(regeln.zeitraumVon)
 
-  return nurGeplante(posts)
+  return nurGeplante(gefiltert)
     .filter((p) => p.postenAm <= letzterImZeitraum)
     // Vor dem Zeitraum: alles zeigen, das ist bereits veröffentlicht.
     // Im Zeitraum: nur, was freigegeben ist.

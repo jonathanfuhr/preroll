@@ -18,6 +18,7 @@ import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { PlattformWahl } from '@/components/plattform-wahl'
 import { SlideSortierung } from '@/components/slide-sortierung'
 import { Szenenplan, type Szene } from './szenenplan'
+import { VariantenFeld, type VariantenZeile } from './varianten-feld'
 import type { Zielreel } from './uebertragen'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { KlappeFeld, type KlappeVideoWahl } from './klappe-feld'
@@ -95,6 +96,7 @@ export function PostEditor({
   phase,
   gleichzeitig,
   plattformen,
+  varianten,
   szenen,
   customFelder,
   slides,
@@ -132,6 +134,18 @@ export function PostEditor({
    * nicht eingerichtet ist.
    */
   plattformen: { gewaehlt: Plattform[]; moeglich: Plattform[] }
+  /**
+   * Abweichende Fassungen je Plattform. Fehlt die Angabe, entfällt der
+   * Abschnitt — bei einem Beitrag, der nur eine Plattform bespielt, gäbe es
+   * nichts abzuweichen.
+   */
+  varianten?: {
+    zeilen: VariantenZeile[]
+    frei: Plattform[]
+    anlegen: (formular: FormData) => Promise<void>
+    speichern: (varianteId: string, formular: FormData) => Promise<void>
+    loeschen: (varianteId: string) => Promise<void>
+  }
   szenen: Szene[]
   customFelder: CustomFeld[]
   slides: Array<{ id: string; url: string }>
@@ -439,6 +453,28 @@ export function PostEditor({
             rows={7}
           />
         </Abschnitt>
+
+        {/*
+          Abweichende Fassungen stehen unter der Caption, weil sie Abweichungen
+          davon sind. Sie liegen bewusst **außerhalb** des Beitragsformulars:
+          Jede Fassung speichert für sich, sonst nähme ein Klick auf „Fassung
+          speichern" ungespeicherte Änderungen am Beitrag mit — oder umgekehrt.
+        */}
+        {varianten && plattformen.gewaehlt.length > 1 && (
+          <Abschnitt
+            titel="Andere Fassungen"
+            hinweis="Dieselbe Sache liest sich auf LinkedIn anders als auf Instagram. Was hier leer bleibt, wird vom Beitrag geerbt."
+          >
+            <VariantenFeld
+              postTyp={post.typ}
+              varianten={varianten.zeilen}
+              frei={varianten.frei}
+              anlegen={varianten.anlegen}
+              speichern={varianten.speichern}
+              loeschen={varianten.loeschen}
+            />
+          </Abschnitt>
+        )}
 
         {/* --------------------------------------------------- Reel: Szenen */}
         {post.typ === 'REEL' && (

@@ -393,6 +393,42 @@ Seite zu bewachen wäre die schlechtere Regel.
   Haken, und nur für Beiträge, die noch nicht draußen sind. Gezeigt wird sie
   einfarbig (`PlattformMarken`, nie in Markenfarben) in Post-Liste, beiden
   Kalendern und in der Kopfzeile jedes Beitrags auf der Kundenseite.
+- **Eine Sache, mehrere Fassungen** (`PostVariante`). Dieselbe Sache liest sich
+  auf LinkedIn anders als auf Instagram. Ein zweiter Beitrag wäre die
+  naheliegende Lösung gewesen und die falsche: Er hätte einen eigenen Termin,
+  einen eigenen Freigabestand und eine eigene Zeile im Kalender, obwohl es
+  **eine** Sache ist, die einmal freigegeben wird.
+- **Leer heißt geerbt, Feld für Feld** (`varianten.ts`). Wer nur die Caption
+  ändert, bekommt das Medium des Beitrags; wer nur ein anderes Bild braucht,
+  dessen Caption. Deshalb sind die Felder optional — eine Fassung, die alles
+  wiederholen müsste, veraltet beim nächsten Umbau des Hauptbeitrags, ohne dass
+  es auffällt. Ein eigenes Verhältnis wirkt **nur mit eigenen Medien**: sonst
+  stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.
+  Medien werden als **Ganzes** ersetzt, nicht Stück für Stück — ein Karussell
+  aus zwei Quellen hätte niemand so gemeint.
+- **Eine Plattform steht in höchstens einer Fassung.** Welche von zwei gälte,
+  wäre nicht entscheidbar. Geprüft am Server (`freiePlattformen`), im Enum lässt
+  sich ein Array nicht eindeutig machen; die Sperre im Formular ist
+  Bequemlichkeit. Findet die Anzeige trotzdem zwei, nimmt sie die erste nach
+  Position statt zu werfen — an einer widersprüchlichen Eingabe abzustürzen wäre
+  schlechter.
+- **Die Medien einer Fassung liegen in einer eigenen Tabelle**
+  (`PostVarianteMedium`), nicht als `varianteId` an `PostMedium`. Dort bewacht
+  `@@unique([postId, rolle, position])`, dass ein Beitrag nicht zwei Slides auf
+  derselben Position hat; eine zusätzliche, meist leere Spalte hätte das
+  aufgehoben, weil Postgres NULL-Werte für verschieden hält.
+- **Das Profilraster zeigt nur Instagram-Beiträge.** Ein Beitrag, der nur auf
+  LinkedIn erscheint, würde dem Kunden ein Profil zeigen, das es nicht gibt.
+  `feedVorschau` nimmt dafür einen Filter; gefiltert wird über
+  `angezeigtePlattformen`, also über das, was wirklich rausgeht. Der Filter
+  wirkt **vor** der Obergrenze — sonst setzte ein weggelassener Beitrag das Ende
+  des Zeitraums.
+- **Beim Kunden steht das Hauptformat zuerst, dann jede Abweichung einmal.**
+  Gruppiert statt je Plattform aufgelistet: Gilt eine Fassung für LinkedIn und
+  Facebook, steht sie einmal da und nennt beide. Das Hauptformat bleibt auch
+  dann vorn, wenn keine Plattform es unverändert nimmt — eine Abweichung ohne
+  Bezugspunkt wäre nicht verständlich. Und **kein zweiter Geräterahmen**: Er
+  stellte die Abweichung auf dieselbe Stufe wie den Beitrag.
 - **Ein Video-Platz, drei Wege.** Upload, Klappe und Link-Download füllen
   beim Reel denselben Platz — das Video im Geräterahmen; ein eigenes
   „Referenzvideo" gibt es **nicht**, auch nicht als Extra-Anzeige beim

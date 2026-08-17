@@ -16,6 +16,7 @@ import { offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
 import { slugify } from '@/lib/slug'
 import { internAbleiten } from '@/lib/kommentar-intern'
+import { freiePlattformen } from '@/lib/varianten'
 import { klappeVideoNachziehen } from './klappe-aktionen'
 
 async function nutzerOderRaus() {
@@ -892,4 +893,76 @@ export async function slideWiederherstellen(
   ])
 
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
+}
+
+// ---------------------------------------------------------------- Varianten
+
+/**
+ * Eine abweichende Fassung anlegen.
+ *
+ * Geprüft wird gegen zwei Dinge: Die Plattform muss beim Beitrag überhaupt
+ * gewählt sein, und sie darf in keiner anderen Fassung stehen. Das Zweite ist
+ * die eigentliche Regel — welche von zwei Fassungen für dieselbe Plattform
+ * gälte, wäre nicht entscheidbar. Die Sperre im Formular ist Bequemlichkeit;
+ * verlassen wird sich der Server auf sie nie.
+ */
+export async function varianteAnlegen(postId: string, slug: string, formular: FormData) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    select: { plattformen: true, varianten: { select: { id: true, plattformen: true } } },
+  })
+
+  const gewaehlt = plattformenAusFormular(formular).filter((p) => post.plattformen.includes(p))
+  const frei = freiePlattformen(gewaehlt, post.varianten as never)
+  if (frei.length === 0) return
+
+  await prisma.postVariante.create({
+    data: {
+      postId,
+      plattformen: frei,
+      caption: text(formular, 'caption'),
+      position: post.varianten.length,
+    },
+  })
+
+  revalidatePath(`/kunden/${slug}/posts/${postId}`)
+}
+
+export async function varianteSpeichern(
+  postId: string,
+  slug: string,
+  varianteId: string,
+  formular: FormData,
+) {
+  await nutzerOderRaus()
+
+  const post = await prisma.post.findUniqueOrThrow({
+    where: { id: postId },
+    select: { typ: true, plattformen: true, varianten: { select: { id: true, plattformen: true } } },
+  })
+
+  const gewaehlt = plattformenAusFormular(formular).filter((p) => post.plattformen.includes(p))
+  // Die eigene Fassung zählt nicht als Belegung — sonst ließe sie sich nicht
+  // mehr speichern, sobald sie einmal eine Plattform trägt.
+  const frei = freiePlattformen(gewaehlt, post.varianten as never, varianteId)
+
+  // Das Format muss zum **Typ** des Beitrags passen: Ein Karussell in 16:9
+  // gibt es nicht, und eine Variante darf diese Regel nicht umgehen.
+  const gewuenscht = text(formular, 'verhaeltnis') as Verhaeltnis | null
+  const verhaeltnis = gewuenscht && istErlaubt(post.typ, gewuenscht) ? gewuenscht : null
+
+  await prisma.postVariante.update({
+    where: { id: varianteId },
+    data: { plattformen: frei, caption: text(formular, 'caption'), verhaeltnis },
+  })
+
+  revalidatePath(`/kunden/${slug}/posts/${postId}`)
+}
+
+export async function varianteLoeschen(postId: string, slug: string, varianteId: string) {
+  await nutzerOderRaus()
+  await prisma.postVariante.delete({ where: { id: varianteId } })
+  revalidatePath(`/kunden/${slug}/posts/${postId}`)
 }

@@ -78,3 +78,32 @@ describe('feedVorschau', () => {
     expect(kacheln).toEqual(['juli-b', 'juli-a'])
   })
 })
+
+describe('feedVorschau · nur eine Plattform', () => {
+  /**
+   * Das Raster ist ein Instagram-Profil. Ein Beitrag, der nur auf LinkedIn
+   * erscheint, gehört nicht hinein — er würde dem Kunden ein Profil zeigen,
+   * das es nicht gibt.
+   */
+  const nurInstagram = (p: SichtPost) => p.id !== 'aug-karussell'
+
+  it('lässt weg, was die Plattform nicht bespielt', () => {
+    const kacheln = feedVorschau(posts, regeln, nurInstagram).map((p) => p.id)
+    expect(kacheln).not.toContain('aug-karussell')
+    expect(kacheln).toEqual(['aug-konzept', 'aug-reel', 'juli-b', 'juli-a'])
+  })
+
+  it('zeigt ohne Filter weiterhin alles — die interne Planung bleibt unberührt', () => {
+    const kacheln = feedVorschau(posts, regeln).map((p) => p.id)
+    expect(kacheln).toContain('aug-karussell')
+  })
+
+  it('verschiebt die Obergrenze mit: Gefiltertes zählt auch fürs Ende nicht', () => {
+    // Läge der letzte Beitrag des Monats auf einer anderen Plattform, dürfte er
+    // die Grenze nicht setzen — sonst rutschten Kacheln herein, die nach dem
+    // letzten *gezeigten* Beitrag liegen.
+    const ohneLetzten = (p: SichtPost) => p.id !== 'aug-konzept'
+    const kacheln = feedVorschau(posts, regeln, ohneLetzten).map((p) => p.id)
+    expect(kacheln).toEqual(['aug-karussell', 'aug-reel', 'juli-b', 'juli-a'])
+  })
+})

@@ -402,6 +402,7 @@ model Medium {
   hochgeladenVon   Nutzer? @relation(fields: [hochgeladenVonId], references: [id], onDelete: SetNull)
 
   postMedien       PostMedium[]
+  variantenMedien  PostVarianteMedium[] @relation("VarianteMedium")
   kundeLogo        Kunde[]           @relation("KundeLogo")
   nutzerFoto       Nutzer[]          @relation("NutzerFoto")
 
@@ -513,6 +514,7 @@ model Post {
 
   szenen       Szene[]
   medien       PostMedium[]
+  varianten    PostVariante[]
   customWerte  CustomFeldWert[]
   kommentare   Kommentar[]
   freigaben    Freigabe[]
@@ -523,6 +525,77 @@ model Post {
 
   @@index([kundeId, postenAm])
   @@map("post")
+}
+
+/**
+ * Eine abweichende Fassung desselben Beitrags für einzelne Plattformen.
+ *
+ * Der Anlass: Dieselbe Sache liest sich auf LinkedIn anders als auf Instagram,
+ * und ein 4:5-Bild sitzt dort falsch. Ein zweiter Beitrag wäre die naheliegende
+ * Lösung gewesen — und die falsche: Er hätte einen eigenen Termin, einen eigenen
+ * Freigabestand und eine eigene Zeile im Kalender, obwohl es **eine** Sache ist,
+ * die einmal freigegeben wird.
+ *
+ * **Leer heißt geerbt.** Wer nur die Caption ändert, lässt das Medium leer und
+ * bekommt das des Beitrags; wer nur ein anderes Bild braucht, lässt die Caption
+ * leer. Das ist der Grund, warum die Felder überhaupt optional sind: Eine
+ * Variante, die alles wiederholen müsste, würde beim nächsten Umbau des
+ * Hauptbeitrags stillschweigend veralten.
+ */
+model PostVariante {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  /**
+   * Für welche Plattformen diese Fassung gilt. Eine Plattform kann nur in
+   * **einer** Variante stehen — welche sonst gälte, wäre nicht entscheidbar.
+   * Geprüft wird beim Speichern, nicht im Schema: Ein Array lässt sich nicht
+   * eindeutig machen.
+   */
+  plattformen Plattform[]
+
+  /** Leer heißt: die Caption des Beitrags gilt. */
+  caption String?
+  /**
+   * Leer heißt: das Verhältnis des Beitrags gilt. Gesetzt nur sinnvoll, wenn
+   * die Variante auch eigene Medien hat — sonst stünde das Bild des Beitrags
+   * in einer Fläche, für die es nicht gemacht ist.
+   */
+  verhaeltnis Verhaeltnis?
+
+  medien PostVarianteMedium[]
+
+  position       Int      @default(0)
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@index([postId])
+  @@map("post_variante")
+}
+
+/**
+ * Die Medien einer Variante — eigene Tabelle, nicht `varianteId` an
+ * `PostMedium`.
+ *
+ * Der Grund ist die Eindeutigkeit dort: `@@unique([postId, rolle, position])`
+ * bewacht, dass ein Beitrag nicht zwei Slides auf derselben Position hat. Mit
+ * einer zusätzlichen, meist leeren Spalte wäre das dahin — Postgres hält
+ * NULL-Werte für verschieden, und der Hauptbeitrag hätte seine Bewachung
+ * verloren, ohne dass es jemandem auffällt.
+ */
+model PostVarianteMedium {
+  id         String       @id @default(cuid())
+  varianteId String
+  variante   PostVariante @relation(fields: [varianteId], references: [id], onDelete: Cascade)
+  mediumId   String
+  medium     Medium       @relation("VarianteMedium", fields: [mediumId], references: [id], onDelete: Cascade)
+  rolle      MediumRolle  @default(MEDIUM)
+  position   Int          @default(0)
+
+  @@unique([varianteId, rolle, position])
+  @@index([mediumId])
+  @@map("post_variante_medium")
 }
 
 enum MediumRolle {
