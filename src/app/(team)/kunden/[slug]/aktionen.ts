@@ -1,6 +1,6 @@
 'use server'
 
-import type { PostStatus, PostTyp } from '@prisma/client'
+import type { Plattform, PostStatus, PostTyp } from '@prisma/client'
 import type { Verhaeltnis } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -43,13 +43,21 @@ export async function kundeAnlegen(formular: FormData) {
     slug = `${slugify(name)}-${n}`
   }
 
+  // Handle, Bio und Website gehören zum Instagram-Profil, nicht zum Kunden —
+  // beim Anlegen fragt das Formular nur nach ihnen, weil Instagram der Kanal
+  // ist, mit dem hier fast immer angefangen wird.
   const kunde = await prisma.kunde.create({
     data: {
       name,
       slug,
-      handle: text(formular, 'handle')?.replace(/^@/, '') ?? null,
-      bio: text(formular, 'bio'),
-      website: text(formular, 'website'),
+      profile: {
+        create: {
+          plattform: 'INSTAGRAM',
+          handle: text(formular, 'handle')?.replace(/^@/, '') ?? null,
+          bio: text(formular, 'bio'),
+          website: text(formular, 'website'),
+        },
+      },
     },
   })
 
@@ -57,7 +65,41 @@ export async function kundeAnlegen(formular: FormData) {
   redirect(`/kunden/${kunde.slug}`)
 }
 
+/** Was den Kunden als Ganzes betrifft — Name, Notiz und die zwei Schalter. */
 export async function kundeSpeichern(kundeId: string, formular: FormData) {
+  await nutzerOderRaus()
+
+  const kunde = await prisma.kunde.update({
+    where: { id: kundeId },
+    data: {
+      name: text(formular, 'name') ?? undefined,
+      notiz: text(formular, 'notiz'),
+      freigabenNoetig: formular.get('freigabenNoetig') === 'on',
+      zipFuerKunden: formular.get('zipFuerKunden') === 'on',
+    },
+  })
+
+  revalidatePath(`/kunden/${kunde.slug}`, 'layout')
+}
+
+/**
+ * Das Profil einer einzelnen Plattform — Handle, Bio, Website und die drei
+ * Zahlen.
+ *
+ * Je Plattform ein eigenes Formular und eine eigene Aktion: Ein gemeinsames
+ * hätte beim Speichern von LinkedIn die Instagram-Felder mitgeschickt, und wer
+ * dort nichts eingetragen hat, hätte die gepflegten Werte geleert.
+ *
+ * `standAm` und `quelle` werden nur gesetzt, wenn sich an den Zahlen wirklich
+ * etwas ändert. Sonst stünde nach jedem Speichern des Handles „heute von Hand
+ * aktualisiert", und der nächste automatische Abruf käme erst 20 Stunden
+ * später — obwohl niemand eine Zahl angefasst hat.
+ */
+export async function profilSpeichern(
+  kundeId: string,
+  plattform: Plattform,
+  formular: FormData,
+) {
   await nutzerOderRaus()
 
   const zahl = (feld: string) => {
@@ -67,24 +109,40 @@ export async function kundeSpeichern(kundeId: string, formular: FormData) {
     return Number.isFinite(n) ? n : null
   }
 
-  const kunde = await prisma.kunde.update({
-    where: { id: kundeId },
-    data: {
-      name: text(formular, 'name') ?? undefined,
-      handle: text(formular, 'handle')?.replace(/^@/, '') ?? null,
-      bio: text(formular, 'bio'),
-      website: text(formular, 'website'),
-      notiz: text(formular, 'notiz'),
-      freigabenNoetig: formular.get('freigabenNoetig') === 'on',
-      zipFuerKunden: formular.get('zipFuerKunden') === 'on',
-      follower: zahl('follower'),
-      gefolgt: zahl('gefolgt'),
-      beitraege: zahl('beitraege'),
-      kennzahlenAm: new Date(),
-      kennzahlenTyp: 'MANUELL',
-    },
+  const werte = {
+    handle: text(formular, 'handle')?.replace(/^@/, '') ?? null,
+    bio: text(formular, 'bio'),
+    website: text(formular, 'website'),
+    follower: zahl('follower'),
+    gefolgt: zahl('gefolgt'),
+    beitraege: zahl('beitraege'),
+  }
+
+  const vorher = await prisma.plattformProfil.findUnique({
+    where: { kundeId_plattform: { kundeId, plattform } },
+    select: { follower: true, gefolgt: true, beitraege: true },
   })
 
+  const zahlenGeaendert =
+    vorher === null ||
+    vorher.follower !== werte.follower ||
+    vorher.gefolgt !== werte.gefolgt ||
+    vorher.beitraege !== werte.beitraege
+
+  const stand = zahlenGeaendert
+    ? { standAm: new Date(), quelle: 'MANUELL' as const }
+    : {}
+
+  await prisma.plattformProfil.upsert({
+    where: { kundeId_plattform: { kundeId, plattform } },
+    create: { kundeId, plattform, ...werte, ...stand },
+    update: { ...werte, ...stand },
+  })
+
+  const kunde = await prisma.kunde.findUniqueOrThrow({
+    where: { id: kundeId },
+    select: { slug: true },
+  })
   revalidatePath(`/kunden/${kunde.slug}`, 'layout')
 }
 

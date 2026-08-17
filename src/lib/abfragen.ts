@@ -2,6 +2,7 @@ import 'server-only'
 import type { PostStatus, PostTyp } from '@prisma/client'
 import { notFound } from 'next/navigation'
 import { prisma } from './db'
+import { profilKarte } from './plattform-profil'
 
 /** Medien eines Posts, nach Rolle und Position sortiert. */
 export const POST_MEDIEN = {
@@ -17,10 +18,14 @@ export async function ladeKunde(slug: string) {
       hauptAnsprechpartner: true,
       betreuer: { include: { nutzer: true } },
       customFelder: { orderBy: { position: 'asc' } },
+      // Handle, Bio und die Kennzahlen liegen je Plattform. Immer mitgeladen,
+      // damit keine Anzeigestelle sie einzeln nachholt — und als vollständige
+      // Karte, damit keine prüfen muss, ob es das Profil schon gibt.
+      profile: true,
     },
   })
   if (!kunde) notFound()
-  return kunde
+  return { ...kunde, profil: profilKarte(kunde.profile) }
 }
 
 export async function ladePosts(kundeId: string) {

@@ -1,5 +1,4 @@
 import { ladeKunde } from '@/lib/abfragen'
-import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
 import { klappeEingerichtet, klappeProjekte } from '@/lib/klappe'
 import { darfAnsprechpartnerSein, ROLLE_TEXT } from '@/lib/rollen'
@@ -12,6 +11,7 @@ import {
   customFeldLoeschen,
   kennzahlenHolen,
   kundeSpeichern,
+  profilSpeichern,
 } from '../aktionen'
 import { aworkEingerichtet, aworkProjekte } from '@/lib/awork'
 import { aworkProjektZuordnen, klappeProjekteAktualisieren, klappeProjektZuordnen } from '../klappe-aktionen'
@@ -23,8 +23,25 @@ import { BetreuungFormular } from './betreuung'
 import { CustomFeldFormular } from './custom-felder'
 import { KlappeProjektWahl } from './klappe-projekt'
 import { LogoAblage } from './logo'
-import { VeroeffentlichenWahl } from './veroeffentlichen'
+import { ProfilFelder } from './plattform-profil'
+import { MetaKanaele, PlattformwahlKarte } from './veroeffentlichen'
 
+/**
+ * Stammdaten, nach Plattform gegliedert.
+ *
+ * Vorher stand alles in einem Abschnitt „Profil": der Instagram-Handle neben
+ * dem Kundennamen, die Instagram-Kennzahlen neben der internen Notiz, und die
+ * Kanalzuordnung weiter unten unter „Veröffentlichen". Solange es nur Instagram
+ * gab, ging das; mit Facebook und LinkedIn wäre daraus eine Liste ohne Ordnung
+ * geworden.
+ *
+ * Jetzt drei Abschnitte:
+ *
+ * · **Profil** — was den Kunden als Ganzes betrifft: Logo, Name, welche
+ *   Plattformen betreut werden, interne Notiz, die zwei Schalter.
+ * · **Meta** — alles zu Instagram und Facebook, samt Kanalzuordnung.
+ * · **LinkedIn** — dasselbe für LinkedIn, soweit es das schon gibt.
+ */
 export default async function StammdatenSeite({
   params,
   searchParams,
@@ -51,10 +68,11 @@ export default async function StammdatenSeite({
     aworkProjekte().catch(() => []),
   ])
 
-  // Ohne Zugang gar nicht erst bei Meta nachfragen. Und ein Fehlschlag darf
-  // die Stammdaten nicht mitnehmen — sonst kommt niemand mehr an das
-  // Formular, in dem er die Zuordnung reparieren würde.
   /*
+    Ohne Zugang gar nicht erst bei Meta nachfragen. Und ein Fehlschlag darf die
+    Stammdaten nicht mitnehmen — sonst kommt niemand mehr an das Formular, in
+    dem er die Zuordnung reparieren würde.
+
     Die Seiten kommen aus **allen** Zugängen in einer Liste. Aus welchem
     Portfolio eine Seite stammt, ist eine Frage der Verwaltung — wer einen
     Kunden einrichtet, sucht seine Seite, nicht seinen Business Manager.
@@ -66,40 +84,27 @@ export default async function StammdatenSeite({
   // wäre das ein Schalter, dessen Wirkung man erst hinterher sieht.
   const offeneBeitraege = await zaehleOffeneBeitraege(kunde.id)
 
+  const instagram = kunde.profil.INSTAGRAM
+  const facebook = kunde.profil.FACEBOOK
+  const linkedin = kunde.profil.LINKEDIN
+
   return (
     <div className="max-w-[760px]">
       <h1 className="mb-6 text-[24px] font-semibold tracking-[-0.02em]">Stammdaten</h1>
 
+      {/* ---------------------------------------------------------- Profil */}
       <Abschnitt
         titel="Profil"
-        hinweis="Logo und Angaben erscheinen in der Feed-Vorschau und auf der Export-Seite."
+        hinweis="Was für den Kunden als Ganzes gilt. Was zu einem einzelnen Kanal gehört, steht in dessen Abschnitt darunter."
       >
         <Karte className="p-5">
           <div className="mb-5 border-b border-rahmen pb-5">
             <LogoAblage kundeId={kunde.id} logo={thumbUrl(kunde.logoId)} />
           </div>
 
-          {/* Eigenes Formular für den Abruf — es darf die Stammdaten weder
-              mitschicken noch überschreiben. Der Knopf steht weiter unten
-              und findet es über `form`. */}
-          <form id="kennzahlen-holen" action={kennzahlenHolen.bind(null, kunde.id, slug)} />
-
           <form action={kundeSpeichern.bind(null, kunde.id)} className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Feld beschriftung="Name">
-                <Eingabe name="name" defaultValue={kunde.name} required />
-              </Feld>
-              <Feld beschriftung="Instagram-Handle" hinweis="Ohne @.">
-                <Eingabe name="handle" defaultValue={kunde.handle ?? ''} placeholder="beispiel.handwerk" />
-              </Feld>
-            </div>
-
-            <Feld beschriftung="Bio" hinweis="Erscheint in der Feed-Vorschau unter dem Namen.">
-              <Eingabe name="bio" defaultValue={kunde.bio ?? ''} />
-            </Feld>
-
-            <Feld beschriftung="Website">
-              <Eingabe name="website" defaultValue={kunde.website ?? ''} />
+            <Feld beschriftung="Name">
+              <Eingabe name="name" defaultValue={kunde.name} required />
             </Feld>
 
             <Feld beschriftung="Interne Notiz" hinweis="Sieht der Kunde nicht.">
@@ -109,7 +114,7 @@ export default async function StammdatenSeite({
             <Schalter
               name="freigabenNoetig"
               beschriftung="Freigaben einholen"
-              hinweis="Bei eigenen Kanälen gibt es niemanden, der freigeben müsste. Aus heißt: kein Freigabeschritt im Editor und keiner auf der Export-Seite."
+              hinweis="Bei eigenen Kanälen gibt es niemanden, der freigeben müsste. Aus heißt: kein Freigabeschritt im Editor und keiner auf der Freigabe-Seite."
               defaultChecked={kunde.freigabenNoetig}
             />
 
@@ -120,72 +125,158 @@ export default async function StammdatenSeite({
               defaultChecked={kunde.zipFuerKunden}
             />
 
-            <div className="border-t border-rahmen pt-4">
-              <h3 className="mb-1 text-[13px] font-semibold">Profil-Kennzahlen</h3>
-              <p className="mb-3 text-[11.5px] leading-relaxed text-leiser">
-                Erscheinen über der Feed-Vorschau — intern wie auf der Export-Seite.
-                {kunde.kennzahlenAm &&
-                  ` Zuletzt aktualisiert am ${formatiereTag(kunde.kennzahlenAm, { dateStyle: 'long' })}${
-                    kunde.kennzahlenTyp === 'MANUELL' ? ' von Hand' : ' über Instagram'
-                  }.`}
-              </p>
-
-              {kennzahlenStand === 'ok' && (
-                <div className="mb-3">
-                  <Hinweis>Kennzahlen von Instagram übernommen.</Hinweis>
-                </div>
-              )}
-              {kennzahlenStand === 'fehler' && (
-                <div className="mb-3">
-                  <Fehler>{meldung}</Fehler>
-                </div>
-              )}
-
-              {/*
-                Der Knopf steht außerhalb des Stammdaten-Formulars: Er holt
-                Werte und speichert nicht, was gerade in den Feldern steht.
-                Beides in einem Formular hieße, dass ein Klick ungespeicherte
-                Eingaben mitnimmt oder überschreibt.
-              */}
-              <div className="mb-4 flex flex-wrap items-center gap-3">
-                <Knopf klein type="submit" form="kennzahlen-holen" disabled={!kunde.handle}>
-                  Jetzt von Instagram holen
-                </Knopf>
-                {!kunde.handle ? (
-                  <span className="text-[11.5px] text-leiser">
-                    Dafür oben einen Instagram-Handle eintragen.
-                  </span>
-                ) : !einstellungen.kennzahlenAktiv ? (
-                  <span className="text-[11.5px] text-leiser">
-                    Der tägliche Abruf ist aus — dieser Knopf holt trotzdem.
-                  </span>
-                ) : null}
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <Feld beschriftung="Beiträge">
-                  <Eingabe name="beitraege" inputMode="numeric" defaultValue={kunde.beitraege ?? ''} />
-                </Feld>
-                <Feld beschriftung="Follower">
-                  <Eingabe name="follower" inputMode="numeric" defaultValue={kunde.follower ?? ''} />
-                </Feld>
-                <Feld beschriftung="Gefolgt">
-                  <Eingabe name="gefolgt" inputMode="numeric" defaultValue={kunde.gefolgt ?? ''} />
-                </Feld>
-              </div>
-            </div>
-
             <div className="flex justify-end">
               <Knopf art="primaer" klein type="submit">
                 Speichern
               </Knopf>
             </div>
           </form>
+
+          <div className="mt-5 border-t border-rahmen pt-5">
+            <PlattformwahlKarte
+              speichern={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
+              plattformen={kunde.plattformen}
+              postenAktiv={kunde.postenAktiv}
+              seitenId={kunde.fbSeitenId}
+              igKontoId={kunde.igKontoId}
+              zugangSteht={zugaenge.length > 0}
+              offeneBeitraege={offeneBeitraege}
+            />
+          </div>
         </Karte>
       </Abschnitt>
 
+      {/* ------------------------------------------------------------ Meta */}
+      <Abschnitt
+        titel="Meta"
+        hinweis="Instagram und Facebook. Beide teilen sich einen Zugang: Das Instagram-Konto hängt bei Meta an der Facebook-Seite."
+      >
+        <Karte className="p-5">
+          <h3 className="mb-4 text-[13px] font-semibold">Instagram</h3>
+
+          {/* Eigenes Formular für den Abruf — es darf die Angaben weder
+              mitschicken noch überschreiben. Der Knopf steht weiter unten und
+              findet es über `form`. */}
+          <form id="kennzahlen-holen" action={kennzahlenHolen.bind(null, kunde.id, slug)} />
+
+          <ProfilFelder
+            speichern={profilSpeichern.bind(null, kunde.id, 'INSTAGRAM')}
+            werte={instagram}
+            handleBeschriftung="Instagram-Handle"
+            handleHinweis="Ohne @."
+            handlePlatzhalter="beispiel.handwerk"
+            mitBio
+            mitGefolgt
+            nebenKnopf={
+              <>
+                {kennzahlenStand === 'ok' && (
+                  <div className="mb-3">
+                    <Hinweis>Kennzahlen von Instagram übernommen.</Hinweis>
+                  </div>
+                )}
+                {kennzahlenStand === 'fehler' && (
+                  <div className="mb-3">
+                    <Fehler>{meldung}</Fehler>
+                  </div>
+                )}
+
+                {/*
+                  Der Knopf steht außerhalb des Profil-Formulars: Er holt Werte
+                  und speichert nicht, was gerade in den Feldern steht. Beides in
+                  einem Formular hieße, dass ein Klick ungespeicherte Eingaben
+                  mitnimmt oder überschreibt.
+                */}
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <Knopf klein type="submit" form="kennzahlen-holen" disabled={!instagram.handle}>
+                    Jetzt von Instagram holen
+                  </Knopf>
+                  {!instagram.handle ? (
+                    <span className="text-[11.5px] text-leiser">
+                      Dafür oben einen Instagram-Handle eintragen.
+                    </span>
+                  ) : !einstellungen.kennzahlenAktiv ? (
+                    <span className="text-[11.5px] text-leiser">
+                      Der tägliche Abruf ist aus — dieser Knopf holt trotzdem.
+                    </span>
+                  ) : null}
+                </div>
+              </>
+            }
+          />
+        </Karte>
+
+        <Karte className="mt-4 p-5">
+          <h3 className="mb-1 text-[13px] font-semibold">Facebook</h3>
+          <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
+            Die Zahlen einer Facebook-Seite holt Preroll nicht — dafür bräuchte es die Graph API
+            mit Seitenrechten. Bis dahin von Hand, wenn sie gebraucht werden.
+          </p>
+
+          <ProfilFelder
+            speichern={profilSpeichern.bind(null, kunde.id, 'FACEBOOK')}
+            werte={facebook}
+            handleBeschriftung="Seitenname"
+            handleHinweis="Wie die Seite bei Facebook heißt. Die Zuordnung des Kanals steht darunter."
+            beitraegeBeschriftung="Beiträge"
+          />
+        </Karte>
+
+        <Karte className="mt-4 p-5">
+          <h3 className="mb-1 text-[13px] font-semibold">Kanäle zum Veröffentlichen</h3>
+          <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
+            Welche Seite Preroll bespielt — und damit welches Instagram-Konto. Ohne Zuordnung
+            lässt sich im Abschnitt Profil keine Plattform wählen.
+          </p>
+
+          <MetaKanaele
+            speichern={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
+            zugangSteht={zugaenge.length > 0}
+            zugangFehler={zugaenge.find((z) => z.fehler)?.fehler ?? null}
+            postenAktiv={kunde.postenAktiv}
+            seitenId={kunde.fbSeitenId}
+            seitenName={kunde.fbSeitenName}
+            igName={kunde.igName}
+            seiten={seiten.map((s) => ({
+              id: s.id,
+              name: s.name,
+              igName: s.igName,
+              zugang: s.zugangName,
+            }))}
+            mehrereZugaenge={zugaenge.length > 1}
+            meldung={meta === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null}
+          />
+        </Karte>
+      </Abschnitt>
+
+      {/* -------------------------------------------------------- LinkedIn */}
+      <Abschnitt
+        titel="LinkedIn"
+        hinweis="Angaben und Zahlen der Firmenseite. Das Veröffentlichen über LinkedIn ist noch nicht gebaut."
+      >
+        <Karte className="p-5">
+          <div className="mb-4">
+            <Hinweis>
+              Preroll postet noch nicht auf LinkedIn — dafür braucht es die Community Management
+              API, und die gibt LinkedIn nur nach einer Freigabe heraus. Bis dahin lässt sich hier
+              pflegen, was zum Profil gehört; geplant wird wie bisher, gepostet von Hand.
+            </Hinweis>
+          </div>
+
+          <ProfilFelder
+            speichern={profilSpeichern.bind(null, kunde.id, 'LINKEDIN')}
+            werte={linkedin}
+            handleBeschriftung="Firmenseite"
+            handleHinweis="Der Teil hinter linkedin.com/company/ — etwa beispiel-handwerk."
+            handlePlatzhalter="beispiel-handwerk"
+            beitraegeBeschriftung="Beiträge"
+          />
+        </Karte>
+      </Abschnitt>
+
+      {/* ------------------------------------------------------- Betreuung */}
       <Abschnitt
         titel="Betreuung"
-        hinweis="Der Hauptansprechpartner steht auf jeder Export-Seite dieses Kunden und bekommt jede Rückmeldung."
+        hinweis="Der Hauptansprechpartner steht auf jeder Freigabe-Seite dieses Kunden und bekommt jede Rückmeldung."
       >
         <Karte className="p-5">
           <BetreuungFormular
@@ -199,34 +290,6 @@ export default async function StammdatenSeite({
               waehlbar: darfAnsprechpartnerSein(n.rolle),
               betreutMoeglich: n.rolle === 'DESIGNER',
             }))}
-          />
-        </Karte>
-      </Abschnitt>
-
-      <Abschnitt
-        titel="Veröffentlichen"
-        hinweis="Auf welche Plattformen dieser Kunde bespielt wird — und ob Preroll das selbst übernimmt. Facebook und Instagram bekommen denselben Inhalt."
-      >
-        <Karte className="p-5">
-          <VeroeffentlichenWahl
-            zuordnen={veroeffentlichenSpeichern.bind(null, kunde.id, slug)}
-            zugangSteht={zugaenge.length > 0}
-            zugangFehler={zugaenge.find((z) => z.fehler)?.fehler ?? null}
-            postenAktiv={kunde.postenAktiv}
-            plattformen={kunde.plattformen}
-            igKontoId={kunde.igKontoId}
-            seitenId={kunde.fbSeitenId}
-            seitenName={kunde.fbSeitenName}
-            igName={kunde.igName}
-            seiten={seiten.map((s) => ({
-              id: s.id,
-              name: s.name,
-              igName: s.igName,
-              zugang: s.zugangName,
-            }))}
-            mehrereZugaenge={zugaenge.length > 1}
-            offeneBeitraege={offeneBeitraege}
-            meldung={meta === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null}
           />
         </Karte>
       </Abschnitt>
