@@ -42,7 +42,9 @@
 #
 #   * PREROLL_DOMAIN in Klappes .env — der Name, unter dem Preroll läuft
 #   * CF_API_TOKEN dort ebenfalls (hat Klappe schon)
-#   * diese Datei nach ~/docker/klappe/docker/fremde/ gelegt oder verlinkt
+#   * diese Datei **kopiert** nach ~/docker/klappe/docker/fremde/ — kein
+#     Symlink: Der zeigt aus dem Bind-Mount heraus und löst im Container nicht
+#     auf. Nach einer Änderung hier muss die Kopie erneuert werden.
 #   * APP_URL in Prerolls .env auf https://<PREROLL_DOMAIN>
 
 # Einmal beschrieben, von beiden Wegen benutzt — ein zweiter Satz Regeln wären
