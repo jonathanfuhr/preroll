@@ -206,16 +206,26 @@ Seite zu bewachen wäre die schlechtere Regel.
   Weg an den Dateien vorbei würde beides umgehen, und irgendwann ginge auf
   einer Plattform ein PNG raus, das die andere ablehnt. Meta lädt selbst,
   LinkedIn will die Bytes — deshalb holt Preroll sie von sich selbst.
-- **Die LinkedIn-Kundenansicht hat kein Raster** — je Beitrag eine Vorschau,
-  und ohne Geräterahmen. Der Rahmen bei Instagram ist nicht Zierde: Instagram
-  *ist* eine Telefon-App, und im Profilraster entscheidet der Ausschnitt über
-  die Wirkung. LinkedIn wird genauso am Rechner gelesen, und ein Raster, in dem
-  sich Kacheln zu einem Bild fügen, gibt es dort nicht. **Mehrere Bilder
-  werden geblättert**, nicht nebeneinandergelegt — LinkedIn hat Karussells.
-  (Hier stand bis zum 17.08.2026 das Gegenteil; die Annahme war falsch.) Die
-  Blätterfläche ist trotzdem eigen und nicht `KarussellFlaeche`: Die ist auf
-  die 320 px des Geräterahmens und eine feste Flächenhöhe gebaut, LinkedIn
-  zeigt Bilder in ihrer eigenen Höhe.
+- **LinkedIn hat einen eigenen Rahmen, aber kein Gerät** (Mockup 5a–5d,
+  `LinkedInRahmen`). Das Post-Fenster in Desktop-Breite: 552 px, Kopfzeile mit
+  Logo und Firmenseite, Caption nach drei Zeilen eingeklappt mit „… mehr",
+  darunter Reaktionszeile und die vier Knöpfe — sichtbar, nicht bedienbar, wie
+  die Kommentarzeile im Geräterahmen. Ein Telefon davor wäre falsch: LinkedIn
+  wird am Rechner gelesen, und ein Profilraster, in dem sich Kacheln zu einem
+  Bild fügen, gibt es dort nicht. Ganz ohne Rahmen fehlte aber der Maßstab —
+  wie viel Text vor „mehr" stehen bleibt, sieht man erst im Fenster.
+- **Die Höhe kommt vom Inhalt.** Kurze Caption, kurzer Beitrag; ein 16:9-Bild
+  macht das Fenster niedriger (591 px) als ein 9:16 (971 px). Die einzige
+  feste Grenze ist die von LinkedIn: **höher als 4:5 wird nichts** — bei
+  550 px Breite endet es nach 690 px. Was höher ist, behält die Höhe und wird
+  schmaler (9:16 → 388 px), beim Video mit unscharfen Seitenflächen, beim Bild
+  auf Weiß. **Mehrere Bilder werden geblättert** — LinkedIn hat Karussells;
+  die Nachbarn lugen je 47 px hervor, Fuge 6 px. (Bis zum 17.08.2026 stand im
+  Code das Gegenteil; die Annahme war falsch.)
+- **Was in die Aktionsleiste passt, entscheidet die Karte, nicht das Fenster**
+  (`@container`). Die vier Beschriftungen brauchen 510 px; darunter bleiben
+  nur die Symbole. Eine Abfrage aufs Fenster träfe daneben, sobald der Rahmen
+  in einer schmalen Spalte steht.
 - **Meta-Zugänge sind mehrere.** Nicht jeder Kunde liegt im selben
   Portfolio; wer Seiten aus zwei Business Managern bespielt, braucht aus
   jedem einen eigenen Systemnutzer. In den Einstellungen steht deshalb eine
@@ -606,6 +616,7 @@ Die Mockups liegen unter `design/` und sind die verbindliche Vorlage:
 | `Export-Seite Kunde.dc.html` | 1a Desktop, 1b Mobile, 1c Kommentare |
 | `Backend.dc.html` | 2a–2i: Kundenübersicht bis Ansprechpartner |
 | `iPhone-Layer.dc.html` | 3a–3d: Geräterahmen je Post-Typ |
+| `LinkedIn-Layer.dc.html` | 5a–5d: LinkedIn-Post-Fenster je Medienart |
 
 Die **Arbeitsfläche des Backends ist weiß**, die Seitenleiste leicht getönt
 (`flaeche-leise`) — wie in den Mockups. Karten tragen ihren Rahmen, nicht den
@@ -632,6 +643,16 @@ Scrollen), die Statusleiste steht **mittig** und öffnet ihre Erklärung per
 **Tipp** statt Überfahren, und das Portrait im Kontakt-Fuß steht **rechts an
 der Kante** — sein Namensschild ragt nach links heraus und liefe links
 angeschlagen aus dem Bild.
+
+**Auf der Kundenseite stehen links die Vorschauen, rechts der Text dazu.**
+Erst das Gerät, darunter der LinkedIn-Rahmen — und auf dessen Höhe rechts
+daneben die abweichende Caption samt Format. Untereinander gestellt läge
+zwischen Bild und Text ein halber Bildschirm. Die **Kommentarspalte klebt
+oben** und hört beim nächsten Beitrag auf: Mit mehreren Fassungen wird ein
+Beitrag zwei Bildschirme hoch, und wer unten etwas sieht, will es dort
+kommentieren. Gebaut als **zwei Raster ineinander**, nicht als eines mit drei
+Spalten — `grid-row: 1/-1` spannt nur über *explizite* Zeilen, und die
+entstehen hier erst mit den Fassungen.
 
 Optik: hell, zurückhaltend, white-label-nah — die **Kundenmarke** steht im
 Vordergrund, nicht das Werkzeug. Eine dezente Akzentfarbe (`#b00900`), Poppins

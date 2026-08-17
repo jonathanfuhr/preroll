@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #eceae7; font-family: 'Poppins', 'Helvetica Neue', Helvetica, sans-serif; color: #1c1a18; -webkit-font-smoothing: antialiased; }
+  a { color: #b00900; text-decoration: none; }
+  a:hover { color: #8b0700; }
+  * { box-sizing: border-box; }
+</style>
+</helmet>
+
+<section style="padding:64px 72px 120px;">
+  <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:8px;">
+    <span style="font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#8b8783;">preroll</span>
+    <span style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#b0aca7;">Runde 5 · Bausteine</span>
+  </div>
+  <h1 style="margin:0 0 6px;font-size:34px;font-weight:600;letter-spacing:-0.02em;">LinkedIn-Layer mit Platzhaltern</h1>
+  <p style="margin:0 0 24px;font-size:14.5px;line-height:1.7;color:#6f6b67;max-width:800px;">Nur das Post-Fenster in Desktop-Breite, kein Gerät und kein Feed: <a href="#5a">5a</a> Bild Hochformat, <a href="#5b">5b</a> Bild Querformat, <a href="#5c">5c</a> Video, <a href="#5d">5d</a> Karussell. Kopfzeile, Caption und Medium sind eintragbare Variablen, die Interaktionsleiste ist fix.</p>
+
+  <div style="display:flex;flex-wrap:wrap;gap:24px;margin-bottom:52px;max-width:940px;">
+    <div style="border:1px solid #e6e3df;border-radius:6px;padding:14px 18px;background:#fff;">
+      <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Postfenster</div>
+      <div style="font-size:13px;font-family:ui-monospace,'SF Mono',Menlo,monospace;">552 px breit</div>
+    </div>
+    <div style="border:1px solid #e6e3df;border-radius:6px;padding:14px 18px;background:#fff;">
+      <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Medium maximal hoch</div>
+      <div style="font-size:13px;font-family:ui-monospace,'SF Mono',Menlo,monospace;">690 px · Kappung bei 4:5</div>
+    </div>
+    <div style="border:1px solid #e6e3df;border-radius:6px;padding:14px 18px;background:#fff;">
+      <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Hochformat &gt; 4:5</div>
+      <div style="font-size:13px;font-family:ui-monospace,'SF Mono',Menlo,monospace;">Höhe fix, Bild wird schmaler</div>
+    </div>
+    <div style="border:1px solid #e6e3df;border-radius:6px;padding:14px 18px;background:#fff;">
+      <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#a5a09b;margin-bottom:6px;">Querformat</div>
+      <div style="font-size:13px;font-family:ui-monospace,'SF Mono',Menlo,monospace;">volle Breite, Post wird niedriger</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:nowrap;width:max-content;align-items:flex-start;gap:64px;">
+
+    <!-- ================= 5a BILD HOCHFORMAT ================= -->
+    <div id="5a" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">5a</span>
+        <span style="font-size:13.5px;font-weight:500;">Bildbeitrag · Hochformat</span>
+      </div>
+
+      <div data-screen-label="5a LinkedIn Bild Hochformat" style="width:552px;background:#fff;border:1px solid #e0dfdc;border-radius:8px;box-shadow:0 1px 2px rgba(28,22,16,.06),0 14px 40px rgba(28,22,16,.08);overflow:hidden;">
+
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px 0;">
+          <div style="width:48px;height:48px;border-radius:50%;border:1px dashed #d5d1cc;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;flex:0 0 auto;">Logo</div>
+          <div style="flex:1;min-width:0;display:grid;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="height:16px;width:150px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;color:#8b8783;">Profilname</div>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#5f5b57;">· 1.</span>
+            </div>
+            <div style="height:13px;width:100%;max-width:340px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;">Funktion / Unternehmen</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="height:11px;width:66px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:flex;align-items:center;padding-left:5px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:7.5px;color:#a5a09b;">Zeitraum</div>
+              <span style="display:block;width:12px;height:12px;border:1.3px solid #c9c4be;border-radius:50%;"></span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto;color:#8b8783;">
+            <span style="font-size:16px;letter-spacing:2px;line-height:1;">···</span>
+            <span style="position:relative;display:block;width:14px;height:14px;" style-before="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(45deg);" style-after="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(-45deg);"></span>
+          </div>
+        </div>
+
+        <div style="padding:12px 16px 12px;">
+          <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:1.75;color:#8b8783;max-height:58px;overflow:hidden;">Caption — der vollständige Text des Beitrags steht hier am Stück. LinkedIn kürzt nach drei Zeilen und setzt „mehr" ans Ende; alles Weitere bleibt eingeklappt. #hashtag #hashtag</div>
+        </div>
+
+        <div style="background:#000;display:flex;align-items:center;justify-content:center;">
+          <div style="width:550px;height:690px;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;">Bild 4:5 · 1080 × 1350</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="display:flex;">
+              <span style="display:block;width:17px;height:17px;border-radius:50%;background:#dcd8d3;border:1.5px solid #fff;"></span>
+              <span style="display:block;width:17px;height:17px;border-radius:50%;background:#e6e3df;border:1.5px solid #fff;margin-left:-5px;"></span>
+              <span style="display:block;width:17px;height:17px;border-radius:50%;background:#efece8;border:1.5px solid #fff;margin-left:-5px;"></span>
+            </span>
+            <span style="height:11px;width:34px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+          </div>
+          <span style="height:11px;width:96px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 10px;border-top:1px solid #eceae7;color:#5f5b57;">
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:15px;border:1.6px solid currentColor;border-radius:3px 3px 4px 4px;" style-before="content:'';position:absolute;left:-1.6px;bottom:-1.6px;width:6px;height:8px;border:1.6px solid currentColor;border-radius:2px;background:#fff;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Gefällt mir</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:14px;border:1.6px solid currentColor;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-bottom:5px solid transparent;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Kommentieren</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:12px;border-top:1.6px solid currentColor;border-bottom:1.6px solid currentColor;" style-before="content:'';position:absolute;left:0;top:-5px;width:0;height:0;border-right:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;" style-after="content:'';position:absolute;right:0;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Reposten</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="display:block;width:18px;height:18px;line-height:0;"><svg width="18" height="18" viewBox="0 0 18 18" style="display:block;"><polygon points="16.2,2 1.8,8.2 8.2,10.1 10.2,16.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Senden</span>
+          </span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#8b8783;line-height:1.7;">
+        4:5 · füllt die Breite bei maximaler Höhe<br />Grenzfall vor der Kappung
+      </div>
+    </div>
+
+    <!-- ================= 5b HOCHFORMAT ÜBER 4:5 ================= -->
+    <div id="5b" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">5b</span>
+        <span style="font-size:13.5px;font-weight:500;">Bildbeitrag · schmaler &amp; Querformat</span>
+      </div>
+
+      <div style="display:grid;gap:36px;">
+        <div data-screen-label="5b LinkedIn Bild gekappt" style="width:552px;background:#fff;border:1px solid #e0dfdc;border-radius:8px;box-shadow:0 1px 2px rgba(28,22,16,.06),0 14px 40px rgba(28,22,16,.08);overflow:hidden;">
+
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px 0;">
+            <div style="width:48px;height:48px;border-radius:50%;border:1px dashed #d5d1cc;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;flex:0 0 auto;">Logo</div>
+            <div style="flex:1;min-width:0;display:grid;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="height:16px;width:150px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;color:#8b8783;">Profilname</div>
+                <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#5f5b57;">· 2.</span>
+              </div>
+              <div style="height:13px;width:100%;max-width:340px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;">Funktion / Unternehmen</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="height:11px;width:66px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:flex;align-items:center;padding-left:5px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:7.5px;color:#a5a09b;">Zeitraum</div>
+                <span style="display:block;width:12px;height:12px;border:1.3px solid #c9c4be;border-radius:50%;"></span>
+              </div>
+            </div>
+            <span style="display:flex;align-items:center;gap:6px;flex:0 0 auto;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#8b8783;"><span style="font-size:16px;line-height:1;">+</span>Folgen</span>
+          </div>
+
+          <div style="padding:12px 16px 12px;">
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:1.75;color:#8b8783;max-height:58px;overflow:hidden;">Caption — der vollständige Text des Beitrags steht hier am Stück. LinkedIn kürzt nach drei Zeilen und setzt „mehr" ans Ende; alles Weitere bleibt eingeklappt. #hashtag #hashtag</div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:center;background:#fff;">
+            <div style="width:388px;height:690px;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Bild 9:16 · 1080 × 1920<br /><span style="font-size:10px;">Höhe gekappt · Breite 388 px</span></span>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="display:flex;">
+                <span style="display:block;width:17px;height:17px;border-radius:50%;background:#dcd8d3;border:1.5px solid #fff;"></span>
+                <span style="display:block;width:17px;height:17px;border-radius:50%;background:#e6e3df;border:1.5px solid #fff;margin-left:-5px;"></span>
+              </span>
+              <span style="height:11px;width:34px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+            </div>
+            <span style="height:11px;width:96px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 10px;border-top:1px solid #eceae7;color:#5f5b57;">
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="position:relative;display:block;width:17px;height:15px;border:1.6px solid currentColor;border-radius:3px 3px 4px 4px;" style-before="content:'';position:absolute;left:-1.6px;bottom:-1.6px;width:6px;height:8px;border:1.6px solid currentColor;border-radius:2px;background:#fff;"></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Gefällt mir</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="position:relative;display:block;width:17px;height:14px;border:1.6px solid currentColor;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-bottom:5px solid transparent;"></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Kommentieren</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="position:relative;display:block;width:17px;height:12px;border-top:1.6px solid currentColor;border-bottom:1.6px solid currentColor;" style-before="content:'';position:absolute;left:0;top:-5px;width:0;height:0;border-right:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;" style-after="content:'';position:absolute;right:0;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;"></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Reposten</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="display:block;width:18px;height:18px;line-height:0;"><svg width="18" height="18" viewBox="0 0 18 18" style="display:block;"><polygon points="16.2,2 1.8,8.2 8.2,10.1 10.2,16.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Senden</span>
+            </span>
+          </div>
+        </div>
+
+        <div data-screen-label="5b LinkedIn Bild Querformat" style="width:552px;background:#fff;border:1px solid #e0dfdc;border-radius:8px;box-shadow:0 1px 2px rgba(28,22,16,.06),0 14px 40px rgba(28,22,16,.08);overflow:hidden;">
+
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px 0;">
+            <div style="width:48px;height:48px;border-radius:50%;border:1px dashed #d5d1cc;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;flex:0 0 auto;">Logo</div>
+            <div style="flex:1;min-width:0;display:grid;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="height:16px;width:150px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;color:#8b8783;">Profilname</div>
+                <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#5f5b57;">· 1.</span>
+              </div>
+              <div style="height:13px;width:100%;max-width:340px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;">Funktion / Unternehmen</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="height:11px;width:66px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:flex;align-items:center;padding-left:5px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:7.5px;color:#a5a09b;">Zeitraum</div>
+                <span style="display:block;width:12px;height:12px;border:1.3px solid #c9c4be;border-radius:50%;"></span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto;color:#8b8783;">
+              <span style="font-size:16px;letter-spacing:2px;line-height:1;">···</span>
+              <span style="position:relative;display:block;width:14px;height:14px;" style-before="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(45deg);" style-after="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(-45deg);"></span>
+            </div>
+          </div>
+
+          <div style="padding:12px 16px 12px;">
+            <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:1.75;color:#8b8783;max-height:58px;overflow:hidden;">Caption — der vollständige Text des Beitrags steht hier am Stück. LinkedIn kürzt nach drei Zeilen und setzt „mehr" ans Ende; alles Weitere bleibt eingeklappt. #hashtag #hashtag</div>
+          </div>
+
+          <div style="width:550px;height:311px;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Bild 16:9 · 1920 × 1080<br /><span style="font-size:10px;">volle Breite · Post wird niedriger</span></span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="display:flex;">
+                <span style="display:block;width:17px;height:17px;border-radius:50%;background:#dcd8d3;border:1.5px solid #fff;"></span>
+                <span style="display:block;width:17px;height:17px;border-radius:50%;background:#e6e3df;border:1.5px solid #fff;margin-left:-5px;"></span>
+              </span>
+              <span style="height:11px;width:34px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+            </div>
+            <span style="height:11px;width:96px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 10px;border-top:1px solid #eceae7;color:#5f5b57;">
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="position:relative;display:block;width:17px;height:15px;border:1.6px solid currentColor;border-radius:3px 3px 4px 4px;" style-before="content:'';position:absolute;left:-1.6px;bottom:-1.6px;width:6px;height:8px;border:1.6px solid currentColor;border-radius:2px;background:#fff;"></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Gefällt mir</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="position:relative;display:block;width:17px;height:14px;border:1.6px solid currentColor;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-bottom:5px solid transparent;"></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Kommentieren</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="position:relative;display:block;width:17px;height:12px;border-top:1.6px solid currentColor;border-bottom:1.6px solid currentColor;" style-before="content:'';position:absolute;left:0;top:-5px;width:0;height:0;border-right:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;" style-after="content:'';position:absolute;right:0;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;"></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Reposten</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+              <span style="display:block;width:18px;height:18px;line-height:0;"><svg width="18" height="18" viewBox="0 0 18 18" style="display:block;"><polygon points="16.2,2 1.8,8.2 8.2,10.1 10.2,16.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Senden</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#8b8783;line-height:1.7;">
+        Oben: über 4:5 — Höhe bleibt 690 px, Bild schmaler<br />Unten: Querformat — volle Breite, Post niedriger
+      </div>
+    </div>
+
+    <!-- ================= 5c VIDEO ================= -->
+    <div id="5c" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">5c</span>
+        <span style="font-size:13.5px;font-weight:500;">Videobeitrag</span>
+        <div style="display:flex;align-items:center;gap:3px;border:1px solid #e0dfdc;border-radius:5px;padding:2px;background:#fff;">
+          <button data-format="9:16" onClick="{{ setVideo }}" style="border:none;background:{{ v916bg }};color:{{ v916fg }};font-size:11.5px;font-weight:500;padding:6px 11px;border-radius:3px;cursor:pointer;">9:16</button>
+          <button data-format="1:1" onClick="{{ setVideo }}" style="border:none;background:{{ v11bg }};color:{{ v11fg }};font-size:11.5px;font-weight:500;padding:6px 11px;border-radius:3px;cursor:pointer;">1:1</button>
+          <button data-format="16:9" onClick="{{ setVideo }}" style="border:none;background:{{ v169bg }};color:{{ v169fg }};font-size:11.5px;font-weight:500;padding:6px 11px;border-radius:3px;cursor:pointer;">16:9</button>
+        </div>
+      </div>
+
+      <div data-screen-label="5c LinkedIn Video" style="width:552px;background:#fff;border:1px solid #e0dfdc;border-radius:8px;box-shadow:0 1px 2px rgba(28,22,16,.06),0 14px 40px rgba(28,22,16,.08);overflow:hidden;">
+
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px 0;">
+          <div style="width:48px;height:48px;border-radius:50%;border:1px dashed #d5d1cc;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;flex:0 0 auto;">Logo</div>
+          <div style="flex:1;min-width:0;display:grid;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="height:16px;width:150px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;color:#8b8783;">Profilname</div>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#5f5b57;">· 1.</span>
+            </div>
+            <div style="height:13px;width:100%;max-width:340px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;">Funktion / Unternehmen</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="height:11px;width:66px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:flex;align-items:center;padding-left:5px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:7.5px;color:#a5a09b;">Zeitraum</div>
+              <span style="display:block;width:12px;height:12px;border:1.3px solid #c9c4be;border-radius:50%;"></span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto;color:#8b8783;">
+            <span style="font-size:16px;letter-spacing:2px;line-height:1;">···</span>
+            <span style="position:relative;display:block;width:14px;height:14px;" style-before="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(45deg);" style-after="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(-45deg);"></span>
+          </div>
+        </div>
+
+        <div style="padding:12px 16px 12px;">
+          <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:1.75;color:#8b8783;max-height:58px;overflow:hidden;">Caption — der vollständige Text des Beitrags steht hier am Stück. LinkedIn kürzt nach drei Zeilen und setzt „mehr" ans Ende; alles Weitere bleibt eingeklappt. #hashtag #hashtag</div>
+        </div>
+
+        <sc-if value="{{ video916 }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative;width:550px;height:690px;background:repeating-linear-gradient(135deg,#c9c4be 0 10px,#d5d1cc 10px 20px);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            <span style="position:absolute;left:12px;top:12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:#57534f;background:rgba(255,255,255,.7);padding:3px 7px;border-radius:3px;">unscharfe Seitenflächen</span>
+            <div style="width:388px;height:690px;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Video 9:16 · 1080 × 1920<br /><span style="font-size:10px;">Höhe gekappt · Breite 388 px</span></span>
+            </div>
+            <div style="position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,0));">
+              <span style="display:flex;gap:3px;flex:0 0 auto;"><span style="display:block;width:4px;height:16px;background:#fff;border-radius:1px;"></span><span style="display:block;width:4px;height:16px;background:#fff;border-radius:1px;"></span></span>
+              <span style="position:relative;flex:1;min-width:0;height:3px;border-radius:2px;background:rgba(255,255,255,.4);">
+                <span style="position:absolute;left:0;top:0;bottom:0;width:16%;border-radius:2px;background:#fff;display:block;"></span>
+                <span style="position:absolute;left:16%;top:-3.5px;width:10px;height:10px;border-radius:50%;background:#fff;display:block;"></span>
+              </span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#fff;flex:0 0 auto;">0:11</span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#fff;flex:0 0 auto;">1x</span>
+              <span style="padding:1px 4px;border:1.3px solid #fff;border-radius:3px;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;color:#fff;flex:0 0 auto;">CC</span>
+              <span style="position:relative;display:block;width:14px;height:12px;background:#fff;clip-path:polygon(0 33%,33% 33%,66% 0,66% 100%,33% 66%,0 66%);flex:0 0 auto;"></span>
+              <span style="display:block;width:12px;height:12px;border:1.4px solid #fff;border-radius:2px;flex:0 0 auto;"></span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ video11 }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative;width:550px;height:550px;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Video 1:1 · 1080 × 1080<br /><span style="font-size:10px;">volle Breite · keine Seitenflächen</span></span>
+            <div style="position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,0));">
+              <span style="display:flex;gap:3px;flex:0 0 auto;"><span style="display:block;width:4px;height:16px;background:#fff;border-radius:1px;"></span><span style="display:block;width:4px;height:16px;background:#fff;border-radius:1px;"></span></span>
+              <span style="position:relative;flex:1;min-width:0;height:3px;border-radius:2px;background:rgba(255,255,255,.4);">
+                <span style="position:absolute;left:0;top:0;bottom:0;width:16%;border-radius:2px;background:#fff;display:block;"></span>
+                <span style="position:absolute;left:16%;top:-3.5px;width:10px;height:10px;border-radius:50%;background:#fff;display:block;"></span>
+              </span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#fff;flex:0 0 auto;">0:11</span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#fff;flex:0 0 auto;">1x</span>
+              <span style="padding:1px 4px;border:1.3px solid #fff;border-radius:3px;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;color:#fff;flex:0 0 auto;">CC</span>
+              <span style="position:relative;display:block;width:14px;height:12px;background:#fff;clip-path:polygon(0 33%,33% 33%,66% 0,66% 100%,33% 66%,0 66%);flex:0 0 auto;"></span>
+              <span style="display:block;width:12px;height:12px;border:1.4px solid #fff;border-radius:2px;flex:0 0 auto;"></span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ video169 }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative;width:550px;height:309px;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Video 16:9 · 1920 × 1080<br /><span style="font-size:10px;">volle Breite · Post wird niedriger</span></span>
+            <div style="position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(0deg,rgba(0,0,0,.55),rgba(0,0,0,0));">
+              <span style="display:flex;gap:3px;flex:0 0 auto;"><span style="display:block;width:4px;height:16px;background:#fff;border-radius:1px;"></span><span style="display:block;width:4px;height:16px;background:#fff;border-radius:1px;"></span></span>
+              <span style="position:relative;flex:1;min-width:0;height:3px;border-radius:2px;background:rgba(255,255,255,.4);">
+                <span style="position:absolute;left:0;top:0;bottom:0;width:16%;border-radius:2px;background:#fff;display:block;"></span>
+                <span style="position:absolute;left:16%;top:-3.5px;width:10px;height:10px;border-radius:50%;background:#fff;display:block;"></span>
+              </span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#fff;flex:0 0 auto;">0:11</span>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#fff;flex:0 0 auto;">1x</span>
+              <span style="padding:1px 4px;border:1.3px solid #fff;border-radius:3px;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:9px;font-weight:700;color:#fff;flex:0 0 auto;">CC</span>
+              <span style="position:relative;display:block;width:14px;height:12px;background:#fff;clip-path:polygon(0 33%,33% 33%,66% 0,66% 100%,33% 66%,0 66%);flex:0 0 auto;"></span>
+              <span style="display:block;width:12px;height:12px;border:1.4px solid #fff;border-radius:2px;flex:0 0 auto;"></span>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 10px;border-top:1px solid #eceae7;color:#5f5b57;">
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:15px;border:1.6px solid currentColor;border-radius:3px 3px 4px 4px;" style-before="content:'';position:absolute;left:-1.6px;bottom:-1.6px;width:6px;height:8px;border:1.6px solid currentColor;border-radius:2px;background:#fff;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Gefällt mir</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:14px;border:1.6px solid currentColor;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-bottom:5px solid transparent;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Kommentieren</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:12px;border-top:1.6px solid currentColor;border-bottom:1.6px solid currentColor;" style-before="content:'';position:absolute;left:0;top:-5px;width:0;height:0;border-right:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;" style-after="content:'';position:absolute;right:0;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Reposten</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="display:block;width:18px;height:18px;line-height:0;"><svg width="18" height="18" viewBox="0 0 18 18" style="display:block;"><polygon points="16.2,2 1.8,8.2 8.2,10.1 10.2,16.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Senden</span>
+          </span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#8b8783;line-height:1.7;">
+        Player-Leiste über dem Video<br />9:16 mit unscharfen Seitenflächen · 1:1 und 16:9 ohne
+      </div>
+    </div>
+
+    <!-- ================= 5d KARUSSELL ================= -->
+    <div id="5d" style="flex:0 0 auto;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:22px;padding:0 8px;border-radius:3px;background:#b00900;color:#fff;font-size:11px;font-weight:600;letter-spacing:.06em;">5d</span>
+        <span style="font-size:13.5px;font-weight:500;">Karussell · Dokument / Bildstrecke</span>
+        <div style="display:flex;align-items:center;gap:3px;border:1px solid #e0dfdc;border-radius:5px;padding:2px;background:#fff;">
+          <button data-format="4:5" onClick="{{ setCar }}" style="border:none;background:{{ c45bg }};color:{{ c45fg }};font-size:11.5px;font-weight:500;padding:6px 11px;border-radius:3px;cursor:pointer;">4:5</button>
+          <button data-format="1:1" onClick="{{ setCar }}" style="border:none;background:{{ c11bg }};color:{{ c11fg }};font-size:11.5px;font-weight:500;padding:6px 11px;border-radius:3px;cursor:pointer;">1:1</button>
+        </div>
+      </div>
+
+      <div data-screen-label="5d LinkedIn Karussell" style="width:552px;background:#fff;border:1px solid #e0dfdc;border-radius:8px;box-shadow:0 1px 2px rgba(28,22,16,.06),0 14px 40px rgba(28,22,16,.08);overflow:hidden;">
+
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px 0;">
+          <div style="width:48px;height:48px;border-radius:50%;border:1px dashed #d5d1cc;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;flex:0 0 auto;">Logo</div>
+          <div style="flex:1;min-width:0;display:grid;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="height:16px;width:150px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9px;color:#8b8783;">Profilname</div>
+              <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:12px;color:#5f5b57;">· 1.</span>
+            </div>
+            <div style="height:13px;width:100%;max-width:340px;border:1px dashed #d5d1cc;border-radius:3px;background:repeating-linear-gradient(135deg,#eceae7 0 6px,#f5f3f1 6px 12px);display:flex;align-items:center;padding-left:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:8px;color:#8b8783;">Funktion / Unternehmen</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="height:11px;width:66px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:flex;align-items:center;padding-left:5px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:7.5px;color:#a5a09b;">Zeitraum</div>
+              <span style="display:block;width:12px;height:12px;border:1.3px solid #c9c4be;border-radius:50%;"></span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto;color:#8b8783;">
+            <span style="font-size:16px;letter-spacing:2px;line-height:1;">···</span>
+            <span style="position:relative;display:block;width:14px;height:14px;" style-before="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(45deg);" style-after="content:'';position:absolute;top:6px;left:0;width:14px;height:1.6px;background:currentColor;transform:rotate(-45deg);"></span>
+          </div>
+        </div>
+
+        <div style="padding:12px 16px 12px;">
+          <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;line-height:1.75;color:#8b8783;max-height:58px;overflow:hidden;">Caption — der vollständige Text des Beitrags steht hier am Stück. LinkedIn kürzt nach drei Zeilen und setzt „mehr" ans Ende; alles Weitere bleibt eingeklappt. #hashtag #hashtag</div>
+        </div>
+
+        <sc-if value="{{ car45 }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative;display:flex;align-items:stretch;gap:6px;height:555px;background:#fff;overflow:hidden;">
+            <div style="width:47px;flex:0 0 auto;background:repeating-linear-gradient(135deg,#e4e0dc 0 8px,#edeae6 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:#8b8783;">{{ prevNr }}</span>
+            </div>
+            <div style="flex:1;min-width:0;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Slide {{ slideNr }} · 4:5 · 444 × 555<br /><span style="font-size:10px;">Nachbarn je 47 px angeschnitten</span></span>
+            </div>
+            <div style="width:47px;flex:0 0 auto;background:repeating-linear-gradient(135deg,#e4e0dc 0 8px,#edeae6 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:#8b8783;">{{ nextNr }}</span>
+            </div>
+
+            <button onClick="{{ prevSlide }}" style="position:absolute;left:34px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;background:rgba(20,16,12,.72);color:#fff;display:flex;align-items:center;justify-content:center;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:15px;cursor:pointer;" style-hover="background:rgba(20,16,12,.9);">❮</button>
+            <button onClick="{{ nextSlide }}" style="position:absolute;right:34px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;background:rgba(20,16,12,.72);color:#fff;display:flex;align-items:center;justify-content:center;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:15px;cursor:pointer;" style-hover="background:rgba(20,16,12,.9);">❯</button>
+            <span style="position:absolute;top:14px;right:14px;padding:4px 10px;border-radius:4px;background:rgba(20,16,12,.72);color:#fff;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;">{{ counter }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ car11 }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative;display:flex;align-items:stretch;gap:6px;height:444px;background:#fff;overflow:hidden;">
+            <div style="width:47px;flex:0 0 auto;background:repeating-linear-gradient(135deg,#e4e0dc 0 8px,#edeae6 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:#8b8783;">{{ prevNr }}</span>
+            </div>
+            <div style="flex:1;min-width:0;background:repeating-linear-gradient(135deg,#eceae7 0 8px,#f5f3f1 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12px;color:#8b8783;background:rgba(255,255,255,.82);padding:6px 11px;border-radius:3px;text-align:center;line-height:1.6;">Slide {{ slideNr }} · 1:1 · 444 × 444<br /><span style="font-size:10px;">Nachbarn je 47 px angeschnitten</span></span>
+            </div>
+            <div style="width:47px;flex:0 0 auto;background:repeating-linear-gradient(135deg,#e4e0dc 0 8px,#edeae6 8px 16px);display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:9.5px;color:#8b8783;">{{ nextNr }}</span>
+            </div>
+
+            <button onClick="{{ prevSlide }}" style="position:absolute;left:34px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;background:rgba(20,16,12,.72);color:#fff;display:flex;align-items:center;justify-content:center;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:15px;cursor:pointer;" style-hover="background:rgba(20,16,12,.9);">❮</button>
+            <button onClick="{{ nextSlide }}" style="position:absolute;right:34px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;border-radius:50%;background:rgba(20,16,12,.72);color:#fff;display:flex;align-items:center;justify-content:center;font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:15px;cursor:pointer;" style-hover="background:rgba(20,16,12,.9);">❯</button>
+            <span style="position:absolute;top:14px;right:14px;padding:4px 10px;border-radius:4px;background:rgba(20,16,12,.72);color:#fff;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;">{{ counter }}</span>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="display:block;width:17px;height:17px;border-radius:50%;background:#dcd8d3;border:1.5px solid #fff;"></span>
+            <span style="height:11px;width:24px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+          </div>
+          <span style="height:11px;width:96px;border:1px dashed #e0ddd9;border-radius:3px;background:#f7f6f4;display:block;"></span>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 12px 10px;border-top:1px solid #eceae7;color:#5f5b57;">
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:15px;border:1.6px solid currentColor;border-radius:3px 3px 4px 4px;" style-before="content:'';position:absolute;left:-1.6px;bottom:-1.6px;width:6px;height:8px;border:1.6px solid currentColor;border-radius:2px;background:#fff;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Gefällt mir</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:14px;border:1.6px solid currentColor;border-radius:4px;" style-after="content:'';position:absolute;left:3px;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-bottom:5px solid transparent;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Kommentieren</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="position:relative;display:block;width:17px;height:12px;border-top:1.6px solid currentColor;border-bottom:1.6px solid currentColor;" style-before="content:'';position:absolute;left:0;top:-5px;width:0;height:0;border-right:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;" style-after="content:'';position:absolute;right:0;bottom:-5px;width:0;height:0;border-left:6px solid currentColor;border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;"></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Reposten</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:4px;">
+            <span style="display:block;width:18px;height:18px;line-height:0;"><svg width="18" height="18" viewBox="0 0 18 18" style="display:block;"><polygon points="16.2,2 1.8,8.2 8.2,10.1 10.2,16.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+            <span style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:13.5px;font-weight:600;">Senden</span>
+          </span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;color:#8b8783;line-height:1.7;">
+        Pfeile blättern durch 10 Slides<br />4:5 → 444 × 555 · 1:1 → 444 × 444
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { video: '9:16', car: '4:5', slide: 3 };
+
+  setVideo = (e) => this.setState({ video: e.currentTarget.getAttribute('data-format') });
+  setCar = (e) => this.setState({ car: e.currentTarget.getAttribute('data-format') });
+  prevSlide = () => this.setState((s) => ({ slide: s.slide === 1 ? 10 : s.slide - 1 }));
+  nextSlide = () => this.setState((s) => ({ slide: s.slide === 10 ? 1 : s.slide + 1 }));
+
+  renderVals() {
+    const v = this.state.video, c = this.state.car, n = this.state.slide;
+    const on = (a, b) => a === b;
+    const bg = (x) => x ? '#b00900' : 'transparent';
+    const fg = (x) => x ? '#ffffff' : '#5f5b57';
+    return {
+      setVideo: this.setVideo, setCar: this.setCar,
+      prevSlide: this.prevSlide, nextSlide: this.nextSlide,
+      video916: on(v, '9:16'), video11: on(v, '1:1'), video169: on(v, '16:9'),
+      v916bg: bg(on(v, '9:16')), v916fg: fg(on(v, '9:16')),
+      v11bg: bg(on(v, '1:1')), v11fg: fg(on(v, '1:1')),
+      v169bg: bg(on(v, '16:9')), v169fg: fg(on(v, '16:9')),
+      car45: on(c, '4:5'), car11: on(c, '1:1'),
+      c45bg: bg(on(c, '4:5')), c45fg: fg(on(c, '4:5')),
+      c11bg: bg(on(c, '1:1')), c11fg: fg(on(c, '1:1')),
+      slideNr: n, counter: n + '/10',
+      prevNr: n === 1 ? 10 : n - 1,
+      nextNr: n === 10 ? 1 : n + 1
+    };
+  }
+}
+</script>
+
+</body>
+</html>

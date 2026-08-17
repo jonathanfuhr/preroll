@@ -4,8 +4,8 @@ import { kalenderwoche } from '@/lib/format'
 import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
-import { LinkedInVorschau } from './linkedin-vorschau'
-import { WeitereFassung, type AnzeigeFassung } from './weitere-fassung'
+import { LinkedInRahmen } from './linkedin-rahmen'
+import { FassungText, WeitereFassung, type AnzeigeFassung } from './weitere-fassung'
 import { PlattformMarken } from './plattform-marken'
 import { StatusLeiste } from './status-leiste'
 
@@ -222,6 +222,28 @@ export function PostSektion({
 
   const mitSzenen = post.typ === 'REEL' && post.szenenplanAktiv && szenen.length > 0
 
+  /*
+    Was auf LinkedIn steht — die Fassung dafür, sonst der Beitrag selbst.
+
+    Eine Fassung, die LinkedIn abdeckt, taucht **nur** neben ihrem Rahmen auf
+    und nicht noch einmal darunter: Ihr Kopf nennt ohnehin alle Plattformen,
+    für die sie gilt, und derselbe Text zweimal liest sich wie ein
+    Unterschied, wo keiner ist.
+  */
+  const liFassung = fassungen.find((f) => f.plattformen.includes('LINKEDIN')) ?? null
+  const ohneRahmen = fassungen.filter((f) => f !== liFassung)
+
+  const linkedIn = plattformen.includes('LINKEDIN')
+    ? {
+        caption: liFassung?.caption ?? post.caption,
+        medien: liFassung?.medien ?? medien,
+        istVideo: liFassung?.istVideo ?? istVideo,
+        thumbnail: liFassung?.thumbnail ?? thumbnail ?? null,
+        verhaeltnis: liFassung?.verhaeltnis ?? post.verhaeltnis,
+        fassung: liFassung,
+      }
+    : null
+
   return (
     <section id={`post-${post.id}`} className="scroll-mt-20 border-t border-rahmen px-0 py-10 sm:py-14">
       {/* ---------------------------------------------------------- Kopfzeile */}
@@ -257,8 +279,22 @@ export function PostSektion({
       </div>
 
       {/* ------------------------------------------------------------ Inhalt */}
-      <div className="grid items-start gap-8 lg:grid-cols-[344px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[344px_minmax(0,1fr)_320px]">
-        <div className="mx-auto lg:mx-0">
+      {/*
+        Drei Spalten, und die Zeilen sind ausdrücklich gesetzt: Links stehen
+        die **Vorschauen** untereinander — erst das Gerät, darunter der
+        LinkedIn-Rahmen. Rechts daneben steht jeweils der Text dazu, auf
+        derselben Höhe. Untereinander gestellt läge zwischen Bild und Text
+        ein halber Bildschirm.
+
+        Die Kommentarspalte greift über alle Zeilen und klebt oben: Mit
+        mehreren Fassungen wird ein Beitrag schnell zwei Bildschirme hoch, und
+        wer unten etwas sieht, will es dort kommentieren, nicht nach oben
+        zurückrollen. Beim nächsten Beitrag hört sie auf — sie gehört zu
+        diesem.
+      */}
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-12">
+      <div className="grid items-start gap-8 lg:grid-cols-[344px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[minmax(344px,552px)_minmax(0,1fr)]">
+        <div className="mx-auto lg:mx-0 lg:col-start-1">
           <IPhoneVorschau
             typ={post.typ}
             kunde={kunde}
@@ -271,7 +307,7 @@ export function PostSektion({
           />
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 lg:col-start-2">
           <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:mb-3.5 sm:text-[11px]">
             Caption
           </div>
@@ -285,33 +321,6 @@ export function PostSektion({
           )}
 
           <Eckdaten eintraege={eckdaten} />
-
-          {/*
-            Geht der Beitrag auch auf LinkedIn, steht er hier ein zweites Mal —
-            so, wie er dort erscheint. Kein Raster: LinkedIn hat keines, in dem
-            sich Kacheln zu einem Bild fügen, und ein nachgebautes Telefon würde
-            etwas behaupten, was nicht stimmt.
-
-            Gezeigt wird nur, was auch rausgeht: `plattformen` ist bereits der
-            Schnitt aus Wahl und zugeordnetem Kanal (`angezeigtePlattformen`).
-          */}
-          {plattformen.includes('LINKEDIN') &&
-            !fassungen.some((f) => f.plattformen.includes('LINKEDIN')) && (
-            <div className="mt-6 sm:mt-[34px]">
-              <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
-                Auf LinkedIn
-              </div>
-              <LinkedInVorschau
-                kunde={kunde}
-                logo={logo}
-                follower={liFollower}
-                text={post.caption}
-                medien={medien}
-                istVideo={istVideo}
-                thumbnail={thumbnail}
-              />
-            </div>
-          )}
 
           {/*
             Alle Slides in Reihe. Im Geräterahmen sieht man immer nur einen —
@@ -361,23 +370,60 @@ export function PostSektion({
           )}
 
           {/*
-            Die Abweichungen stehen unter dem Hauptformat, nicht daneben: Sie
-            sind Abweichungen *von etwas*, und nebeneinander stünden sie auf
-            derselben Stufe. Am Telefon wäre daraus außerdem ein Stapel
-            gleichrangiger Rahmen geworden.
+            Fassungen ohne eigenen Rahmen — Instagram, Facebook. Sie stehen
+            unter dem Hauptformat, nicht daneben: Sie sind Abweichungen *von
+            etwas*, und nebeneinander stünden sie auf derselben Stufe.
           */}
-          {fassungen.map((fassung) => (
-            <WeitereFassung
-              key={fassung.plattformen.join('-')}
-              fassung={fassung}
-              kunde={kunde}
-              logo={logo}
-              liFollower={liFollower}
-            />
+          {ohneRahmen.map((fassung) => (
+            <WeitereFassung key={fassung.plattformen.join('-')} fassung={fassung} />
           ))}
         </div>
 
-        <div className="min-w-0">{kommentare}</div>
+        {/*
+          Der LinkedIn-Rahmen — links unter dem Gerät, seine Abweichung
+          rechts daneben. Gezeigt wird nur, was auch rausgeht: `plattformen`
+          ist bereits der Schnitt aus Wahl und zugeordnetem Kanal
+          (`angezeigtePlattformen`).
+        */}
+        {linkedIn && (
+          <>
+            <div className="lg:col-start-1">
+              <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
+                Auf LinkedIn
+              </div>
+              <LinkedInRahmen
+                kunde={kunde}
+                logo={logo}
+                follower={liFollower}
+                text={linkedIn.caption}
+                medien={linkedIn.medien}
+                istVideo={linkedIn.istVideo}
+                thumbnail={linkedIn.thumbnail}
+                verhaeltnis={linkedIn.verhaeltnis}
+                typ={post.typ}
+              />
+            </div>
+
+            {linkedIn.fassung && (
+              <div className="min-w-0 lg:col-start-2">
+                <FassungText fassung={linkedIn.fassung} />
+              </div>
+            )}
+          </>
+        )}
+
+      </div>
+
+        {/*
+          Zwei Raster ineinander statt eines mit drei Spalten: `grid-row: 1/-1`
+          spannt nur über **explizite** Zeilen, und die gibt es hier nicht —
+          die Zeilen entstehen erst mit den Fassungen. Als eigene Spalte
+          daneben bekommt die Kommentarleiste die volle Höhe von selbst, und
+          `sticky` hat, woran es kleben kann.
+        */}
+        <div className="min-w-0">
+          <div className="xl:sticky xl:top-24">{kommentare}</div>
+        </div>
       </div>
     </section>
   )
