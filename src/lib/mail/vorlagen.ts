@@ -40,19 +40,19 @@ export function vorlageAnmeldecode(an: string, code: string, workspace: string):
   }
 }
 
-export function vorlageEinladung(
-  an: string,
-  kunde: string,
-  zeitraum: string,
-  url: string,
-): Mail {
+/**
+ * Die Einladung nennt keinen Monat mehr. Sie tat es, solange jeder Monat einen
+ * eigenen Link hatte; jetzt führt ein Link zu allen — und ein Monat im Betreff
+ * würde in vier Wochen falsch aussehen, obwohl der Link weiter stimmt.
+ */
+export function vorlageEinladung(an: string, kunde: string, url: string): Mail {
   return {
     an,
-    betreff: `Content-Plan ${zeitraum} für ${kunde} liegt zur Freigabe bereit`,
-    text: `Der Content-Plan ${zeitraum} für ${kunde} steht zur Durchsicht bereit.\n\n${url}`,
+    betreff: `Content-Plan für ${kunde} liegt zur Freigabe bereit`,
+    text: `Der Content-Plan für ${kunde} steht zur Durchsicht bereit.\n\n${url}`,
     html: huelle(
       'Zur Freigabe bereit',
-      `<p style="margin:0;">Der Content-Plan <strong>${zeitraum}</strong> für <strong>${kunde}</strong> steht zur Durchsicht bereit. Du siehst dort den Kalender, eine Vorschau des Feeds und jeden geplanten Beitrag — und kannst direkt kommentieren.</p>
+      `<p style="margin:0;">Der Content-Plan für <strong>${kunde}</strong> steht zur Durchsicht bereit. Du siehst dort den Kalender, eine Vorschau des Feeds und jeden geplanten Beitrag — und kannst direkt kommentieren. Über die Monatsleiste kommst du auch zu den früheren Plänen.</p>
        ${knopf(url, 'Plan ansehen')}`,
       'Diesen Link bitte nicht weitergeben — er gilt persönlich für dich.',
     ),

@@ -1,12 +1,19 @@
 import { prisma } from '@/lib/db'
 import { ladeKunde } from '@/lib/abfragen'
-import { alsMonat, monatsTitel } from '@/lib/datum'
 import { env } from '@/lib/env'
 import { postsImZeitraum } from '@/lib/export-sicht'
 import { freigabeFortschritt } from '@/lib/freigabe'
+import { monateAusPosts } from '@/lib/monate'
 import { darfAnsprechpartnerSein } from '@/lib/rollen'
-import { Leerzustand } from '@/components/ui'
-import { ExportAnlegen, ExportKarte, ZipZeitraum } from './verwaltung'
+import { Karte, Leerzustand } from '@/components/ui'
+import { freigabelinkErzeugen } from '../aktionen'
+import { ZipZeitraum, ZugangKarte } from './verwaltung'
+
+const ZEITSTEMPEL = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})
 
 /** `2026-08-01` — der Wert eines Datumsfeldes, ohne Zeitzonen-Rutsch. */
 function alsTag(datum: Date): string {
@@ -15,29 +22,21 @@ function alsTag(datum: Date): string {
   ).padStart(2, '0')}`
 }
 
-const ZEITSTEMPEL = new Intl.DateTimeFormat('de-DE', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-})
-
 /**
- * Die Freigaben eines Kunden — eine je Monat.
+ * Der Freigabezugang eines Kunden — genau einer.
  *
- * Was der Kunde daraufhin freigegeben hat, hatte einmal eine eigene Seite.
- * Die ist entfallen: Die Post-Liste zeigt es je Zeile, und zweimal dieselbe
- * Auskunft an zwei Stellen läuft irgendwann auseinander.
+ * Vorher stand hier eine Karte je Monat mit eigenem Link, eigener Gästeliste
+ * und eigener Einladung: dieselbe Arbeit jeden Monat, und ein Gast aus dem
+ * August kam im September nicht hinein. Der Monat ist keine Eigenschaft des
+ * Zugangs, sondern eine Sicht darin — er steht in der Adresse, und welche
+ * Monate es gibt, sagen die Beiträge.
  *
- * Ein Zeitraum von Hand war eine Freiheit, die niemand brauchte: Geplant
- * wird ohnehin monatsweise, und ein Link über anderthalb Monate hätte auf
- * der Kundenseite eine Überschrift ohne Namen. Jetzt trägt jede Freigabe
- * den Monat als Titel, und der Kunde blättert zwischen ihnen.
+ * Was der Kunde freigegeben hat, hatte einmal eine eigene Seite. Die ist
+ * entfallen: Die Post-Liste zeigt es je Zeile, und zweimal dieselbe Auskunft
+ * an zwei Stellen läuft irgendwann auseinander. Hier steht nur der Stand je
+ * Monat — dieselbe Zahl, die auch der Kunde in seiner Leiste sieht.
  */
-export default async function FreigabenSeite({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function FreigabenSeite({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const kunde = await ladeKunde(slug)
 
@@ -49,10 +48,9 @@ export default async function FreigabenSeite({
     .filter((n) => darfAnsprechpartnerSein(n.rolle))
     .map((n) => ({ id: n.id, name: n.name, rolle: n.rolle }))
 
-  const [freigaben, posts] = await Promise.all([
-    prisma.export.findMany({
+  const [zugang, posts] = await Promise.all([
+    prisma.export.findUnique({
       where: { kundeId: kunde.id },
-      orderBy: { zeitraumVon: 'desc' },
       include: {
         zusatzAnsprechpartner: true,
         gaeste: { include: { gast: true } },
@@ -66,70 +64,85 @@ export default async function FreigabenSeite({
     }),
   ])
 
-  const standVon = (exp: (typeof freigaben)[number]) =>
-    freigabeFortschritt(
-      postsImZeitraum(posts, { zeitraumVon: exp.zeitraumVon, zeitraumBis: exp.zeitraumBis }),
+  const monatsliste = monateAusPosts(posts)
+  const monate = monatsliste.map((m) => {
+    const stand = freigabeFortschritt(
+      postsImZeitraum(posts, { zeitraumVon: m.von, zeitraumBis: m.bis }),
     )
+    return { monat: m.monat, titel: m.titel, erledigt: stand.erledigt, gesamt: stand.gesamt }
+  })
+
+  if (!zugang) {
+    return (
+      <>
+        <Kopf name={kunde.name} monate={0} />
+        <Karte className="p-5">
+          <Leerzustand
+            titel="Noch kein Freigabelink"
+            text="Ein Link zeigt dem Kunden jeden Monat — Kalender, Feed-Vorschau und jeden Beitrag im iPhone-Rahmen. Als Live-Sicht, nicht als Schnappschuss. Welche Monate er sieht, ergibt sich aus den Beiträgen."
+          />
+          <form action={freigabelinkErzeugen.bind(null, kunde.id)} className="mt-4 flex justify-center">
+            <button
+              type="submit"
+              className="rounded-[5px] bg-akzent px-3.5 py-2 text-[12px] font-medium text-white hover:opacity-90"
+            >
+              Freigabelink erzeugen
+            </button>
+          </form>
+        </Karte>
+      </>
+    )
+  }
+
+  // Der Vorschlag für den ZIP-Zeitraum: der älteste bis der neueste Monat, in
+  // dem etwas steht. Ohne Beiträge der laufende Monat.
+  const heute = new Date()
+  const von = monatsliste.at(-1)?.von ?? new Date(heute.getFullYear(), heute.getMonth(), 1)
+  const bis = monatsliste[0]?.bis ?? new Date(heute.getFullYear(), heute.getMonth() + 1, 0)
 
   return (
     <>
-      <div className="mb-6 flex items-end justify-between gap-6">
-        <div>
-          <h2 className="text-[15px] font-semibold">Freigaben</h2>
-          <p className="mt-0.5 text-[12.5px] text-leiser">
-            Ein Link je Monat für {kunde.name} ·{' '}
-            {freigaben.length === 1 ? '1 Monat' : `${freigaben.length} Monate`}
-          </p>
-        </div>
-        <ExportAnlegen kundeId={kunde.id} waehlbare={waehlbare} />
-      </div>
+      <Kopf name={kunde.name} monate={monate.length} />
 
-      <div className="grid gap-10">
-        {freigaben.length > 0 && (
-          <ZipZeitraum
-            exportId={freigaben[0].id}
-            von={alsTag(freigaben.at(-1)!.zeitraumVon)}
-            bis={alsTag(freigaben[0].zeitraumBis)}
-          />
-        )}
+      <div className="grid gap-6">
+        <ZipZeitraum exportId={zugang.id} von={alsTag(von)} bis={alsTag(bis)} />
 
-        {freigaben.length === 0 ? (
-          <Leerzustand
-            titel="Noch keine Freigabe"
-            text="Eine Freigabe zeigt dem Kunden einen ganzen Monat — Kalender, Feed-Vorschau und jeden Beitrag im iPhone-Rahmen. Als Live-Sicht, nicht als Schnappschuss."
-          />
-        ) : (
-          <div className="grid min-w-0 gap-4">
-            {freigaben.map((exp) => (
-              <ExportKarte
-                key={exp.id}
-                exp={{
-                  id: exp.id,
-                  token: exp.token,
-                  titel: exp.titel,
-                  monat: alsMonat(exp.zeitraumVon),
-                  monatTitel: monatsTitel(exp.zeitraumVon),
-                  zusatzAnsprechpartnerId: exp.zusatzAnsprechpartnerId,
-                  aufrufe: exp.aufrufe,
-                  zuletztGeoeffnet: exp.zuletztGeoeffnet
-                    ? ZEITSTEMPEL.format(exp.zuletztGeoeffnet)
-                    : null,
-                  stand: standVon(exp),
-                  kommentare: exp._count.kommentare,
-                }}
-                basisUrl={env.appUrl}
-                waehlbare={waehlbare}
-                gaeste={exp.gaeste.map((g) => ({
-                  id: g.gast.id,
-                  name: g.gast.name,
-                  email: g.gast.email,
-                  geoeffnet: g.zuletztGeoeffnetAm ? ZEITSTEMPEL.format(g.zuletztGeoeffnetAm) : null,
-                }))}
-              />
-            ))}
-          </div>
-        )}
+        <ZugangKarte
+          zugang={{
+            id: zugang.id,
+            token: zugang.token,
+            titel: zugang.titel,
+            zusatzAnsprechpartnerId: zugang.zusatzAnsprechpartnerId,
+            aufrufe: zugang.aufrufe,
+            zuletztGeoeffnet: zugang.zuletztGeoeffnet
+              ? ZEITSTEMPEL.format(zugang.zuletztGeoeffnet)
+              : null,
+            kommentare: zugang._count.kommentare,
+          }}
+          basisUrl={env.appUrl}
+          waehlbare={waehlbare}
+          gaeste={zugang.gaeste.map((g) => ({
+            id: g.gast.id,
+            name: g.gast.name,
+            email: g.gast.email,
+            geoeffnet: g.zuletztGeoeffnetAm ? ZEITSTEMPEL.format(g.zuletztGeoeffnetAm) : null,
+          }))}
+          monate={monate}
+          mitFreigaben={kunde.freigabenNoetig}
+        />
       </div>
     </>
+  )
+}
+
+function Kopf({ name, monate }: { name: string; monate: number }) {
+  return (
+    <div className="mb-6">
+      <h2 className="text-[15px] font-semibold">Freigaben</h2>
+      <p className="mt-0.5 text-[12.5px] text-leiser">
+        Ein Link für {name}
+        {monate > 0 && ` · ${monate === 1 ? '1 Monat' : `${monate} Monate`}`}
+      </p>
+    </div>
   )
 }

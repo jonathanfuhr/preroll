@@ -3,19 +3,19 @@ import { POST_MEDIEN, rasterMedium } from '@/lib/abfragen'
 import { aktuellerGast, aktuellerNutzer } from '@/lib/auth'
 import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
 import { darfBearbeiten, type Betrachter } from '@/lib/kommentar-rechte'
-import { zeitraumText } from '@/lib/benachrichtigungen'
-import { formatiereTag, monatsTitel } from '@/lib/datum'
+import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { feedVorschau, postsImZeitraum } from '@/lib/export-sicht'
 import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
+import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import { angezeigtePlattformen } from '@/lib/plattformen'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
-import { Monatskalender, monateImZeitraum, type Kalendereintrag } from '@/components/kalender'
+import { Monatskalender, type Kalendereintrag } from '@/components/kalender'
 import { Monatsleiste, MonatsleisteMobil, type Monatseintrag } from '@/components/monatsleiste'
 import { PostSektion } from '@/components/post-sektion'
 import { Freigabefortschritt, KommentarBereich, PostFreigabe } from './interaktion'
@@ -28,8 +28,15 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   return { title: exp ? `${exp.kunde.name} — Content-Plan` : 'Freigabe' }
 }
 
-export default async function ExportSeite({ params }: { params: Promise<{ token: string }> }) {
+export default async function ExportSeite({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>
+  searchParams: Promise<{ monat?: string }>
+}) {
   const { token } = await params
+  const { monat: gewuenschterMonat } = await searchParams
 
   // Ein Freigabe-Link öffnet sich nie ohne Anmeldung. Die Sitzung gilt
   // 40 Tage — danach genügt der Link wieder allein.
@@ -86,37 +93,6 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
 
   const erwaehnbar = await erwaehnbarePersonen(exp.kundeId)
 
-  /*
-    Alle Monate dieses Kunden — die Leiste, über die der Kunde zwischen
-    seinen Freigaben wechselt. Bis hierher war ein Link eine Sackgasse: Wer
-    den Plan vom Vormonat noch einmal sehen wollte, musste die alte Mail
-    suchen.
-
-    Der Freigabestand je Monat kostet einen zweiten Durchlauf über die Posts;
-    bei einer Handvoll Monaten ist das nichts, und die Leiste ohne Stand wäre
-    nur eine Liste von Namen.
-  */
-  const alleFreigaben = await prisma.export.findMany({
-    where: { kundeId: exp.kundeId },
-    orderBy: { zeitraumVon: 'desc' },
-    include: { kunde: { include: { posts: { include: { freigaben: { select: { stufe: true } } } } } } },
-  })
-
-  const monate: Monatseintrag[] = alleFreigaben.map((f) => {
-    const stand = freigabeFortschritt(
-      postsImZeitraum(f.kunde.posts, {
-        zeitraumVon: f.zeitraumVon,
-        zeitraumBis: f.zeitraumBis,
-      }),
-    )
-    return {
-      token: f.token,
-      titel: monatsTitel(f.zeitraumVon),
-      erledigt: stand.erledigt,
-      gesamt: stand.gesamt,
-    }
-  })
-
   // Live-Sicht: bei jedem Aufruf frisch aus der Datenbank, kein Schnappschuss.
   const alle = await prisma.post.findMany({
     where: { kundeId: exp.kundeId },
@@ -128,7 +104,32 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
     },
   })
 
-  const regeln = { zeitraumVon: exp.zeitraumVon, zeitraumBis: exp.zeitraumBis }
+  /*
+    Welche Monate es gibt, sagen die Beiträge — nicht eine Tabelle. Vorher war
+    jeder Monat eine eigene Freigabe mit eigenem Link: Wer den Plan vom
+    Vormonat sehen wollte, musste die alte Mail suchen, und ein Monat ohne
+    angelegte Freigabe war unerreichbar, obwohl Beiträge darin standen.
+
+    Der Freigabestand je Monat kostet einen zweiten Durchlauf über dieselben
+    Posts; bei einer Handvoll Monaten ist das nichts, und die Leiste ohne
+    Stand wäre nur eine Liste von Namen.
+  */
+  const monatsliste = monateAusPosts(alle)
+  const monat = gewaehlterMonat(monatsliste, gewuenschterMonat, new Date())
+
+  const monate: Monatseintrag[] = monatsliste.map((m) => {
+    const stand = freigabeFortschritt(
+      postsImZeitraum(alle, { zeitraumVon: m.von, zeitraumBis: m.bis }),
+    )
+    return {
+      monat: m.monat,
+      titel: m.titel,
+      erledigt: stand.erledigt,
+      gesamt: stand.gesamt,
+    }
+  })
+
+  const regeln = { zeitraumVon: monat.von, zeitraumBis: monat.bis }
   const sektionen = postsImZeitraum(alle, regeln)
   const kacheln = feedVorschau(alle, regeln)
 
@@ -170,7 +171,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
   // Wer eine Sektion auf dieser Seite hat — nur diese Kacheln werden anklickbar.
   const imZeitraum = new Set(sektionen.map((p) => p.id))
 
-  const zeitraum = zeitraumText(exp.zeitraumVon, exp.zeitraumBis)
+  const zeitraum = monat.titel
   const kwSpanne = sektionen.length
     ? `KW ${kalenderwoche(sektionen[0].postenAm)}–${kalenderwoche(sektionen.at(-1)!.postenAm)}`
     : '—'
@@ -229,7 +230,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
       Kopfzeile (`MonatsleisteMobil`).
     */
     <div className="flex min-h-screen">
-      <Monatsleiste monate={monate} aktiv={token} mitFreigaben={mitFreigaben} />
+      <Monatsleiste monate={monate} token={token} aktiv={monat.monat} mitFreigaben={mitFreigaben} />
 
       <div className="min-w-0 flex-1">
       {alsTeam && (
@@ -245,7 +246,7 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
         </div>
       )}
 
-      <MonatsleisteMobil monate={monate} aktiv={token} mitFreigaben={mitFreigaben} />
+      <MonatsleisteMobil monate={monate} token={token} aktiv={monat.monat} mitFreigaben={mitFreigaben} />
 
       <ExportTopbar
         kunde={exp.kunde.name}
@@ -274,15 +275,13 @@ export default async function ExportSeite({ params }: { params: Promise<{ token:
       {/* ---------------------------------------- Kalender + Feed-Vorschau */}
       <div className="mx-auto grid max-w-[1440px] items-start gap-8 px-5 pb-12 md:px-[72px] md:pb-16 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="grid gap-8">
-          {monateImZeitraum(exp.zeitraumVon, exp.zeitraumBis).map((monat) => (
-            <KalenderKarte
-              key={monat.toISOString()}
-              monat={new Intl.DateTimeFormat('de-DE', { month: 'long' }).format(monat)}
-              jahr={String(monat.getFullYear())}
-            >
-              <Monatskalender monat={monat} eintraege={kalendereintraege} ohneRahmen />
-            </KalenderKarte>
-          ))}
+          {/* Genau ein Monat je Ansicht — die Zeitspanne ist der Monat. */}
+          <KalenderKarte
+            monat={new Intl.DateTimeFormat('de-DE', { month: 'long' }).format(monat.von)}
+            jahr={String(monat.von.getFullYear())}
+          >
+            <Monatskalender monat={monat.von} eintraege={kalendereintraege} ohneRahmen />
+          </KalenderKarte>
         </div>
 
         <aside className="justify-self-center lg:justify-self-end">
