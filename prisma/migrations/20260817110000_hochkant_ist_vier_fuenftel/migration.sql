@@ -1,0 +1,22 @@
+-- Hochkant ist wieder 4:5, nicht 3:4 — Teil 1: der Wert.
+--
+-- Am 07.08. war 3:4 zum Standard geworden, weil Instagrams Profilraster seit
+-- 2025 so aussieht und Preroll im Raster plant. Das war einen Schritt zu weit
+-- gedacht: Posten lässt sich nur bis 4:5. Ein in 3:4 gestaltetes Bild wird
+-- schon beim Veröffentlichen oben und unten beschnitten — der Verlust liegt
+-- also nicht erst im Raster, sondern im Beitrag selbst, und den sieht der Kunde.
+--
+-- Das Raster bleibt 3:4. Der Ausschnitt entsteht nur an der Kachel statt an der
+-- Datei; deshalb wird hier nichts nachgeschnitten.
+--
+-- HOCH_3_4 bleibt im Enum: Beiträge aus jenen zehn Tagen tragen es, und ein
+-- Format, das es nicht mehr gibt, ließe sie nicht mehr speichern. Ihr Wert
+-- bleibt unangetastet — sie umzustellen hieße, ihre 3:4-Dateien in einer
+-- 4:5-Fläche zu zeigen, und dann fehlte oben und unten etwas.
+--
+-- Der Standard folgt in der nächsten Migration, nicht hier: Postgres lehnt die
+-- Benutzung eines Enum-Werts in derselben Transaktion ab, in der er entsteht
+-- („unsafe use of new value"). Deshalb zwei Schritte statt einem.
+
+-- Vor die bestehenden Werte, damit die Reihenfolge im Enum der Wahl entspricht.
+ALTER TYPE "Verhaeltnis" ADD VALUE IF NOT EXISTS 'HOCH_4_5' BEFORE 'HOCH_3_4';

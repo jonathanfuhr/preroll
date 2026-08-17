@@ -363,6 +363,16 @@ enum PostTyp {
  * Typ zur Wahl steht, entscheidet `src/lib/verhaeltnis.ts`.
  */
 enum Verhaeltnis {
+  /**
+   * Der Standard für Beiträge und Slides. Instagram nimmt beim Posten nichts
+   * Höheres an; das Profilraster zeigt davon einen 3:4-Ausschnitt.
+   */
+  HOCH_4_5
+  /**
+   * Bleibt, weil Beiträge damit angelegt wurden, als 3:4 als Standard galt.
+   * Für neue ist es die schlechtere Wahl — aber ein Format, das es nicht mehr
+   * gibt, ließe den Bestand nicht mehr speichern.
+   */
   HOCH_3_4
   QUADRAT_1_1
   VERTIKAL_9_16
@@ -405,7 +415,7 @@ model Post {
   verantwortlichId String?
   verantwortlich   Nutzer? @relation("Verantwortlich", fields: [verantwortlichId], references: [id], onDelete: SetNull)
 
-  verhaeltnis Verhaeltnis @default(HOCH_3_4)
+  verhaeltnis Verhaeltnis @default(HOCH_4_5)
 
   /**
    * Wohin dieser Beitrag geht. Beim Anlegen aus dem Kunden vorbelegt und

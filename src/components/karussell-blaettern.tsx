@@ -19,7 +19,7 @@ import { flaechenHoehe, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
  */
 export function KarussellFlaeche({
   slides,
-  verhaeltnis = 'HOCH_3_4',
+  verhaeltnis = 'HOCH_4_5',
   aufUpload,
   ersetzenKnopf,
 }: {

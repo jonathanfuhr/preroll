@@ -9,7 +9,12 @@ import {
 } from './format'
 
 describe('pruefeFormat', () => {
-  it('lässt ein korrektes 3:4-Beitragsbild durch', () => {
+  it('lässt ein korrektes 4:5-Beitragsbild durch', () => {
+    expect(pruefeFormat('HOCH_4_5', 'MEDIUM', 1080, 1350)).toBeNull()
+  })
+
+  it('lässt ein 3:4-Bild an einem 3:4-Beitrag weiterhin durch', () => {
+    // Der Bestand aus der Zeit, als 3:4 als Standard galt.
     expect(pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1440)).toBeNull()
   })
 
@@ -25,9 +30,9 @@ describe('pruefeFormat', () => {
   })
 
   it('warnt bei quadratischem Beitragsbild', () => {
-    const hinweis = pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1080)
+    const hinweis = pruefeFormat('HOCH_4_5', 'MEDIUM', 1080, 1080)
     expect(hinweis).not.toBeNull()
-    expect(hinweis?.erwartet).toBe('3:4')
+    expect(hinweis?.erwartet).toBe('4:5')
     expect(hinweis?.erkannt).toBe('1:1')
   })
 
@@ -37,20 +42,21 @@ describe('pruefeFormat', () => {
   })
 
   it('verträgt ein Prozent Abweichung', () => {
-    expect(pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1434)).toBeNull()
+    expect(pruefeFormat('HOCH_4_5', 'MEDIUM', 1080, 1345)).toBeNull()
   })
 
-  it('warnt beim Altbestand in 4:5 — aber blockiert ihn nicht', () => {
-    // 4:5 bleibt hochladbar, damit sich Älteres nachpflegen lässt. Der
-    // Hinweis nennt nur, dass das aktuelle Format 3:4 ist.
-    const hinweis = pruefeFormat('HOCH_3_4', 'MEDIUM', 1080, 1350)
-    expect(hinweis?.erkannt).toBe('4:5')
-    expect(hinweis?.erwartet).toBe('3:4')
-    expect(hinweis?.text).toContain('erwartet wird 3:4')
+  it('warnt bei einem 3:4-Bild an einem 4:5-Beitrag — blockiert es aber nicht', () => {
+    // Der häufigste Fall nach der Umstellung: eine Canva-Vorlage, die noch im
+    // alten Maß liegt. Instagram beschneidet so ein Bild beim Posten oben und
+    // unten, deshalb der Hinweis — gewarnt, nicht verhindert.
+    const hinweis = pruefeFormat('HOCH_4_5', 'MEDIUM', 1080, 1440)
+    expect(hinweis?.erkannt).toBe('3:4')
+    expect(hinweis?.erwartet).toBe('4:5')
+    expect(hinweis?.text).toContain('erwartet wird 4:5')
   })
 
   it('gibt bei fehlenden Maßen keinen Hinweis', () => {
-    expect(pruefeFormat('HOCH_3_4', 'MEDIUM', 0, 0)).toBeNull()
+    expect(pruefeFormat('HOCH_4_5', 'MEDIUM', 0, 0)).toBeNull()
   })
 })
 

@@ -15,6 +15,7 @@ import type { PostTyp, Verhaeltnis } from '@prisma/client'
  */
 
 export const VERHAELTNIS_WERT: Record<Verhaeltnis, number> = {
+  HOCH_4_5: 4 / 5,
   HOCH_3_4: 3 / 4,
   QUADRAT_1_1: 1,
   VERTIKAL_9_16: 9 / 16,
@@ -22,6 +23,7 @@ export const VERHAELTNIS_WERT: Record<Verhaeltnis, number> = {
 }
 
 export const VERHAELTNIS_TEXT: Record<Verhaeltnis, string> = {
+  HOCH_4_5: '4:5',
   HOCH_3_4: '3:4',
   QUADRAT_1_1: '1:1',
   VERTIKAL_9_16: '9:16',
@@ -30,6 +32,7 @@ export const VERHAELTNIS_TEXT: Record<Verhaeltnis, string> = {
 
 /** Die übliche Pixelgröße — steht als Hinweis an den Ablagen. */
 export const VERHAELTNIS_MASSE: Record<Verhaeltnis, string> = {
+  HOCH_4_5: '1080 × 1350',
   HOCH_3_4: '1080 × 1440',
   QUADRAT_1_1: '1080 × 1080',
   VERTIKAL_9_16: '1080 × 1920',
@@ -39,13 +42,27 @@ export const VERHAELTNIS_MASSE: Record<Verhaeltnis, string> = {
 /**
  * Was je Typ zur Wahl steht — das Erste ist der Standard.
  *
+ * **Hochkant heißt 4:5.** Zwischenzeitlich stand hier 3:4, weil Instagrams
+ * Profilraster seit 2025 so aussieht und dieses Werkzeug im Raster plant. Das
+ * war einen Schritt zu weit gedacht: Posten lässt sich nur bis 4:5. Ein in 3:4
+ * gestaltetes Bild wird schon beim Veröffentlichen beschnitten — der Verlust
+ * liegt also nicht erst im Raster, sondern im Beitrag selbst, und den sieht
+ * der Kunde.
+ *
+ * Der Rasterausschnitt bleibt 3:4. Er entsteht aber an der **Kachel**, nicht
+ * an der Datei: Wer die Wirkung im Raster prüfen will, sieht sie in der
+ * Feed-Vorschau; gestaltet wird in dem Format, das ankommt.
+ *
+ * 3:4 bleibt wählbar, damit der Bestand aus jener Zeit speicherbar bleibt —
+ * es steht deshalb hinten, nicht vorn.
+ *
  * Ein Beitrag quer gibt es nicht: Im Feed schrumpft er auf einen Streifen,
  * und im Raster bliebe von ihm ein Ausschnitt. Beim Karussell kommt 9:16
  * dazu, weil TikTok-Foto-Posts so aussehen.
  */
 export const ERLAUBT: Record<PostTyp, Verhaeltnis[]> = {
-  BEITRAG: ['HOCH_3_4', 'QUADRAT_1_1'],
-  KARUSSELL: ['HOCH_3_4', 'QUADRAT_1_1', 'VERTIKAL_9_16'],
+  BEITRAG: ['HOCH_4_5', 'QUADRAT_1_1', 'HOCH_3_4'],
+  KARUSSELL: ['HOCH_4_5', 'QUADRAT_1_1', 'VERTIKAL_9_16', 'HOCH_3_4'],
   REEL: ['VERTIKAL_9_16', 'QUADRAT_1_1', 'QUER_16_9'],
 }
 

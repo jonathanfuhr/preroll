@@ -74,7 +74,7 @@ async function erzeugeThumbnail(
     // seitlich beschnitten werden, nur weil er nicht 3:4 misst. Der Zuschnitt
     // für die Kachel ist dann Sache der Anzeige, nicht der Datei.
     if (brauchtZuschnitt(breite, hoehe)) {
-      bild.extract(mittigerAusschnitt(breite, hoehe, VERHAELTNIS.hochkant))
+      bild.extract(mittigerAusschnitt(breite, hoehe, VERHAELTNIS.raster))
     }
 
     const relativ = neuerPfad('image/jpeg')
