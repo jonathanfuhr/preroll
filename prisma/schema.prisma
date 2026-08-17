@@ -173,21 +173,17 @@ model Kunde {
   id         String  @id @default(cuid())
   name       String
   slug       String  @unique
-  handle     String? // Instagram-Handle ohne @
   logoId     String?
   logo       Medium? @relation("KundeLogo", fields: [logoId], references: [id], onDelete: SetNull)
   notiz      String?
   archiviert Boolean @default(false)
 
-  // Profil-Kennzahlen. Aktuell manuell gepflegt; das Modell trägt bereits
-  // alles, was die Graph API (Business Discovery) später liefern würde.
-  follower       Int?
-  gefolgt        Int?
-  beitraege      Int?
-  bio            String?
-  website        String?
-  kennzahlenAm   DateTime?
-  kennzahlenTyp  KennzahlenQuelle @default(MANUELL)
+  /**
+   * Handle, Bio, Website und die Kennzahlen stehen je Plattform in
+   * `PlattformProfil` — vorher lagen sie flach hier und meinten
+   * stillschweigend Instagram.
+   */
+  profile PlattformProfil[]
 
   // Vorbelegung für neue Posts, wenn beim Anlegen kein Termin gesetzt wird.
   standardUhrzeit String @default("10:00")
@@ -282,18 +278,68 @@ enum KennzahlenQuelle {
   GRAPH_API
 }
 
-// Tageswerte der Profil-Kennzahlen — ergibt nebenbei die Follower-Kurve.
+/**
+ * Das Profil eines Kunden auf **einer** Plattform: öffentlicher Name, Bio,
+ * Website und die drei Zahlen.
+ *
+ * Vorher lagen diese Felder flach am Kunden und meinten stillschweigend
+ * Instagram. Das trug nicht mehr, sobald Facebook und LinkedIn dieselben
+ * Angaben brauchen: Entweder hätte es `fbFollower`, `liFollower` und so weiter
+ * gegeben — dieselbe Sache in drei Sätzen Spalten —, oder die Zahlen eines
+ * Kanals hätten für alle gegolten.
+ *
+ * Instagram bleibt trotzdem besonders: Nur seine Werte holt Preroll selbst
+ * (`instagram-kennzahlen.ts`), und nur sie stehen über der Feed-Vorschau — die
+ * ist ein Instagram-Profil und wird keines von LinkedIn.
+ */
+model PlattformProfil {
+  id        String    @id @default(cuid())
+  kundeId   String
+  kunde     Kunde     @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  plattform Plattform
+
+  /**
+   * Der öffentliche Name: bei Instagram der Handle ohne @, bei LinkedIn der
+   * Teil hinter `/company/`, bei Facebook der Seitenname. Wofür Preroll
+   * postet, steht davon getrennt am Kunden — ein Handle ist eine Angabe über
+   * das Profil, keine Zuordnung eines Kanals.
+   */
+  handle  String?
+  bio     String?
+  website String?
+
+  follower  Int?
+  gefolgt   Int?
+  beitraege Int?
+
+  standAm DateTime?
+  quelle  KennzahlenQuelle @default(MANUELL)
+
+  erstelltAm     DateTime @default(now())
+  aktualisiertAm DateTime @updatedAt
+
+  @@unique([kundeId, plattform])
+  @@map("plattform_profil")
+}
+
+/**
+ * Tageswerte der Profil-Kennzahlen — ergibt nebenbei die Follower-Kurve.
+ *
+ * Je Plattform eine Reihe: Ohne die Spalte hätte ein zweiter Kanal die Kurve
+ * des ersten überschrieben, weil die Eindeutigkeit nur auf dem Tag lag.
+ */
 model KennzahlVerlauf {
   id        String           @id @default(cuid())
   kundeId   String
   kunde     Kunde            @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+  plattform Plattform        @default(INSTAGRAM)
   datum     DateTime         @db.Date
   follower  Int?
   gefolgt   Int?
   beitraege Int?
   quelle    KennzahlenQuelle @default(MANUELL)
 
-  @@unique([kundeId, datum])
+  @@unique([kundeId, plattform, datum])
   @@map("kennzahl_verlauf")
 }
 

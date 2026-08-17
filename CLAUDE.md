@@ -402,6 +402,35 @@ Seite zu bewachen wäre die schlechtere Regel.
   einem hinterlegten Reel-Link (`wacheUeberSitzung`, angestoßen vom
   Team-Layout — Preroll hat keinen Zeitplaner) und meldet den Ablauf **einmal**
   an die Administration. YouTube, TikTok und Vimeo brauchen nichts davon.
+- **Profil, Handle und Kennzahlen liegen je Plattform** (`PlattformProfil`,
+  `@@unique([kundeId, plattform])`). Vorher standen `handle`, `bio`,
+  `website`, `follower`, `gefolgt` und `beitraege` flach am Kunden und meinten
+  stillschweigend Instagram; mit Facebook und LinkedIn wären daraus
+  `fbFollower`, `liFollower` und so weiter geworden — dieselbe Sache in drei
+  Sätzen Spalten. Geladen wird als **vollständige Karte** (`profilKarte`), in
+  der jede Plattform vorkommt, auch die ohne Zeile: Sonst stünde an jeder
+  Anzeigestelle dieselbe Suche, und eine davon vergäße den
+  Plattform-Vergleich. **Instagram bleibt trotzdem besonders** — nur seine
+  Werte holt Preroll selbst, und nur sie stehen über der Feed-Vorschau; die
+  ist ein Instagram-Profil und wird keines von LinkedIn. Auch die
+  Follower-Kurve (`KennzahlVerlauf`) trägt die Plattform, sonst überschriebe
+  ein zweiter Kanal die Reihe des ersten.
+- **Je Plattform ein eigenes Formular** in den Stammdaten
+  (`profilSpeichern(kundeId, plattform, …)`). Ein gemeinsames hätte beim
+  Speichern von LinkedIn die Instagram-Felder mitgeschickt — und wer dort
+  nichts eingetragen hat, hätte gepflegte Werte geleert. `standAm` und
+  `quelle` wandern nur mit, wenn sich eine **Zahl** ändert: Sonst stünde nach
+  jedem Tippen am Handle „heute von Hand aktualisiert", und der automatische
+  Abruf käme 20 Stunden zu spät.
+- **Die Stammdaten sind nach Plattform gegliedert:** *Profil* (Logo, Name,
+  Plattformwahl, Notiz, die zwei Schalter), *Meta* (Instagram, Facebook, die
+  Kanalzuordnung), *LinkedIn*. Die Plattformwahl steht damit in einem anderen
+  Abschnitt als die Kanalzuordnung, von der ihre Sperre abhängt — der
+  Hinweistext benennt das, und `sperren()` rechnet es an einer Stelle. Beide
+  Formulare gehen weiter durch **dieselbe** Aktion und tragen je ein
+  Merkerfeld (`plattformenGesetzt`, `kanalGesetzt`); die Aktion fasst nur an,
+  was mitgeschickt wurde. Deshalb reist `postenAktiv` versteckt im
+  Kanal-Formular mit, obwohl sein Schalter im Profil steht.
 - **Profil-Kennzahlen kommen ohne Anmeldung.** Follower, Gefolgt, Beiträge,
   Bio, Website und — nur falls noch keins da ist — das Profilbild, über
   `web_profile_info`. **Gefragt wird ohne Cookie**; nachgemessen antwortet
