@@ -6,8 +6,14 @@ import { VERHAELTNIS_WERT } from '@/lib/verhaeltnis'
 import { teileCaption } from './post-sektion'
 
 /**
- * Wie ein Beitrag auf LinkedIn aussieht — das Post-Fenster in Desktop-Breite,
- * nach Mockup 5a–5d (`design/LinkedIn-Layer.dc.html`).
+ * Wie ein Beitrag auf LinkedIn aussieht — nach Mockup 5a–5d
+ * (`design/LinkedIn-Layer.dc.html`).
+ *
+ * Das Mockup zeichnet 552 px; hier ist der Rahmen auf die **Breite des
+ * Geräterahmens** begrenzt (344 px). Beide stehen in derselben Spalte und
+ * wechseln sich über den Umschalter ab — zwei verschieden breite Vorschauen
+ * ließen die Spalte bei jedem Wechsel springen. Alles darin rechnet ohnehin
+ * in Anteilen, nicht in festen Pixeln.
  *
  * **Kein Geräterahmen, aber ein eigener Rahmen.** Instagram *ist* eine
  * Telefon-App, und im Profilraster entscheidet der Ausschnitt über die
@@ -68,7 +74,7 @@ export function LinkedInRahmen({
       im Backend aber auch mal 350 px in einer Spalte. Eine Abfrage aufs
       Fenster träfe im zweiten Fall daneben.
     */
-    <div className="@container w-full max-w-[552px] overflow-hidden rounded-lg border border-[#e0dfdc] bg-flaeche shadow-[0_1px_2px_rgba(28,22,16,.06),0_14px_40px_rgba(28,22,16,.08)]">
+    <div className="@container w-full max-w-[344px] overflow-hidden rounded-lg border border-[#e0dfdc] bg-flaeche shadow-[0_1px_2px_rgba(28,22,16,.06),0_14px_40px_rgba(28,22,16,.08)]">
       {/* -------------------------------------------------------- Kopfzeile */}
       <div className="flex items-start gap-3 px-4 pt-3.5">
         {logo ? (

@@ -1,13 +1,14 @@
 import type { Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { kalenderwoche } from '@/lib/format'
 import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
 import { LinkedInRahmen } from './linkedin-rahmen'
-import { FassungText, WeitereFassung, type AnzeigeFassung } from './weitere-fassung'
+import type { AnzeigeFassung } from './weitere-fassung'
 import { PlattformMarken } from './plattform-marken'
 import { StatusLeiste } from './status-leiste'
+import { VorschauWahl, type Vorschauart } from './vorschau-wahl'
 
 /**
  * Eine Post-Sektion auf der Export-Seite — nachgebaut aus Mockup 1a
@@ -244,6 +245,41 @@ export function PostSektion({
       }
     : null
 
+  /*
+    Ein Beitrag, aber unter Umständen mehrere Inhalte: das Hauptformat und je
+    Fassung einer. Jeder bekommt eine eigene Zeile — links die Vorschau, rechts
+    daneben sein Text. Zusammengelegt stünde die abweichende Caption unter
+    einem Bild, das sie gar nicht meint.
+
+    Der **erste** Block trägt zusätzlich, was für den ganzen Beitrag gilt:
+    Eckdaten, alle Slides, Ablauf oder Inhalte.
+  */
+  const belegt = new Set(fassungen.flatMap((f) => f.plattformen))
+  const bloecke = [
+    {
+      schluessel: 'haupt',
+      plattformen: plattformen.filter((p) => !belegt.has(p)),
+      caption: post.caption,
+      verhaeltnis: post.verhaeltnis,
+      medien,
+      istVideo,
+      thumbnail: thumbnail ?? null,
+      fassung: null as AnzeigeFassung | null,
+    },
+    ...fassungen.map((f) => ({
+      schluessel: f.plattformen.join('-'),
+      plattformen: f.plattformen,
+      caption: f.caption,
+      verhaeltnis: f.verhaeltnis,
+      medien: f.medien,
+      istVideo: f.istVideo,
+      thumbnail: f.thumbnail,
+      fassung: f,
+    })),
+    // Ein Hauptformat ohne eigene Plattform ist keine Zeile wert: Dann nimmt
+    // jede Plattform eine Fassung, und der Beitrag selbst erscheint nirgends.
+  ].filter((b) => b.plattformen.length > 0)
+
   return (
     <section id={`post-${post.id}`} className="scroll-mt-20 border-t border-rahmen px-0 py-10 sm:py-14">
       {/* ---------------------------------------------------------- Kopfzeile */}
@@ -256,21 +292,23 @@ export function PostSektion({
           >
             {kalenderwoche(post.postenAm)}
           </span>
-          <span className="flex items-center gap-2 pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
+          <span className="pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
             {postBezeichnung(post.typ, post.verhaeltnis)}
-            <PlattformMarken plattformen={plattformen} groesse={14} klasse="text-[#9a9691]" />
           </span>
         </div>
 
-        {/* Mobil nimmt die Zeile die volle Breite, damit die Statusleiste
-            darunter mittig stehen kann — im Umbruch säße sie sonst links
-            neben ihrem eigenen Leerraum. */}
-        <div className="flex w-full flex-wrap items-end gap-x-6 gap-y-4 sm:w-auto">
+        {/*
+          Termin und Stand stehen hier nur, solange es keine dritte Spalte
+          gibt. Ab `xl` laufen sie im rechten Block mit — dort gehören sie
+          hin, weil sie mit Freigabe und Kommentaren eine Sache sind. Sie
+          unten anzuhängen wäre am Telefon die schlechtere Wahl: Wer wissen
+          will, wann etwas rausgeht, soll dafür nicht an zwei Vorschauen
+          vorbeirollen.
+        */}
+        <div className="flex w-full flex-wrap items-end gap-x-6 gap-y-4 sm:w-auto xl:hidden">
           <span className="text-[12.5px] text-[#77746f] sm:text-[13px]">
             {DATUM.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)}
           </span>
-
-          {/* Ein Etikett sagt nur, wo etwas steht — nicht, was noch kommt. */}
           <StatusLeiste
             stufe={abgeleiteteStufe(post.status, post.postenAm)}
             mitFreigaben={mitFreigaben}
@@ -280,151 +318,231 @@ export function PostSektion({
 
       {/* ------------------------------------------------------------ Inhalt */}
       {/*
-        Drei Spalten, und die Zeilen sind ausdrücklich gesetzt: Links stehen
-        die **Vorschauen** untereinander — erst das Gerät, darunter der
-        LinkedIn-Rahmen. Rechts daneben steht jeweils der Text dazu, auf
-        derselben Höhe. Untereinander gestellt läge zwischen Bild und Text
-        ein halber Bildschirm.
-
-        Die Kommentarspalte greift über alle Zeilen und klebt oben: Mit
-        mehreren Fassungen wird ein Beitrag schnell zwei Bildschirme hoch, und
-        wer unten etwas sieht, will es dort kommentieren, nicht nach oben
-        zurückrollen. Beim nächsten Beitrag hört sie auf — sie gehört zu
-        diesem.
+        Zwei Raster ineinander, nicht eines mit drei Spalten: Der rechte Block
+        soll über **alle** Zeilen kleben, und `grid-row: 1/-1` spannt nur über
+        explizite Zeilen — die entstehen hier aber erst mit den Fassungen.
       */}
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-12">
-      <div className="grid items-start gap-8 lg:grid-cols-[344px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[minmax(344px,552px)_minmax(0,1fr)]">
-        <div className="mx-auto lg:mx-0 lg:col-start-1">
-          <IPhoneVorschau
-            typ={post.typ}
-            kunde={kunde}
-            logo={logo}
-            medien={medien}
-            caption={post.caption}
-            verhaeltnis={post.verhaeltnis}
-            istVideo={istVideo}
-            thumbnail={thumbnail}
-          />
-        </div>
-
-        <div className="min-w-0 lg:col-start-2">
-          <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:mb-3.5 sm:text-[11px]">
-            Caption
-          </div>
-          <p className="max-w-[600px] whitespace-pre-line text-[13.5px] leading-[1.7] text-[#2e2b28] sm:text-[14.5px] sm:leading-[1.75]">
-            {text || '—'}
-          </p>
-          {hashtags && (
-            <p className="mt-3.5 max-w-[600px] text-[12.5px] leading-[1.65] text-leise sm:mt-[18px] sm:text-[13.5px] sm:leading-[1.7]">
-              {hashtags}
-            </p>
-          )}
-
-          <Eckdaten eintraege={eckdaten} />
-
-          {/*
-            Alle Slides in Reihe. Im Geräterahmen sieht man immer nur einen —
-            hier fällt auf, ob der Beitrag als Ganzes zusammenpasst. Die
-            1-px-Fugen lassen die Kanten der einzelnen Slides erkennbar.
-          */}
-          {post.typ === 'KARUSSELL' && medien.length > 1 && (
-            <div className="mt-6 sm:mt-[34px]">
-              <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
-                Alle Slides
+        <div className="grid items-start gap-8 lg:grid-cols-[344px_minmax(0,1fr)] lg:gap-12">
+          {bloecke.map((block, i) => (
+            <Fragment key={block.schluessel}>
+              <div className="lg:col-start-1">
+                <VorschauWahl
+                  arten={vorschauarten({
+                    plattformen: block.plattformen,
+                    kunde,
+                    logo,
+                    liFollower,
+                    typ: post.typ,
+                    caption: block.caption,
+                    verhaeltnis: block.verhaeltnis,
+                    medien: block.medien,
+                    istVideo: block.istVideo,
+                    thumbnail: block.thumbnail,
+                  })}
+                />
               </div>
-              <div className="flex max-w-[600px] gap-px overflow-hidden rounded-[3px] bg-rahmen-3">
-                {medien.map((bild, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={bild}
-                    src={bild}
-                    alt={`Slide ${i + 1}`}
-                    className="min-w-0 flex-1 object-cover"
-                    style={{ aspectRatio: '3 / 4' }}
+
+              <div className="min-w-0 lg:col-start-2">
+                {/* Die Marken sagen, wovon dieser Block handelt. Steht nur
+                    eine Plattform da, ist das die Auskunft — bei mehreren
+                    kommt der Umschalter links dazu. */}
+                <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <PlattformMarken
+                    plattformen={block.plattformen}
+                    groesse={16}
+                    klasse="text-[#9a9691]"
                   />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {mitSzenen ? (
-            <Ablauf szenen={szenen} laenge={post.laenge} />
-          ) : (
-            (post.inhalte || post.kurzbeschreibung) && (
-              <div className="mt-6 overflow-hidden rounded-lg border border-rahmen sm:mt-[34px]">
-                <div className="flex items-center justify-between gap-3 border-b border-rahmen bg-flaeche-leise px-4 py-3 sm:px-5 sm:py-[15px]">
-                  <span className="text-[10.5px] uppercase tracking-[0.14em] text-leiser sm:text-[11px]">
-                    {post.typ === 'REEL' ? 'Inhalte des Reels' : 'Zum Beitrag'}
-                  </span>
-                  {post.laenge && (
-                    <span className="text-[11px] text-[#928e89] sm:text-[11.5px]">{post.laenge}</span>
+                  {block.fassung && block.fassung.handles.length > 0 && (
+                    <span className="text-[12px] text-leiser">
+                      {block.fassung.handles.join(' · ')}
+                    </span>
                   )}
                 </div>
-                <div className="px-4 py-4 sm:px-5 sm:py-5">
-                  <p className="whitespace-pre-line text-[13px] leading-relaxed text-[#2e2b28]">
-                    {post.inhalte ?? post.kurzbeschreibung}
-                  </p>
-                </div>
-              </div>
-            )
-          )}
 
-          {/*
-            Fassungen ohne eigenen Rahmen — Instagram, Facebook. Sie stehen
-            unter dem Hauptformat, nicht daneben: Sie sind Abweichungen *von
-            etwas*, und nebeneinander stünden sie auf derselben Stufe.
-          */}
-          {ohneRahmen.map((fassung) => (
-            <WeitereFassung key={fassung.plattformen.join('-')} fassung={fassung} />
+                <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:mb-3.5 sm:text-[11px]">
+                  Caption
+                </div>
+                <Captiontext text={block.caption} />
+
+                <Eckdaten
+                  eintraege={
+                    i === 0
+                      ? eckdaten
+                      : [{ t: 'Format', w: postBeschriftung(post.typ, block.verhaeltnis) }]
+                  }
+                />
+
+                {i === 0 && (
+                  <>
+                    {/*
+                      Alle Slides in Reihe. Im Geräterahmen sieht man immer nur
+                      einen — hier fällt auf, ob der Beitrag als Ganzes
+                      zusammenpasst. Die 1-px-Fugen lassen die Kanten erkennbar.
+                    */}
+                    {post.typ === 'KARUSSELL' && medien.length > 1 && (
+                      <div className="mt-6 sm:mt-[34px]">
+                        <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
+                          Alle Slides
+                        </div>
+                        <div className="flex max-w-[600px] gap-px overflow-hidden rounded-[3px] bg-rahmen-3">
+                          {medien.map((bild, n) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              key={bild}
+                              src={bild}
+                              alt={`Slide ${n + 1}`}
+                              className="min-w-0 flex-1 object-cover"
+                              style={{ aspectRatio: '3 / 4' }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {mitSzenen ? (
+                      <Ablauf szenen={szenen} laenge={post.laenge} />
+                    ) : (
+                      (post.inhalte || post.kurzbeschreibung) && (
+                        <div className="mt-6 overflow-hidden rounded-lg border border-rahmen sm:mt-[34px]">
+                          <div className="flex items-center justify-between gap-3 border-b border-rahmen bg-flaeche-leise px-4 py-3 sm:px-5 sm:py-[15px]">
+                            <span className="text-[10.5px] uppercase tracking-[0.14em] text-leiser sm:text-[11px]">
+                              {post.typ === 'REEL' ? 'Inhalte des Reels' : 'Zum Beitrag'}
+                            </span>
+                            {post.laenge && (
+                              <span className="text-[11px] text-[#928e89] sm:text-[11.5px]">
+                                {post.laenge}
+                              </span>
+                            )}
+                          </div>
+                          <div className="px-4 py-4 sm:px-5 sm:py-5">
+                            <p className="whitespace-pre-line text-[13px] leading-relaxed text-[#2e2b28]">
+                              {post.inhalte ?? post.kurzbeschreibung}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    )}
+                  </>
+                )}
+              </div>
+            </Fragment>
           ))}
         </div>
 
         {/*
-          Der LinkedIn-Rahmen — links unter dem Gerät, seine Abweichung
-          rechts daneben. Gezeigt wird nur, was auch rausgeht: `plattformen`
-          ist bereits der Schnitt aus Wahl und zugeordnetem Kanal
-          (`angezeigtePlattformen`).
-        */}
-        {linkedIn && (
-          <>
-            <div className="lg:col-start-1">
-              <div className="mb-3 text-[10.5px] uppercase tracking-[0.14em] text-still sm:text-[11px]">
-                Auf LinkedIn
-              </div>
-              <LinkedInRahmen
-                kunde={kunde}
-                logo={logo}
-                follower={liFollower}
-                text={linkedIn.caption}
-                medien={linkedIn.medien}
-                istVideo={linkedIn.istVideo}
-                thumbnail={linkedIn.thumbnail}
-                verhaeltnis={linkedIn.verhaeltnis}
-                typ={post.typ}
-              />
-            </div>
-
-            {linkedIn.fassung && (
-              <div className="min-w-0 lg:col-start-2">
-                <FassungText fassung={linkedIn.fassung} />
-              </div>
-            )}
-          </>
-        )}
-
-      </div>
-
-        {/*
-          Zwei Raster ineinander statt eines mit drei Spalten: `grid-row: 1/-1`
-          spannt nur über **explizite** Zeilen, und die gibt es hier nicht —
-          die Zeilen entstehen erst mit den Fassungen. Als eigene Spalte
-          daneben bekommt die Kommentarleiste die volle Höhe von selbst, und
-          `sticky` hat, woran es kleben kann.
+          Termin, Stand, Freigabe und Kommentare in einem Block — und der klebt
+          oben, solange man in diesem Beitrag ist. Mit mehreren Fassungen wird
+          ein Beitrag zwei Bildschirme hoch; wer unten etwas sieht, will es dort
+          freigeben und kommentieren, nicht nach oben zurückrollen. Beim
+          nächsten Beitrag hört er auf — er gehört zu diesem.
         */}
         <div className="min-w-0">
-          <div className="xl:sticky xl:top-24">{kommentare}</div>
+          <div className="grid gap-5 xl:sticky xl:top-24">
+            <div className="hidden gap-4 xl:grid">
+              <span className="text-[13px] text-[#77746f]">
+                {DATUM.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)}
+              </span>
+              {/* Ein Etikett sagt nur, wo etwas steht — nicht, was noch kommt. */}
+              <StatusLeiste
+                stufe={abgeleiteteStufe(post.status, post.postenAm)}
+                mitFreigaben={mitFreigaben}
+              />
+            </div>
+            {kommentare}
+          </div>
         </div>
       </div>
     </section>
   )
+}
+
+/** Caption und Hashtags — zweimal gebraucht, einmal geschrieben. */
+function Captiontext({ text: roh }: { text: string }) {
+  const { text, hashtags } = teileCaption(roh)
+  return (
+    <>
+      <p className="max-w-[600px] whitespace-pre-line text-[13.5px] leading-[1.7] text-[#2e2b28] sm:text-[14.5px] sm:leading-[1.75]">
+        {text || '—'}
+      </p>
+      {hashtags && (
+        <p className="mt-3.5 max-w-[600px] text-[12.5px] leading-[1.65] text-leise sm:mt-[18px] sm:text-[13.5px] sm:leading-[1.7]">
+          {hashtags}
+        </p>
+      )}
+    </>
+  )
+}
+
+/**
+ * Welche Vorschauen ein Block anbietet.
+ *
+ * Instagram und Facebook teilen sich den Geräterahmen — für Facebook ist kein
+ * eigenes Fenster gezeichnet, und zwei gleich aussehende Ansichten wären eine
+ * Wahl ohne Unterschied. LinkedIn hat sein eigenes.
+ */
+function vorschauarten({
+  plattformen,
+  kunde,
+  logo,
+  liFollower,
+  typ,
+  caption,
+  verhaeltnis,
+  medien,
+  istVideo,
+  thumbnail,
+}: {
+  plattformen: Plattform[]
+  kunde: string
+  logo: string | null
+  liFollower: number | null
+  typ: PostTyp
+  caption: string
+  verhaeltnis: Verhaeltnis
+  medien: string[]
+  istVideo: boolean
+  thumbnail: string | null
+}): Vorschauart[] {
+  const arten: Vorschauart[] = []
+  const imGeraet = plattformen.filter((p) => p === 'INSTAGRAM' || p === 'FACEBOOK')
+
+  if (imGeraet.length > 0) {
+    arten.push({
+      plattform: imGeraet.includes('INSTAGRAM') ? 'INSTAGRAM' : 'FACEBOOK',
+      inhalt: (
+        <IPhoneVorschau
+          typ={typ}
+          kunde={kunde}
+          logo={logo}
+          medien={medien}
+          caption={caption}
+          verhaeltnis={verhaeltnis}
+          istVideo={istVideo}
+          thumbnail={thumbnail}
+        />
+      ),
+    })
+  }
+
+  if (plattformen.includes('LINKEDIN')) {
+    arten.push({
+      plattform: 'LINKEDIN',
+      inhalt: (
+        <LinkedInRahmen
+          kunde={kunde}
+          logo={logo}
+          follower={liFollower}
+          text={caption}
+          medien={medien}
+          istVideo={istVideo}
+          thumbnail={thumbnail}
+          verhaeltnis={verhaeltnis}
+          typ={typ}
+        />
+      ),
+    })
+  }
+
+  return arten
 }

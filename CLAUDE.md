@@ -644,15 +644,32 @@ Scrollen), die Statusleiste steht **mittig** und öffnet ihre Erklärung per
 der Kante** — sein Namensschild ragt nach links heraus und liefe links
 angeschlagen aus dem Bild.
 
-**Auf der Kundenseite stehen links die Vorschauen, rechts der Text dazu.**
-Erst das Gerät, darunter der LinkedIn-Rahmen — und auf dessen Höhe rechts
-daneben die abweichende Caption samt Format. Untereinander gestellt läge
-zwischen Bild und Text ein halber Bildschirm. Die **Kommentarspalte klebt
-oben** und hört beim nächsten Beitrag auf: Mit mehreren Fassungen wird ein
-Beitrag zwei Bildschirme hoch, und wer unten etwas sieht, will es dort
-kommentieren. Gebaut als **zwei Raster ineinander**, nicht als eines mit drei
-Spalten — `grid-row: 1/-1` spannt nur über *explizite* Zeilen, und die
-entstehen hier erst mit den Fassungen.
+**Auf der Kundenseite gibt es je Inhalt eine Zeile:** links die Vorschau,
+rechts daneben ihr Text — Marken, Caption, Format. Das Hauptformat ist die
+erste Zeile und trägt zusätzlich, was für den ganzen Beitrag gilt (Eckdaten,
+alle Slides, Ablauf). Jede Fassung bekommt ihre eigene; zusammengelegt stünde
+die abweichende Caption unter einem Bild, das sie nicht meint. Ein
+Hauptformat ohne eigene Plattform fällt weg.
+
+**Gleicher Inhalt auf mehreren Plattformen heißt eine Vorschau mit
+Umschalter** (`VorschauWahl`) — nicht zwei untereinander; das zeigte
+denselben Text zweimal. Instagram und Facebook teilen sich dabei den
+Geräterahmen: Für Facebook ist kein eigenes Fenster gezeichnet, und zwei
+gleich aussehende Ansichten wären eine Wahl ohne Unterschied. Die
+Vorschauspalte ist **fest 344 px** breit, sonst spränge das Layout bei jedem
+Umschalten — der LinkedIn-Rahmen ist deshalb auf dieselbe Breite begrenzt,
+obwohl das Mockup 552 px zeichnet.
+
+**Rechts steht ein Block: Termin, Stand, Freigabe, Kommentare — und der
+klebt oben**, bis der nächste Beitrag kommt. Sie gehören zusammen: Wer unten
+etwas sieht, will es dort freigeben und kommentieren. **Einer je Beitrag,
+nicht je Zeile** — Freigabe und Kommentarstrang hängen am Beitrag, zwei
+gleiche Knöpfe wären eine Falle. Unter `xl` gibt es die dritte Spalte nicht;
+dann stehen Termin und Statusleiste wieder in der Kopfzeile, weil man am
+Telefon sonst an zwei Vorschauen vorbeirollt, um den Termin zu sehen.
+Gebaut als **zwei Raster ineinander**, nicht als eines mit drei Spalten —
+`grid-row: 1/-1` spannt nur über *explizite* Zeilen, und die entstehen hier
+erst mit den Fassungen.
 
 Optik: hell, zurückhaltend, white-label-nah — die **Kundenmarke** steht im
 Vordergrund, nicht das Werkzeug. Eine dezente Akzentfarbe (`#b00900`), Poppins
