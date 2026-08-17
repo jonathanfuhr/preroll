@@ -7,11 +7,13 @@ import { env } from './env'
 /**
  * Dateien kommen in Blöcken herein, nicht am Stück.
  *
- * Der Grund steht im Betrieb: Vor Preroll hängt ein Cloudflare-Tunnel, und
- * der nimmt keine Anfrage über 100 MB an. Ein Reel darüber lief deshalb in
- * einen Abbruch, der sich wie ein Hänger anfühlte. Nebenbei löst das zwei
- * weitere Dinge — es gibt einen echten Fortschritt zu zeigen, und ein
- * abgebrochener Block kostet vier Megabyte statt der ganzen Datei.
+ * Der Anlass stand im Betrieb: Vor Preroll hing ein Cloudflare-Tunnel, und
+ * der nahm keine Anfrage über 100 MB an — ein Reel darüber lief in einen
+ * Abbruch, der sich wie ein Hänger anfühlte. Seit dem 17.08.2026 läuft
+ * Preroll direkt über Klappes Reverse Proxy mit 256 MB, der Anlass ist also
+ * weg. Geblieben sind die zwei Gründe, die nie am Tunnel hingen: Es gibt
+ * einen echten Fortschritt zu zeigen, und ein abgebrochener Block kostet
+ * vier Megabyte statt der ganzen Datei.
  *
  * Bewusst ohne Wiederaufnahme nach einem Verbindungsabriss (wie in Klappe):
  * Preroll lädt Reels von ein paar Dutzend Megabyte, keine 40-GB-Rushes.

@@ -1,9 +1,9 @@
 /**
  * Dateien in Blöcken hochladen.
  *
- * Vor Preroll hängt ein Cloudflare-Tunnel, der keine Anfrage über 100 MB
- * durchlässt — ein Reel am Stück lief deshalb in einen Abbruch, der sich wie
- * ein Hänger anfühlte. In Blöcken bleibt jede Anfrage klein, es gibt einen
+ * Gebaut gegen den Cloudflare-Tunnel, der keine Anfrage über 100 MB
+ * durchließ; seit dem 17.08.2026 läuft Preroll direkt über Klappes Reverse
+ * Proxy und der Anlass ist weg. Geblieben ist der Nutzen: Es gibt einen
  * echten Fortschritt zu zeigen, und ein verlorener Block kostet vier
  * Megabyte statt der ganzen Datei.
  *

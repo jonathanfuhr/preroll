@@ -340,13 +340,19 @@ Seite zu bewachen wäre die schlechtere Regel.
   Kalender über alle Kunden trägt der Punkt die **Kundenfarbe**
   (`kundenFarbe`, aus dem Slug abgeleitet), nicht die Typfarbe — dort ist die
   Frage „von wem" wichtiger als „was".
-- **Uploads laufen in 4-MB-Blöcken.** Vor Preroll hängt ein
-  Cloudflare-Tunnel, der keine Anfrage über 100 MB durchlässt — ein Reel am
-  Stück lief in einen Abbruch, der sich wie ein Hänger anfühlte. Der Browser
-  schickt Blöcke an `/api/upload/teil`, der Abschluss über `/api/upload` setzt
-  sie zusammen (`upload-sitzung.ts`). Nebenbei gibt es dadurch einen echten
-  Fortschrittsbalken. Bewusst **ohne** Wiederaufnahme nach Verbindungsabriss
-  wie in Klappe: Preroll lädt Reels, keine 40-GB-Rushes.
+- **Uploads laufen in 4-MB-Blöcken.** Der Browser schickt Blöcke an
+  `/api/upload/teil`, der Abschluss über `/api/upload` setzt sie zusammen
+  (`upload-sitzung.ts`). Bewusst **ohne** Wiederaufnahme nach
+  Verbindungsabriss wie in Klappe: Preroll lädt Reels, keine 40-GB-Rushes.
+  **Der ursprüngliche Grund ist entfallen, der Blockupload bleibt.** Gebaut
+  wurde er gegen den Cloudflare-Tunnel, der keine Anfrage über 100 MB
+  durchließ — ein Reel am Stück lief in einen Abbruch, der sich wie ein
+  Hänger anfühlte. Seit dem 17.08.2026 läuft Preroll direkt über Klappes
+  Reverse Proxy, und der lässt 256 MB durch. Geblieben sind zwei Gründe, die
+  nie am Tunnel hingen: Es gibt einen echten Fortschritt zu zeigen, und ein
+  verlorener Block kostet vier Megabyte statt der ganzen Datei. Der Tunnel
+  bleibt zudem als Rückfahrkarte konfiguriert (`preroll.caddy`, Weg 1) — wer
+  ihn wieder einschaltet, hat die Grenze zurück.
 - **Fünf Phasen intern, vier beim Kunden.** Entwurf → Konzept → Vorschau →
   Final, dazu berechnet „Gepostet". **`ENTWURF` verlässt das Haus nie:** in
   keiner Freigabe, in keinem Raster, ohne Gegenstück in der Kunden-Zeitleiste

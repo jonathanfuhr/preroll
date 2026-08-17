@@ -38,15 +38,42 @@ Testinstanz, nicht für den Produktivbetrieb:
 docker compose exec web node --experimental-strip-types prisma/seed.ts
 ```
 
-## Veröffentlichen über Cloudflare Tunnel
+## Veröffentlichen
 
-Auf dem Mac Mini läuft `cloudflared` **nativ** (Homebrew), nicht im Container.
-Damit sieht der Tunnel das Compose-Netz nicht — der Docker-Servicename `web`
-ist für ihn unerreichbar. Er geht über den veröffentlichten Host-Port:
+Preroll läuft seit dem 17.08.2026 **direkt über den Reverse Proxy von Klappe**,
+nicht mehr durch den Cloudflare-Tunnel:
+
+```
+Browser  →  Caddy (Klappe, :443)  →  host.docker.internal:4400  →  Container :3000
+```
+
+Der Grund war die Geschwindigkeit. Nachgemessen an derselben 98-MB-Datei kamen
+durch den Tunnel kalt **0,7 MB/s** an, über den Host **rund 110 MB/s** — und
+auf der Kundenseite hängen schnell 156 MB Medien. Warum das bei *Klappes* Caddy
+liegt und nicht in einem eigenen: Port 443 kann nur einer halten. Die Projekte
+bleiben trotzdem getrennt — die Routendatei gehört zu Preroll und wird bei
+Klappe nur hineingelegt (`docker/fremde/preroll.caddy`); Klappes Konfiguration
+nennt Preroll an keiner Stelle. Die ausführliche Begründung samt Messwerten
+steht im Kopf dieser Datei.
+
+**Der A-Eintrag wird nachgeführt.** Ohne Tunnel zeigt `preroll.thdvideo.de`
+direkt auf den Anschluss, und der bekommt bei jedem Reconnect eine neue
+Adresse. Klappes `deploy/mac/klappe-ddns.sh` hält beide Namen aktuell — dort
+steht Preroll in `CF_RECORD` mit drin.
+
+### Der Tunnel als Rückfahrkarte
+
+`cloudflared` läuft auf dem Mac Mini weiter **nativ** (Homebrew), nicht im
+Container. Damit sieht er das Compose-Netz nicht — der Docker-Servicename `web`
+ist für ihn unerreichbar; er ginge über den veröffentlichten Host-Port:
 
 ```
 Cloudflare  →  cloudflared (nativ)  →  http://localhost:4400  →  Container :3000
 ```
+
+Die Routendatei bedient beide Wege (`http://` für den Tunnel, `https://`
+direkt). Umgeschaltet wird über den DNS-Eintrag: graue Wolke heißt direkt,
+orange heißt Tunnel.
 
 **Port 4400**, weil auf demselben Rechner schon Klappe (3000) und Mappe (4300)
 liegen. Veröffentlicht wird nur auf `127.0.0.1` — nach außen geht es
@@ -77,11 +104,13 @@ steckt in Mails, Freigabe-Links und Web-Push — und entscheidet über das
 `secure`-Flag der Session-Cookies. Steht dort `http://…`, gehen die Cookies
 ohne `secure` raus.
 
-**Upload-Grenze beachten.** Cloudflare deckelt den Request-Body (in den
-kleineren Tarifen bei 100 MB). Ein Karussell mit vielen großen Slides geht als
-**eine** Anfrage raus und kann darüber liegen — dann bricht der Upload mit
-einem Cloudflare-Fehler ab, nicht mit einer Meldung aus Preroll. Im Zweifel
-die Slides in zwei Durchgängen hochladen oder das Limit im Tarif prüfen.
+**Upload-Grenze.** Sie stammte vom Tunnel: Cloudflare deckelt den
+Request-Body in den kleineren Tarifen bei 100 MB. Über den Reverse Proxy gilt
+sie nicht mehr — dort steht `max_size 256MB`, großzügig gesetzt, damit der
+Proxy nie der Grund ist, warum ein Upload scheitert. Wer wieder auf den Tunnel
+umschaltet, hat die 100 MB zurück; der Blockupload (4-MB-Teile) hält die
+einzelne Anfrage ohnehin klein, betroffen wäre nur ein Karussell, das als
+**eine** Anfrage rausgeht.
 
 ## Entwicklung
 

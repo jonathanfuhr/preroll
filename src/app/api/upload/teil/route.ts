@@ -5,8 +5,7 @@ import { haengeAn, neueSitzung, raeumeAuf } from '@/lib/upload-sitzung'
 /**
  * Nimmt einen einzelnen Block entgegen. Der Rumpf ist die rohe Bytefolge —
  * kein FormData: Das spart die Base64-artige Aufblähung durch die
- * Multipart-Grenzen und hält jeden Block sicher unter dem, was der
- * Cloudflare-Tunnel durchlässt.
+ * Multipart-Grenzen und hält jeden Block klein genug für jeden Proxy davor.
  */
 export async function POST(anfrage: NextRequest) {
   if (!(await aktuellerNutzer())) {
