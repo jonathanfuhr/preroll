@@ -1,7 +1,16 @@
 import 'server-only'
+import type { Plattform } from '@prisma/client'
 import { prisma } from './db'
 import { zielPlattformen } from './plattformen'
-import { posteAufFacebook, posteAufInstagram, type MetaFehler } from './meta'
+import { posteAufLinkedIn } from './linkedin'
+import { gueltigesToken } from './linkedin-zugang'
+import {
+  posteAufFacebook,
+  posteAufInstagram,
+  type Medienstueck,
+  type MetaAntwort,
+  type MetaFehler,
+} from './meta'
 import {
   meldeVeroeffentlichungFehlgeschlagen,
   meldeZugangAbgelehnt,
@@ -85,7 +94,7 @@ export async function gleicheVeroeffentlichungenAb(jetzt = new Date()): Promise<
       id: true,
       postenAm: true,
       plattformen: true,
-      kunde: { select: { fbSeitenId: true, igKontoId: true } },
+      kunde: { select: { fbSeitenId: true, igKontoId: true, liOrganisationId: true } },
       veroeffentlichungen: { select: { id: true, plattform: true, stand: true, geplantFuer: true } },
     },
   })
@@ -297,6 +306,70 @@ async function notiereFehlschlag(id: string, fehler: MetaFehler): Promise<void> 
   await meldeVeroeffentlichungFehlgeschlagen(id).catch(() => {})
 }
 
+/**
+ * Der Zweig je Plattform — an einer Stelle, damit `veroeffentlicheEine` beim
+ * nächsten Anbieter nicht weiter wächst.
+ *
+ * `null` heißt: Für diese Plattform fehlt beim Kunden die Zuordnung. Das ist
+ * etwas anderes als ein Fehlschlag beim Anbieter und wird oben auch anders
+ * gemeldet.
+ *
+ * Der LinkedIn-Token kommt **hier** und nicht vom Kunden: Er hängt am einen
+ * Zugang der Agentur, wird vor dem Gebrauch erneuert, und ein abgelaufener
+ * mitten im Upload hinterließe halb angelegte Bilder.
+ */
+async function posteJePlattform(opts: {
+  plattform: Plattform
+  text: string
+  medien: Medienstueck[]
+  fbSeitenId: string | null
+  fbSeitenToken: string | null
+  igKontoId: string | null
+  liOrganisationId: string | null
+}): Promise<MetaAntwort<{ externeId: string }> | null> {
+  if (opts.plattform === 'FACEBOOK') {
+    if (!opts.fbSeitenId || !opts.fbSeitenToken) return null
+    return posteAufFacebook({
+      seitenId: opts.fbSeitenId,
+      seitenToken: opts.fbSeitenToken,
+      text: opts.text,
+      medien: opts.medien,
+    })
+  }
+
+  if (opts.plattform === 'INSTAGRAM') {
+    if (!opts.igKontoId || !opts.fbSeitenToken) return null
+    return posteAufInstagram({
+      igKontoId: opts.igKontoId,
+      seitenToken: opts.fbSeitenToken,
+      text: opts.text,
+      medien: opts.medien,
+    })
+  }
+
+  if (opts.plattform === 'LINKEDIN') {
+    if (!opts.liOrganisationId) return null
+    const token = await gueltigesToken()
+    if (!token) {
+      return {
+        ok: false,
+        fehler: { text: 'Es ist kein LinkedIn-Zugang verbunden.', zugangHin: true },
+      }
+    }
+    return posteAufLinkedIn({
+      token,
+      organisationId: opts.liOrganisationId,
+      text: opts.text,
+      medien: opts.medien,
+    })
+  }
+
+  // YouTube steht im Enum, ist aber nicht gebaut — und bekommt deshalb auch
+  // keine Zeile. Landet hier trotzdem eine, ist das kein Fehlschlag des
+  // Anbieters, sondern eine fehlende Zuordnung.
+  return null
+}
+
 /** Eine bereits auf `LAEUFT` gesetzte Zeile tatsächlich veröffentlichen. */
 async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
   const zeile = await prisma.veroeffentlichung.findUnique({
@@ -318,7 +391,12 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
             },
           },
           kunde: {
-            select: { fbSeitenId: true, fbSeitenToken: true, igKontoId: true },
+            select: {
+              fbSeitenId: true,
+              fbSeitenToken: true,
+              igKontoId: true,
+              liOrganisationId: true,
+            },
           },
         },
       },
@@ -327,9 +405,13 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
   if (!zeile) return
 
   const { post } = zeile
-  const { fbSeitenId, fbSeitenToken, igKontoId } = post.kunde
+  const { fbSeitenId, fbSeitenToken, igKontoId, liOrganisationId } = post.kunde
 
-  if (!fbSeitenToken) {
+  // Meta braucht den Seiten-Token, LinkedIn nicht — die Prüfung gehört deshalb
+  // in den Meta-Zweig und nicht davor. Vorher stand sie oben und hätte einen
+  // LinkedIn-Beitrag mit der Meldung „keine Facebook-Seite verbunden"
+  // abgewiesen.
+  if (zeile.plattform !== 'LINKEDIN' && !fbSeitenToken) {
     await notiereFehlschlag(id, {
       text: 'Für diesen Kunden ist keine Facebook-Seite verbunden.',
       zugangHin: false,
@@ -343,24 +425,15 @@ async function veroeffentlicheEine(id: string, jetzt: Date): Promise<void> {
     return
   }
 
-  const ergebnis =
-    zeile.plattform === 'FACEBOOK'
-      ? fbSeitenId
-        ? await posteAufFacebook({
-            seitenId: fbSeitenId,
-            seitenToken: fbSeitenToken,
-            text: post.caption,
-            medien: material.medien,
-          })
-        : null
-      : igKontoId
-        ? await posteAufInstagram({
-            igKontoId,
-            seitenToken: fbSeitenToken,
-            text: post.caption,
-            medien: material.medien,
-          })
-        : null
+  const ergebnis = await posteJePlattform({
+    plattform: zeile.plattform,
+    text: post.caption,
+    medien: material.medien,
+    fbSeitenId,
+    fbSeitenToken,
+    igKontoId,
+    liOrganisationId,
+  })
 
   if (!ergebnis) {
     await notiereFehlschlag(id, {

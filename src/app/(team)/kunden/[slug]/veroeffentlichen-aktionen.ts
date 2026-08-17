@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { uebernehmePlattformen } from '@/lib/kunde-plattformen'
+import { ladeLinkedInZugang, linkedInOrganisationen } from '@/lib/linkedin-zugang'
 import { metaSeiten } from '@/lib/plattform-zugang'
 import { moeglichePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 
@@ -105,7 +106,7 @@ export async function veroeffentlichenSpeichern(
     // Formular ist Bequemlichkeit; verlassen wird sich der Server auf sie nie.
     const kanaele = await prisma.kunde.findUniqueOrThrow({
       where: { id: kundeId },
-      select: { fbSeitenId: true, igKontoId: true },
+      select: { fbSeitenId: true, igKontoId: true, liOrganisationId: true },
     })
     const moeglich = moeglichePlattformen(kanaele)
     const plattformen = plattformenAusFormular(formular).filter((p) => moeglich.includes(p))
@@ -117,4 +118,80 @@ export async function veroeffentlichenSpeichern(
   }
 
   revalidatePath(ziel, 'layout')
+}
+
+/**
+ * Die LinkedIn-Zuordnung eines Kunden.
+ *
+ * Eigene Aktion, nicht im Meta-Formular mit: Die beiden Anbieter haben nichts
+ * miteinander zu tun, und ein gemeinsames Speichern hätte bei jedem Anfassen
+ * der Facebook-Seite die LinkedIn-Zuordnung mitgeschickt — mit demselben
+ * Löschrisiko, das die Merkerfelder bei Meta gerade abwenden.
+ *
+ * Der Name der Organisation wird **mitgespeichert** und nicht bei jeder Anzeige
+ * nachgeholt: Steht der Zugang gerade nicht, soll in den Stammdaten trotzdem
+ * lesbar sein, welche Seite zugeordnet ist. Sonst stünde dort eine nackte Zahl.
+ */
+export async function linkedInKanalSpeichern(
+  kundeId: string,
+  slug: string,
+  formular: FormData,
+) {
+  await angemeldetOderRaus()
+
+  const orgId = String(formular.get('liOrganisationId') ?? '').trim()
+
+  if (!orgId) {
+    await prisma.kunde.update({
+      where: { id: kundeId },
+      data: { liZugangId: null, liOrganisationId: null, liOrganisation: null },
+    })
+    revalidatePath(`/kunden/${slug}/stammdaten`, 'layout')
+    return
+  }
+
+  const [zugang, geholt] = await Promise.all([ladeLinkedInZugang(), linkedInOrganisationen()])
+  if (!zugang) {
+    redirect(
+      `/kunden/${slug}/stammdaten?linkedin=fehler&meldung=${encodeURIComponent(
+        'Es ist kein LinkedIn-Zugang verbunden.',
+      )}`,
+    )
+  }
+
+  const treffer = geholt.ok ? geholt.organisationen.find((o) => o.id === orgId) : undefined
+
+  /*
+    Unverändert und gerade nicht abrufbar: nichts tun statt scheitern. Dieselbe
+    Regel wie bei Meta — wer nur etwas anderes speichern wollte, soll seine
+    Zuordnung nicht verlieren, weil LinkedIn kurz zickt.
+  */
+  const vorher = await prisma.kunde.findUniqueOrThrow({
+    where: { id: kundeId },
+    select: { liOrganisationId: true },
+  })
+  if (!treffer && vorher.liOrganisationId === orgId) {
+    revalidatePath(`/kunden/${slug}/stammdaten`, 'layout')
+    return
+  }
+  if (!treffer) {
+    redirect(
+      `/kunden/${slug}/stammdaten?linkedin=fehler&meldung=${encodeURIComponent(
+        geholt.ok
+          ? 'Diese Seite ist über den verbundenen Zugang gerade nicht erreichbar.'
+          : geholt.fehler,
+      )}`,
+    )
+  }
+
+  await prisma.kunde.update({
+    where: { id: kundeId },
+    data: {
+      liZugangId: zugang.id,
+      liOrganisationId: treffer.id,
+      liOrganisation: treffer.name,
+    },
+  })
+
+  revalidatePath(`/kunden/${slug}/stammdaten`, 'layout')
 }

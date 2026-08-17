@@ -171,6 +171,36 @@ Seite zu bewachen wäre die schlechtere Regel.
   `post.plattformen` roh — die rohe Wahl ist die **Absicht** und bleibt
   stehen, auch wenn der Kanal fehlt. Gezeigt wird `angezeigtePlattformen`,
   dieselbe Rechnung, mit der `veroeffentlichung.ts` die Läufe anlegt.
+- **LinkedIn hat einen Zugang, Meta mehrere.** Bei Meta braucht es je
+  Business-Portfolio einen Systemnutzer; bei LinkedIn hängt alles an *einem*
+  Konto der Agentur, das an den Firmenseiten der Kunden Administrator ist. Ein
+  zweites wäre kein anderer Zugang, sondern ein anderer Mensch. Erzwungen wird
+  das im Code (`speichereLinkedInZugang` ersetzt), nicht im Schema — ein Unique
+  auf `plattform` würde auch Meta auf einen Zugang begrenzen.
+- **Der LinkedIn-Token läuft ab, der von Meta nicht.** 60 Tage, dazu ein
+  Auffrischungstoken. Erneuert wird **vor** dem Gebrauch (`gueltigesToken`,
+  eine Woche Vorlauf), nicht nach dem ersten 401: Ein Token, der mitten in
+  einem Upload abläuft, hinterlässt ein halb angelegtes Bild bei LinkedIn und
+  einen Fehlschlag, dessen Ursache niemand am Text erkennt. Scheitert das
+  Auffrischen, kommt das **alte** Token zurück — es gilt vielleicht noch, und
+  der Grund landet am Zugang.
+- **LinkedIn hängt an einer eigenen Zuordnung** (`liOrganisationId`), nicht am
+  Meta-Kanal. Die Anbieter haben nichts miteinander zu tun: Eine Facebook-Seite
+  ist keine LinkedIn-Seite. Deshalb ein eigenes Formular und eine eigene Aktion
+  — gemeinsam gespeichert hätte jedes Anfassen des einen das andere
+  mitgeschickt.
+- **Die Bytes für LinkedIn kommen über die signierte Adresse, die Meta
+  bekommt** (`medienFuerPost`), nicht direkt aus der Ablage. Dort steckt die
+  Umwandlung nach JPEG und die Durchreiche einer Klappe-Fassung; ein zweiter
+  Weg an den Dateien vorbei würde beides umgehen, und irgendwann ginge auf
+  einer Plattform ein PNG raus, das die andere ablehnt. Meta lädt selbst,
+  LinkedIn will die Bytes — deshalb holt Preroll sie von sich selbst.
+- **Die LinkedIn-Kundenansicht hat kein Raster** — je Beitrag eine Vorschau,
+  und ohne Geräterahmen. Der Rahmen bei Instagram ist nicht Zierde: Instagram
+  *ist* eine Telefon-App, und im Profilraster entscheidet der Ausschnitt über
+  die Wirkung. LinkedIn wird genauso am Rechner gelesen, und ein Raster, in dem
+  sich Kacheln zu einem Bild fügen, gibt es dort nicht. Mehrere Bilder stehen
+  nebeneinander, weil LinkedIn sie so zeigt — kein Karussell zum Wischen.
 - **Meta-Zugänge sind mehrere.** Nicht jeder Kunde liegt im selben
   Portfolio; wer Seiten aus zwei Business Managern bespielt, braucht aus
   jedem einen eigenen Systemnutzer. In den Einstellungen steht deshalb eine
