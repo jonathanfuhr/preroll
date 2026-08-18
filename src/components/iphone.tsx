@@ -60,7 +60,7 @@ export function Statusleiste({ hell }: { hell?: boolean }) {
   )
 }
 
-function Avatar({ bild, groesse = 34 }: { bild?: string | null; groesse?: number }) {
+export function Avatar({ bild, groesse = 34 }: { bild?: string | null; groesse?: number }) {
   return bild ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img

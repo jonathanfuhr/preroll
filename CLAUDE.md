@@ -501,12 +501,24 @@ Seite zu bewachen wäre die schlechtere Regel.
   `@@unique([postId, rolle, position])`, dass ein Beitrag nicht zwei Slides auf
   derselben Position hat; eine zusätzliche, meist leere Spalte hätte das
   aufgehoben, weil Postgres NULL-Werte für verschieden hält.
-- **Das Profilraster zeigt nur Instagram-Beiträge.** Ein Beitrag, der nur auf
-  LinkedIn erscheint, würde dem Kunden ein Profil zeigen, das es nicht gibt.
-  `feedVorschau` nimmt dafür einen Filter; gefiltert wird über
-  `angezeigtePlattformen`, also über das, was wirklich rausgeht. Der Filter
-  wirkt **vor** der Obergrenze — sonst setzte ein weggelassener Beitrag das Ende
-  des Zeitraums.
+- **Ein Profilraster zeigt nur die Beiträge seiner Plattform.** Es gibt zwei
+  — Instagram (3:4-Kacheln) und TikTok (9:16, Mockup 4d) —, und zwischen
+  ihnen wird umgeschaltet wie bei den Beitragsvorschauen. Ein Beitrag, der nur
+  auf LinkedIn erscheint, gehört in keines: Er würde dem Kunden ein Profil
+  zeigen, das es nicht gibt. `feedVorschau` nimmt dafür einen Filter;
+  gefiltert wird über `angezeigtePlattformen`, also über das, was wirklich
+  rausgeht. Der Filter wirkt **vor** der Obergrenze — sonst setzte ein
+  weggelassener Beitrag das Ende des Zeitraums. **Ein Raster hat nur, wer ein
+  Profil hat:** Für Facebook und LinkedIn gibt es keines, in dem sich Kacheln
+  zu einem Bild fügen; bespielt ein Kunde weder Instagram noch TikTok, fällt
+  die Spalte weg. Im TikTok-Raster steht das **Original**, nicht `thumbUrl()`
+  — das ist der mittige 3:4-Ausschnitt für Instagram und würde in einer
+  9:16-Kachel ein zweites Mal beschnitten.
+- **Die Kopfzeile der Kundenseite nennt alle bespielten Kanäle**, nicht das
+  eine, das dort einmal fest stand. Gerechnet über `effektivePlattformen` —
+  was in den Stammdaten auf „aus" steht, fehlt. Dieselbe Liste steht im
+  Einleitungssatz, damit dort nicht „so, wie sie auf Instagram erscheinen"
+  behauptet wird, während der Plan auch auf LinkedIn geht.
 - **Beim Kunden steht das Hauptformat zuerst, dann jede Abweichung einmal.**
   Gruppiert statt je Plattform aufgelistet: Gilt eine Fassung für LinkedIn und
   Facebook, steht sie einmal da und nennt beide. Das Hauptformat bleibt auch
@@ -641,12 +653,8 @@ Die Mockups liegen unter `design/` und sind die verbindliche Vorlage:
 | `Export-Seite Kunde.dc.html` | 1a Desktop, 1b Mobile, 1c Kommentare |
 | `Backend.dc.html` | 2a–2i: Kundenübersicht bis Ansprechpartner |
 | `iPhone-Layer.dc.html` | 3a–3d: Geräterahmen je Post-Typ |
+| `TikTok-Layer.dc.html` | 4a–4d: TikTok-Gerät je Medienart, Profilraster |
 | `LinkedIn-Layer.dc.html` | 5a–5d: LinkedIn-Post-Fenster je Medienart |
-
-Der **TikTok-Layer** (4a–4d) liegt bisher nur im Claude-Design-Projekt und
-nicht unter `design/`. Er ist von dort lesbar (`DesignSync`, Projekt
-`c1bbcfa1-2661-4167-a94d-1232af825bd5`, Datei `TikTok-Layer.dc.html`); wer
-daran weiterbaut, holt ihn sich und legt ihn dabei ab.
 
 Die **Arbeitsfläche des Backends ist weiß**, die Seitenleiste leicht getönt
 (`flaeche-leise`) — wie in den Mockups. Karten tragen ihren Rahmen, nicht den

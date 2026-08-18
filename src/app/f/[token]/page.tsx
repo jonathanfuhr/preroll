@@ -14,9 +14,16 @@ import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { profilKarte } from '@/lib/plattform-profil'
 import { fassungenFuerAnzeige } from '@/lib/varianten'
 import { medienUrl, thumbUrl } from '@/lib/urls'
-import { angezeigtePlattformen } from '@/lib/plattformen'
+import type { Plattform } from '@prisma/client'
+import {
+  angezeigtePlattformen,
+  effektivePlattformen,
+  PLATTFORM_TEXT,
+} from '@/lib/plattformen'
 import { ExportHero, ExportTopbar, KalenderKarte, KontaktFuss } from '@/components/export-rahmen'
 import { IPhoneFeed } from '@/components/iphone'
+import { TikTokFeed } from '@/components/tiktok-rahmen'
+import { VorschauWahl } from '@/components/vorschau-wahl'
 import { Monatskalender, type Kalendereintrag } from '@/components/kalender'
 import { Monatsleiste, MonatsleisteMobil, type Monatseintrag } from '@/components/monatsleiste'
 import { PostSektion } from '@/components/post-sektion'
@@ -147,14 +154,27 @@ export default async function ExportSeite({
   const regeln = { zeitraumVon: monat.von, zeitraumBis: monat.bis }
   const sektionen = postsImZeitraum(alle, regeln)
   /*
-    Das Raster ist ein Instagram-Profil. Ein Beitrag, der nur auf LinkedIn
-    erscheint, gehört nicht hinein — er würde dem Kunden ein Profil zeigen, das
-    es nicht gibt. Gefiltert wird über `angezeigtePlattformen`, also über das,
-    was wirklich rausgeht, nicht über die rohe Wahl.
+    Ein Raster ist das Profil **einer** Plattform. Ein Beitrag, der nur auf
+    LinkedIn erscheint, gehört in keines von beiden — er würde dem Kunden ein
+    Profil zeigen, das es nicht gibt. Gefiltert wird über
+    `angezeigtePlattformen`, also über das, was wirklich rausgeht, nicht über
+    die rohe Wahl. Der Filter wirkt **vor** der Obergrenze; sonst setzte ein
+    weggelassener Beitrag das Ende des Zeitraums.
   */
-  const kacheln = feedVorschau(alle, regeln, (p) =>
-    angezeigtePlattformen(p, exp.kunde).includes('INSTAGRAM'),
-  )
+  const rasterFuer = (plattform: Plattform) =>
+    feedVorschau(alle, regeln, (p) => angezeigtePlattformen(p, exp.kunde).includes(plattform))
+
+  // Bespielt der Kunde die Plattform überhaupt? Ein Profilraster für eine
+  // abgeschaltete Plattform wäre eine Ansicht auf nichts.
+  const bespielt = effektivePlattformen(exp.kunde)
+  const kanaeleText = bespielt.map((pl) => PLATTFORM_TEXT[pl]).join(' · ')
+
+  /*
+    Ein Profilraster hat nur, wer ein Profil hat: Instagram und TikTok. Für
+    Facebook und LinkedIn gibt es keines, in dem sich Kacheln zu einem Bild
+    fügen — die Spalte fällt dann weg, statt leer dazustehen.
+  */
+  const mitRaster = (['INSTAGRAM', 'TIKTOK'] as const).filter((pl) => bespielt.includes(pl))
 
   // Aufruf zählen, ohne die Antwort zu blockieren — aber nur den des Kunden.
   if (angemeldeterGast) {
@@ -284,19 +304,26 @@ export default async function ExportSeite({
         zeitraum={zeitraum}
         einleitung={
           `Hier sehen Sie alle geplanten Beiträge für ${zeitraum} — so, wie sie später auf ` +
-          'Instagram erscheinen. Über den Kalender springen Sie direkt zum Beitrag. ' +
-          'Ihre Kommentare schreiben Sie direkt neben dem Beitrag — wir sehen sie sofort.'
+          `${kanaeleText || 'Ihren Kanälen'} erscheinen. Über den Kalender springen Sie direkt ` +
+          'zum Beitrag. Ihre Kommentare schreiben Sie direkt neben dem Beitrag — wir sehen sie ' +
+          'sofort.'
         }
         eckdaten={[
           { t: 'Beiträge', w: `${sektionen.length} · ${kwSpanne}` },
-          { t: 'Kanal', w: 'Instagram' },
+          // Alle Kanäle, die der Kunde bespielt — nicht das eine, das hier
+          // früher fest stand. Was in den Stammdaten auf „aus" steht, fehlt.
+          { t: bespielt.length === 1 ? 'Kanal' : 'Kanäle', w: kanaeleText || '—' },
           ...(einstellungen.agenturName ? [{ t: 'Agentur', w: einstellungen.agenturName }] : []),
         ]}
         aktionMobil={freigabeleiste}
       />
 
       {/* ---------------------------------------- Kalender + Feed-Vorschau */}
-      <div className="mx-auto grid max-w-[1440px] items-start gap-8 px-5 pb-12 md:px-[72px] md:pb-16 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div
+        className={`mx-auto grid max-w-[1440px] items-start gap-8 px-5 pb-12 md:px-[72px] md:pb-16 ${
+          mitRaster.length > 0 ? 'lg:grid-cols-[minmax(0,1fr)_380px]' : ''
+        }`}
+      >
         <div className="grid gap-8">
           {/* Genau ein Monat je Ansicht — die Zeitspanne ist der Monat. */}
           <KalenderKarte
@@ -307,33 +334,83 @@ export default async function ExportSeite({
           </KalenderKarte>
         </div>
 
+        {mitRaster.length > 0 && (
         <aside className="justify-self-center lg:justify-self-end">
-          <IPhoneFeed
-            kunde={exp.kunde.name}
-            handle={igProfil.handle}
-            logo={thumbUrl(exp.kunde.logoId)}
-            beitraege={igProfil.beitraege}
-            follower={igProfil.follower}
-            gefolgt={igProfil.gefolgt}
-            /*
-              Kacheln des Zeitraums springen zu ihrem Beitrag weiter unten —
-              dieselbe Sprungmarke wie im Kalender. Die älteren, schon
-              veröffentlichten Kacheln darunter bleiben stumm: Zu ihnen gibt
-              es auf dieser Seite nichts, wohin man springen könnte.
-            */
-            kacheln={kacheln.map((p) => ({
-              id: p.id,
-              typ: p.typ,
-              titel: p.titel,
-              bild: thumbUrl(rasterMedium(p)),
-              href: imZeitraum.has(p.id) ? `#post-${p.id}` : undefined,
-            }))}
+          {/*
+            Ein Raster je Plattform, dazwischen wird umgeschaltet — dieselbe
+            Wahl wie oben an den Beiträgen. Nebeneinander gestellt bräuchten
+            zwei Telefone 700 px, und der Kalender daneben bliebe nichts.
+          */}
+          <VorschauWahl
+            arten={[
+              ...(bespielt.includes('INSTAGRAM')
+                ? [
+                    {
+                      plattform: 'INSTAGRAM' as const,
+                      inhalt: (
+                        <IPhoneFeed
+                          kunde={exp.kunde.name}
+                          handle={igProfil.handle}
+                          logo={thumbUrl(exp.kunde.logoId)}
+                          beitraege={igProfil.beitraege}
+                          follower={igProfil.follower}
+                          gefolgt={igProfil.gefolgt}
+                          /*
+                            Kacheln des Zeitraums springen zu ihrem Beitrag
+                            weiter unten — dieselbe Sprungmarke wie im
+                            Kalender. Die älteren, schon veröffentlichten
+                            darunter bleiben stumm: Zu ihnen gibt es auf
+                            dieser Seite nichts, wohin man springen könnte.
+                          */
+                          kacheln={rasterFuer('INSTAGRAM').map((p) => ({
+                            id: p.id,
+                            typ: p.typ,
+                            titel: p.titel,
+                            bild: thumbUrl(rasterMedium(p)),
+                            href: imZeitraum.has(p.id) ? `#post-${p.id}` : undefined,
+                          }))}
+                        />
+                      ),
+                    },
+                  ]
+                : []),
+              ...(bespielt.includes('TIKTOK')
+                ? [
+                    {
+                      plattform: 'TIKTOK' as const,
+                      inhalt: (
+                        <TikTokFeed
+                          kunde={exp.kunde.name}
+                          handle={profile.TIKTOK.handle}
+                          logo={thumbUrl(exp.kunde.logoId)}
+                          follower={profile.TIKTOK.follower}
+                          gefolgt={profile.TIKTOK.gefolgt}
+                          /*
+                            Das Original statt des Rastervorschaubildes: Das
+                            ist der mittige 3:4-Ausschnitt für Instagram und
+                            würde in einer 9:16-Kachel ein zweites Mal
+                            beschnitten.
+                          */
+                          kacheln={rasterFuer('TIKTOK').map((p) => ({
+                            id: p.id,
+                            typ: p.typ,
+                            titel: p.titel,
+                            bild: medienUrl(rasterMedium(p)),
+                            href: imZeitraum.has(p.id) ? `#post-${p.id}` : undefined,
+                          }))}
+                        />
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
           />
           <p className="mt-4 max-w-[344px] text-[11.5px] leading-[1.65] text-leiser">
             So sieht das Profil nach dem Zeitraum aus — die geplanten Beiträge oben, darunter die
             bereits veröffentlichten.
           </p>
         </aside>
+        )}
       </div>
 
       {/* ---------------------------------------------------- Post-Sektionen */}

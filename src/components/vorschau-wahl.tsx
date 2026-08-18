@@ -27,7 +27,11 @@ export type Vorschauart = {
  */
 export function VorschauWahl({ arten }: { arten: Vorschauart[] }) {
   const [aktiv, setAktiv] = useState(0)
-  const gewaehlt = arten[Math.min(aktiv, arten.length - 1)]
+  // Ohne Ansicht nichts zeigen statt auf `arten[-1]` zu greifen: Ein Kunde,
+  // der weder Instagram noch TikTok bespielt, hat kein Profilraster — das ist
+  // ein gültiger Stand, kein Fehler.
+  const gewaehlt = arten.length > 0 ? arten[Math.min(aktiv, arten.length - 1)] : null
+  if (!gewaehlt) return null
 
   return (
     /*

@@ -3,7 +3,8 @@
 import type { PostTyp, Verhaeltnis } from '@prisma/client'
 import { useRef, useState, type TouchEvent } from 'react'
 import { VERHAELTNIS_WERT } from '@/lib/verhaeltnis'
-import { Geraet, Statusleiste } from './iphone'
+import { Avatar, Geraet, Statusleiste } from './iphone'
+import { Sprung } from './sprung'
 import { ReelFlaeche, ReelRahmen, ReelTonKnopf } from './reel-player'
 
 /**
@@ -262,5 +263,158 @@ function TabZeichen({ zeichen, hell }: { zeichen: React.ReactNode; hell?: boolea
       {zeichen}
       <span className={`block h-[5px] w-5 rounded-sm ${hell ? 'bg-white/30' : 'bg-white/20'}`} />
     </span>
+  )
+}
+
+// ------------------------------------------------------------ Profilraster
+
+/**
+ * Das TikTok-Profil — nach Mockup 4d.
+ *
+ * **Kacheln sind 9:16, nicht 3:4.** Das ist der ganze Unterschied zum
+ * Instagram-Raster, und er ist der Grund, warum es ein zweites gibt: Wer
+ * beides bespielt, sieht hier, dass ein 4:5-Beitrag auf TikTok anders
+ * angeschnitten wird als im Profil daneben.
+ *
+ * Gezeigt wird das Original, nicht das Rastervorschaubild: Letzteres ist der
+ * mittige 3:4-Ausschnitt für Instagram — in einer 9:16-Kachel würde es ein
+ * zweites Mal beschnitten, und übrig bliebe die Mitte der Mitte.
+ */
+export function TikTokFeed({
+  kunde,
+  handle,
+  logo,
+  follower,
+  gefolgt,
+  kacheln,
+}: {
+  kunde: string
+  handle?: string | null
+  logo?: string | null
+  follower?: number | null
+  gefolgt?: number | null
+  kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string; href?: string }>
+}) {
+  const zahl = (wert?: number | null) =>
+    wert === null || wert === undefined ? '—' : new Intl.NumberFormat('de-DE').format(wert)
+
+  return (
+    <Geraet>
+      <div className="shrink-0 bg-flaeche">
+        <Statusleiste />
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="flex shrink-0 items-center justify-between gap-2.5 px-4 pb-2.5">
+          <span className="grid w-4 gap-[3px]" aria-hidden>
+            <span className="block h-[1.6px] bg-rahmen-4" />
+            <span className="block h-[1.6px] bg-rahmen-4" />
+            <span className="block h-[1.6px] bg-rahmen-4" />
+          </span>
+          <span className="truncate text-[13px] font-semibold text-tinte">
+            {handle ? (handle.startsWith('@') ? handle : `@${handle}`) : kunde}
+          </span>
+          <span className="text-[14px] tracking-[2px] text-rahmen-4">···</span>
+        </div>
+
+        {/* Anders als bei Instagram steht das Profil **mittig** — TikTok
+            stellt Bild, Name und Zahlen untereinander in die Mitte. */}
+        <div className="grid shrink-0 justify-items-center gap-2 px-4 pb-3">
+          <Avatar bild={logo} groesse={70} />
+          <span className="text-[12px] font-semibold text-tinte">{kunde}</span>
+          <div className="mt-0.5 flex items-center gap-[22px]">
+            {[
+              { wert: gefolgt, text: 'Folge ich' },
+              { wert: follower, text: 'Follower' },
+              // Likes führt Preroll nicht — eine erfundene Zahl wäre schlimmer
+              // als ein Strich.
+              { wert: null, text: 'Likes' },
+            ].map((k) => (
+              <div key={k.text} className="grid justify-items-center gap-1">
+                <span className="text-[13px] font-semibold text-tinte">{zahl(k.wert)}</span>
+                <span className="text-[9.5px] text-still">{k.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 border-t border-grund">
+          <div className="flex flex-1 items-center justify-center border-b-[1.5px] border-tinte py-2.5">
+            <span className="grid grid-cols-3 gap-[2px]" aria-hidden>
+              {Array.from({ length: 9 }, (_, i) => (
+                <span key={i} className="block size-[3.5px] bg-tinte" />
+              ))}
+            </span>
+          </div>
+          <div className="flex flex-1 items-center justify-center border-b-[1.5px] border-transparent py-2.5">
+            <span className="block size-[13px] rounded-[3px] border-[1.6px] border-rahmen-4" />
+          </div>
+          <div className="flex flex-1 items-center justify-center border-b-[1.5px] border-transparent py-2.5">
+            <span className="block size-[13px] border-[1.6px] border-rahmen-4 [border-radius:50%_50%_50%_50%/60%_60%_40%_40%]" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 content-start gap-[2px] pt-[2px]">
+          {kacheln.length === 0 ? (
+            <span className="schraffur col-span-3 flex aspect-[12/5] items-center justify-center font-mono text-[10px] text-leiser">
+              Noch keine Beiträge
+            </span>
+          ) : (
+            kacheln.map((kachel) => (
+              <TikTokKachel key={kachel.id} href={kachel.href}>
+                {kachel.bild ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={kachel.bild} alt={kachel.titel} className="size-full object-cover" />
+                ) : (
+                  <span className="schraffur flex size-full items-center justify-center px-1 text-center font-mono text-[8px] leading-tight text-leiser">
+                    {kachel.titel}
+                  </span>
+                )}
+                {/* Marker wie im Mockup: Abspielpfeil beim Video, Stapel beim
+                    Foto-Karussell. Ohne Zahl daneben — Aufrufe kennt Preroll
+                    nicht. */}
+                {kachel.typ === 'REEL' && (
+                  <span
+                    aria-hidden
+                    className="absolute bottom-1.5 left-1.5 block size-0 border-y-[4.5px] border-l-[7px] border-y-transparent border-l-white drop-shadow"
+                  />
+                )}
+                {kachel.typ !== 'REEL' && (
+                  <span
+                    aria-hidden
+                    className="absolute right-1.5 top-1.5 block size-[9px] rounded-[2px] border-[1.5px] border-white shadow-[3px_-3px_0_-1px_rgba(255,255,255,.9)]"
+                  />
+                )}
+              </TikTokKachel>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Die Tab-Leiste, hell — im Profil ist der Schirm weiß. */}
+      <div className="flex h-[52px] shrink-0 items-center justify-between border-t border-grund bg-flaeche-leise px-[18px]">
+        <span
+          className="block h-3.5 w-[15px] bg-rahmen-4"
+          style={{ clipPath: 'polygon(50% 0,100% 42%,100% 100%,0 100%,0 42%)' }}
+        />
+        <span className="block size-[15px] rounded-full border-[1.6px] border-rahmen-3" />
+        <span className="block h-[26px] w-10 rounded-lg border border-dashed border-rahmen-3 bg-flaeche-tief" />
+        <span className="relative block h-3.5 w-4 rounded border-[1.6px] border-rahmen-3">
+          <span className="absolute -bottom-1 left-[3px] block size-0 border-b-4 border-l-[5px] border-b-transparent border-l-rahmen-3" />
+        </span>
+        <span className="block size-3.5 border-[1.6px] border-tinte [border-radius:50%_50%_50%_50%/60%_60%_40%_40%]" />
+      </div>
+    </Geraet>
+  )
+}
+
+function TikTokKachel({ href, children }: { href?: string; children: React.ReactNode }) {
+  const klassen = 'relative block aspect-[9/16] overflow-hidden bg-flaeche-tief'
+  return href ? (
+    <Sprung href={href} className={klassen}>
+      {children}
+    </Sprung>
+  ) : (
+    <div className={klassen}>{children}</div>
   )
 }
