@@ -143,7 +143,8 @@ export default async function StammdatenSeite({
             />
 
             <div className="flex justify-end">
-              <Knopf art="primaer" klein type="submit">
+              {/* Still wie in jedem anderen Abschnitt — siehe `ProfilFelder`. */}
+              <Knopf klein type="submit">
                 Speichern
               </Knopf>
             </div>

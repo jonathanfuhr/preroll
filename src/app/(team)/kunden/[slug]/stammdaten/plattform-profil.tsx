@@ -98,8 +98,16 @@ export function ProfilFelder({
         </div>
       </div>
 
+      {/*
+        Still, nicht im Akzent. Die Stammdaten bestehen aus einem Dutzend
+        gleichrangiger Abschnitte, und jeder speichert für sich — zwölf rote
+        Knöpfe auf einer Seite entwerten die Farbe, und einzelne rote zwischen
+        stillen lassen einen Abschnitt wichtiger aussehen, als er ist. Der
+        Akzent bleibt dem vorbehalten, was etwas auslöst: anlegen, senden,
+        koppeln, ein Dialog-OK.
+      */}
       <div className="flex justify-end">
-        <Knopf art="primaer" klein type="submit">
+        <Knopf klein type="submit">
           Speichern
         </Knopf>
       </div>

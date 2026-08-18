@@ -783,6 +783,15 @@ Gebaut als **zwei Raster ineinander**, nicht als eines mit drei Spalten —
 `grid-row: 1/-1` spannt nur über *explizite* Zeilen, und die entstehen hier
 erst mit den Fassungen.
 
+**Der Akzent gehört dem, was etwas auslöst** — anlegen, senden, koppeln,
+freigeben, ein Dialog-OK. **„Speichern" unter einem Abschnitt ist still.** In
+den Stammdaten liegen ein Dutzend gleichrangiger Formulare untereinander, und
+jedes speichert für sich: Zwölf rote Knöpfe entwerten die Farbe, und einzelne
+rote zwischen stillen lassen einen Abschnitt wichtiger aussehen, als er ist.
+Wo in den Einstellungen ein zweiter Knopf danebensteht („Verbindung prüfen"),
+trägt „Speichern" den Akzent — dort **trennt** die Farbe die beiden, statt zu
+betonen.
+
 Optik: hell, zurückhaltend, white-label-nah — die **Kundenmarke** steht im
 Vordergrund, nicht das Werkzeug. Eine dezente Akzentfarbe (`#b00900`), Poppins
 als Schrift, großzügige Abstände. Die Tokens stehen in `globals.css`; neue
