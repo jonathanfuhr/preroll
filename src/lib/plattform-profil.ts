@@ -23,6 +23,8 @@ export type Profilwerte = {
   follower: number | null
   gefolgt: number | null
   beitraege: number | null
+  /** Nur TikTok führt diese Zahl im Profil — sonst bleibt sie leer. */
+  likes: number | null
   standAm: Date | null
   quelle: KennzahlenQuelle
 }
@@ -36,6 +38,7 @@ export const LEERES_PROFIL: Profilwerte = {
   follower: null,
   gefolgt: null,
   beitraege: null,
+  likes: null,
   standAm: null,
   quelle: 'MANUELL',
 }
@@ -81,7 +84,8 @@ export function istGepflegt(werte: Profilwerte): boolean {
       werte.website ||
       werte.follower !== null ||
       werte.gefolgt !== null ||
-      werte.beitraege !== null,
+      werte.beitraege !== null ||
+      werte.likes !== null,
   )
 }
 

@@ -385,6 +385,7 @@ export default async function ExportSeite({
                           logo={thumbUrl(exp.kunde.logoId)}
                           follower={profile.TIKTOK.follower}
                           gefolgt={profile.TIKTOK.gefolgt}
+                          likes={profile.TIKTOK.likes}
                           /*
                             Das Original statt des Rastervorschaubildes: Das
                             ist der mittige 3:4-Ausschnitt für Instagram und

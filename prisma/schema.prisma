@@ -301,6 +301,8 @@ enum KennzahlenQuelle {
   MANUELL
   /** Über die angemeldete Sitzung geholt — siehe `instagram-kennzahlen.ts`. */
   INSTAGRAM_WEB
+  /** Aus der öffentlichen Profilseite gelesen — siehe `tiktok-kennzahlen.ts`. */
+  TIKTOK_WEB
   /** Der dokumentierte Weg, sobald das Meta App Review durch ist. */
   GRAPH_API
 }
@@ -338,6 +340,11 @@ model PlattformProfil {
   follower  Int?
   gefolgt   Int?
   beitraege Int?
+  /**
+   * Nur TikTok führt diese Zahl im Profil („Likes" — die Summe über alle
+   * Videos). Instagram und LinkedIn zeigen sie nicht, dort bleibt sie leer.
+   */
+  likes Int?
 
   standAm DateTime?
   quelle  KennzahlenQuelle @default(MANUELL)
@@ -364,6 +371,8 @@ model KennzahlVerlauf {
   follower  Int?
   gefolgt   Int?
   beitraege Int?
+  /** Nur TikTok — siehe `PlattformProfil.likes`. */
+  likes     Int?
   quelle    KennzahlenQuelle @default(MANUELL)
 
   @@unique([kundeId, plattform, datum])

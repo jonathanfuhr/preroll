@@ -21,6 +21,7 @@ export function ProfilFelder({
   handlePlatzhalter,
   mitBio,
   mitGefolgt,
+  mitLikes,
   beitraegeBeschriftung = 'Beiträge',
   /** Steht neben dem Speichern-Knopf, etwa der Abruf von Instagram. */
   nebenKnopf,
@@ -33,6 +34,8 @@ export function ProfilFelder({
   handleHinweis?: string
   handlePlatzhalter?: string
   mitBio?: boolean
+  /** Nur TikTok führt die Summe der Herzen über alle Videos. */
+  mitLikes?: boolean
   mitGefolgt?: boolean
   beitraegeBeschriftung?: string
   nebenKnopf?: React.ReactNode
@@ -67,7 +70,15 @@ export function ProfilFelder({
 
         {nebenKnopf}
 
-        <div className={`grid gap-4 ${mitGefolgt ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div
+          className={`grid gap-4 ${
+            [mitGefolgt, mitLikes].filter(Boolean).length === 2
+              ? 'grid-cols-2 sm:grid-cols-4'
+              : mitGefolgt || mitLikes
+                ? 'grid-cols-3'
+                : 'grid-cols-2'
+          }`}
+        >
           <Feld beschriftung={beitraegeBeschriftung}>
             <Eingabe name="beitraege" inputMode="numeric" defaultValue={werte.beitraege ?? ''} />
           </Feld>
@@ -77,6 +88,11 @@ export function ProfilFelder({
           {mitGefolgt && (
             <Feld beschriftung="Gefolgt">
               <Eingabe name="gefolgt" inputMode="numeric" defaultValue={werte.gefolgt ?? ''} />
+            </Feld>
+          )}
+          {mitLikes && (
+            <Feld beschriftung="Likes">
+              <Eingabe name="likes" inputMode="numeric" defaultValue={werte.likes ?? ''} />
             </Feld>
           )}
         </div>

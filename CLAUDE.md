@@ -606,6 +606,28 @@ Seite zu bewachen wäre die schlechtere Regel.
   Merkerfeld (`plattformenGesetzt`, `kanalGesetzt`); die Aktion fasst nur an,
   was mitgeschickt wurde. Deshalb reist `postenAktiv` versteckt im
   Kanal-Formular mit, obwohl sein Schalter im Profil steht.
+- **TikToks Zahlen kommen aus der Profilseite.** `tiktok.com/@handle` trägt
+  den Zustand der Seite als JSON in einem
+  `<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__">`; darin stehen Follower,
+  Folge-ich, Videos, Likes, Bio und Profilbild. **`statsV2` schlägt `stats`**
+  — Letzteres rundet (95300000 statt 95315669), und gerundete Zahlen bewegen
+  sich in einer Verlaufskurve erst nach Hunderttausenden. Gelesen wird ohne
+  Cookie; eine hinterlegte Sitzung gibt es für TikTok gar nicht. Die
+  offizielle Display API scheidet aus: Sie setzt eine OAuth-Anmeldung des
+  Kontoinhabers voraus, und Preroll beobachtet fremde Kundenprofile.
+- **TikTok liefert auch mal eine Sperrseite** — dann fehlt der Datenblock
+  ganz. Das ist kein Fehler im Code und löst **kein** Warnband aus; der
+  nächste Lauf versucht es wieder. Davon zu unterscheiden ist ein Konto, das
+  es nicht gibt: Dort antwortet TikTok mit **200** und einem `statusCode` im
+  Block (`10221 · user banned`, auch für einen frei erfundenen Namen). Ohne
+  die Unterscheidung (`statusAus`) hieße ein Tippfehler im Handle
+  „Sperrseite", und man suchte den Fehler bei TikTok statt bei sich.
+- **Eine Warteschlange für alle abrufbaren Plattformen**, nicht eine je
+  Anbieter (`ABRUFBAR` in `kennzahlen-auftrag.ts`). Sonst käme TikTok bei
+  vielen Kunden nie an die Reihe, weil Instagram den Takt belegt. Der
+  Rhythmus bleibt: ein Profil je Lauf, Läufe alle 20 Minuten, jedes Profil
+  höchstens einmal am Tag. **Likes führt nur TikTok** — die Spalte steht an
+  `PlattformProfil` und `KennzahlVerlauf` und bleibt bei den anderen leer.
 - **Profil-Kennzahlen kommen ohne Anmeldung.** Follower, Gefolgt, Beiträge,
   Bio, Website und — nur falls noch keins da ist — das Profilbild, über
   `web_profile_info`. **Gefragt wird ohne Cookie**; nachgemessen antwortet

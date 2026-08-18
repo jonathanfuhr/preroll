@@ -286,6 +286,7 @@ export function TikTokFeed({
   logo,
   follower,
   gefolgt,
+  likes,
   kacheln,
 }: {
   kunde: string
@@ -293,6 +294,8 @@ export function TikTokFeed({
   logo?: string | null
   follower?: number | null
   gefolgt?: number | null
+  /** Die Summe der Herzen über alle Videos — TikToks dritte Profilzahl. */
+  likes?: number | null
   kacheln: Array<{ id: string; bild: string | null; typ: PostTyp; titel: string; href?: string }>
 }) {
   const zahl = (wert?: number | null) =>
@@ -326,9 +329,7 @@ export function TikTokFeed({
             {[
               { wert: gefolgt, text: 'Folge ich' },
               { wert: follower, text: 'Follower' },
-              // Likes führt Preroll nicht — eine erfundene Zahl wäre schlimmer
-              // als ein Strich.
-              { wert: null, text: 'Likes' },
+              { wert: likes, text: 'Likes' },
             ].map((k) => (
               <div key={k.text} className="grid justify-items-center gap-1">
                 <span className="text-[13px] font-semibold text-tinte">{zahl(k.wert)}</span>

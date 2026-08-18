@@ -8,7 +8,7 @@ import { aktuellerNutzer, erzeugeExportToken } from '@/lib/auth'
 
 import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
-import { aktualisiereKennzahlen } from '@/lib/kennzahlen-auftrag'
+import { aktualisiereKennzahlen, type AbrufbarePlattform } from '@/lib/kennzahlen-auftrag'
 import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
 import { effektivePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
@@ -119,18 +119,23 @@ export async function profilSpeichern(
     follower: zahl('follower'),
     gefolgt: zahl('gefolgt'),
     beitraege: zahl('beitraege'),
+    // Nur TikTok hat dieses Feld im Formular. Wo es fehlt, bleibt der Wert
+    // stehen statt geleert zu werden — sonst löschte ein Speichern bei
+    // Instagram die Likes von TikTok, wenn beide je in derselben Zeile lägen.
+    ...(formular.has('likes') ? { likes: zahl('likes') } : {}),
   }
 
   const vorher = await prisma.plattformProfil.findUnique({
     where: { kundeId_plattform: { kundeId, plattform } },
-    select: { follower: true, gefolgt: true, beitraege: true },
+    select: { follower: true, gefolgt: true, beitraege: true, likes: true },
   })
 
   const zahlenGeaendert =
     vorher === null ||
     vorher.follower !== werte.follower ||
     vorher.gefolgt !== werte.gefolgt ||
-    vorher.beitraege !== werte.beitraege
+    vorher.beitraege !== werte.beitraege ||
+    ('likes' in werte && vorher.likes !== werte.likes)
 
   const stand = zahlenGeaendert
     ? { standAm: new Date(), quelle: 'MANUELL' as const }
@@ -591,16 +596,24 @@ export async function einladungZuruecknehmen(exportId: string, gastId: string) {
  * warten. Das Ergebnis steht danach über der Adresse — ein Knopf, der
  * kommentarlos nichts tut, wäre schlimmer als keiner.
  */
-export async function kennzahlenHolen(kundeId: string, slug: string) {
+export async function kennzahlenHolen(
+  kundeId: string,
+  slug: string,
+  plattform: AbrufbarePlattform = 'INSTAGRAM',
+) {
   await nutzerOderRaus()
 
-  const ergebnis = await aktualisiereKennzahlen(kundeId)
+  const ergebnis = await aktualisiereKennzahlen(kundeId, plattform)
   revalidatePath(`/kunden/${slug}`, 'layout')
 
+  // Je Plattform ein eigener Rückmeldewert: Sonst stünde die Meldung von
+  // TikTok im Instagram-Abschnitt, und man suchte den Fehler an der falschen
+  // Stelle.
+  const marke = plattform === 'TIKTOK' ? 'tiktok-' : ''
   redirect(
     ergebnis.ok
-      ? `/kunden/${slug}/stammdaten?kennzahlen=ok`
-      : `/kunden/${slug}/stammdaten?kennzahlen=fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
+      ? `/kunden/${slug}/stammdaten?kennzahlen=${marke}ok`
+      : `/kunden/${slug}/stammdaten?kennzahlen=${marke}fehler&meldung=${encodeURIComponent(ergebnis.fehler)}`,
   )
 }
 

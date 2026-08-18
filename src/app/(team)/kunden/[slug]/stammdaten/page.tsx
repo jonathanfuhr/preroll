@@ -103,6 +103,7 @@ export default async function StammdatenSeite({
   const instagram = kunde.profil.INSTAGRAM
   const facebook = kunde.profil.FACEBOOK
   const linkedinProfil = kunde.profil.LINKEDIN
+  const tiktokProfil = kunde.profil.TIKTOK
 
   return (
     <div className="max-w-[760px]">
@@ -173,7 +174,10 @@ export default async function StammdatenSeite({
           {/* Eigenes Formular für den Abruf — es darf die Angaben weder
               mitschicken noch überschreiben. Der Knopf steht weiter unten und
               findet es über `form`. */}
-          <form id="kennzahlen-holen" action={kennzahlenHolen.bind(null, kunde.id, slug)} />
+          <form
+            id="kennzahlen-holen"
+            action={kennzahlenHolen.bind(null, kunde.id, slug, 'INSTAGRAM')}
+          />
 
           <ProfilFelder
             speichern={profilSpeichern.bind(null, kunde.id, 'INSTAGRAM')}
@@ -259,6 +263,67 @@ export default async function StammdatenSeite({
             }))}
             mehrereZugaenge={zugaenge.length > 1}
             meldung={meta === 'fehler' ? (meldung ?? 'Die Zuordnung hat nicht geklappt.') : null}
+          />
+        </Karte>
+      </Abschnitt>
+
+      {/* ---------------------------------------------------------- TikTok */}
+      <Abschnitt
+        titel="TikTok"
+        hinweis="Angaben und Zahlen des TikTok-Profils. Preroll plant für TikTok, postet dort aber nicht — dafür gibt es keinen Zugang."
+      >
+        <Karte className="p-5">
+          {/* Eigenes Formular für den Abruf — siehe Instagram. */}
+          <form
+            id="kennzahlen-holen-tiktok"
+            action={kennzahlenHolen.bind(null, kunde.id, slug, 'TIKTOK')}
+          />
+
+          <ProfilFelder
+            speichern={profilSpeichern.bind(null, kunde.id, 'TIKTOK')}
+            werte={tiktokProfil}
+            handleBeschriftung="TikTok-Handle"
+            handleHinweis="Ohne @."
+            handlePlatzhalter="beispiel.handwerk"
+            mitBio
+            mitGefolgt
+            mitLikes
+            beitraegeBeschriftung="Videos"
+            nebenKnopf={
+              <>
+                {kennzahlenStand === 'tiktok-ok' && (
+                  <div className="mb-3">
+                    <Hinweis>Kennzahlen von TikTok übernommen.</Hinweis>
+                  </div>
+                )}
+                {kennzahlenStand === 'tiktok-fehler' && (
+                  <div className="mb-3">
+                    <Fehler>{meldung}</Fehler>
+                  </div>
+                )}
+
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <Knopf
+                    klein
+                    type="submit"
+                    form="kennzahlen-holen-tiktok"
+                    disabled={!tiktokProfil.handle}
+                  >
+                    Jetzt von TikTok holen
+                  </Knopf>
+                  {!tiktokProfil.handle ? (
+                    <span className="text-[11.5px] text-leiser">
+                      Dafür oben einen TikTok-Handle eintragen.
+                    </span>
+                  ) : (
+                    <span className="text-[11.5px] text-leiser">
+                      TikTok liefert zeitweise eine Sperrseite statt der Zahlen — dann hilft ein
+                      zweiter Versuch.
+                    </span>
+                  )}
+                </div>
+              </>
+            }
           />
         </Karte>
       </Abschnitt>
