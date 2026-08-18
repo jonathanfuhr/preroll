@@ -452,9 +452,14 @@ Seite zu bewachen wäre die schlechtere Regel.
   blockiert werden). Gerechnet wird an einer Stelle: `moeglichePlattformen`
   (was eingerichtet ist), `effektivePlattformen` (Wahl ∩ eingerichtet) und
   `zielPlattformen` (was der Abgleich einplant). **Abgeleitet, nicht
-  nachgeführt** — fällt ein Kanal weg, schrumpft die Wahl von selbst und
-  steht wieder da, sobald er zurück ist; deshalb räumt auch niemand die
-  gespeicherte Liste auf. Der Preis ist die Kopplung: Ein Kunde ohne
+  nachgeführt** — fällt ein *Kanal* weg, schrumpft die Wahl von selbst und
+  steht wieder da, sobald er zurück ist; deshalb räumt dort niemand die
+  gespeicherte Liste auf. **Beim Abwählen in den Stammdaten gilt das
+  Gegenteil** (`entferneAbgewaehlte`): „Wir bespielen TikTok nicht mehr" ist
+  eine Absicht, keine Störung — die Plattform fliegt aus den Beiträgen, sonst
+  käme sie beim nächsten Anhaken ungefragt zurück. Angefasst wird nur, was
+  noch nicht draußen ist; Fassungen bleiben unberührt, weil sie sonst
+  verloren wären, sobald die Plattform zurückkommt. Der Preis ist die Kopplung: Ein Kunde ohne
   zugeordnete Seite hat keine Plattformen und damit keine Marken. Wer nur
   planen und weiter von Hand posten will, ordnet die Seite trotzdem zu —
   `postenAktiv` bleibt davon unberührt. Die Wahl am Beitrag zieht **nicht**
