@@ -256,6 +256,24 @@ Seite zu bewachen wäre die schlechtere Regel.
 - **Transparente Pixel** in Post-Grafiken sind praktisch immer ein Versehen und
   werden gewarnt. Geprüft wird mit `stats().isOpaque`, nicht mit `hasAlpha` —
   viele PNGs tragen einen deckenden Alphakanal.
+- **Mehrere Beiträge auf einmal.** Ein Kästchen je Zeile, eines je
+  Monatsüberschrift (die häufigste Vorauswahl) und eines in der Kopfzeile für
+  alles Sichtbare; Gruppenkästchen zeigen „teilweise" über `indeterminate` —
+  drei von acht ist weder an noch aus. Mit der ersten Auswahl erscheint eine
+  Leiste, die **oben klebt**: Wer unten in einer langen Liste anhakt, soll
+  nicht zurückrollen müssen.
+- **Die Auswahl überlebt Suche und Filter, wirkt aber nur auf Sichtbares.**
+  Gehalten wird eine Menge von Kennungen — wer nach „Recruiting" sucht, drei
+  anhakt und dann nach „Team" sucht, hat die drei noch. Ausgeführt wird gegen
+  die gerade gefilterten Zeilen geschnitten: **Was man nicht sieht, löscht man
+  nicht.** Die Leiste zeigt deshalb die geschnittene Zahl, nicht die gemerkte.
+- **Sammelaktionen laufen als eine Anweisung** (`postsStatusSetzen`,
+  `postsLoeschen`), nicht als Schleife im Browser: Ein halb durchgelaufener
+  Stapel wäre ein Zustand, den niemand erklären kann. Der Kunde kommt als
+  Parameter mit in die Bedingung — die Liste zeigt nur seine Beiträge, aber
+  darauf verlässt sich der Server nie. **Löschen fragt nach und nennt die
+  Zahl**, Phasenwechsel nicht: Eine Phase lässt sich zurückstellen, dreißig
+  gelöschte Beiträge sind weg.
 - **In der Post-Liste führen drei Wege in den Beitrag** — Vorschaubild, Typ
   und Titel. Das Bild allein war ein zu kleines Ziel. Der **Termin dagegen
   öffnet ein kleines Fenster** mit Datum, Uhrzeit, OK und Abbrechen: Umplanen
@@ -599,7 +617,12 @@ Seite zu bewachen wäre die schlechtere Regel.
   Abruf käme 20 Stunden zu spät.
 - **Die Stammdaten sind nach Plattform gegliedert:** *Profil* (Logo, Name,
   Plattformwahl, Notiz, die zwei Schalter), *Meta* (Instagram, Facebook, die
-  Kanalzuordnung), *LinkedIn*. Die Plattformwahl steht damit in einem anderen
+  Kanalzuordnung), *LinkedIn*. Das Auswahlfeld je Plattform trägt einen
+  **Schlüssel mit dem gespeicherten Stand**: React setzt ein Formular nach
+  einer Server-Aktion auf den Wert zurück, mit dem das Feld eingehängt wurde
+  — ohne den Schlüssel stand nach dem Abwählen wieder „nur planen" da, obwohl
+  gespeichert war, und es sah aus, als ließe sich die Plattform gar nicht
+  abschalten. Die Plattformwahl steht damit in einem anderen
   Abschnitt als die Kanalzuordnung, von der ihre Sperre abhängt — der
   Hinweistext benennt das, und `sperren()` rechnet es an einer Stelle. Beide
   Formulare gehen weiter durch **dieselbe** Aktion und tragen je ein
