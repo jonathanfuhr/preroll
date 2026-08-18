@@ -101,6 +101,20 @@ export async function veroeffentlichenSpeichern(
             igName: seite.igName,
           },
         })
+
+        /*
+          Mit der Zuordnung entsteht die Facebook-Profilzeile, falls es sie
+          noch nicht gibt. Sonst fände der Kennzahlen-Lauf nichts: Er sucht
+          fällige **Profile**, und ohne Zeile gibt es nichts nachzuziehen —
+          der automatische Abruf käme für Facebook nie in Gang. Der Name der
+          Seite ist dabei der Handle; einen anderen öffentlichen Namen hat sie
+          nicht.
+        */
+        await prisma.plattformProfil.upsert({
+          where: { kundeId_plattform: { kundeId, plattform: 'FACEBOOK' } },
+          create: { kundeId, plattform: 'FACEBOOK', handle: seite.name },
+          update: {},
+        })
       }
     }
   }

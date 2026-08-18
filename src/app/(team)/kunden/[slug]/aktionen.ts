@@ -609,7 +609,7 @@ export async function kennzahlenHolen(
   // Je Plattform ein eigener Rückmeldewert: Sonst stünde die Meldung von
   // TikTok im Instagram-Abschnitt, und man suchte den Fehler an der falschen
   // Stelle.
-  const marke = plattform === 'TIKTOK' ? 'tiktok-' : ''
+  const marke = plattform === 'INSTAGRAM' ? '' : `${plattform.toLowerCase()}-`
   redirect(
     ergebnis.ok
       ? `/kunden/${slug}/stammdaten?kennzahlen=${marke}ok`

@@ -1,9 +1,17 @@
 import 'server-only'
-import type { KennzahlenQuelle, Plattform } from '@prisma/client'
 import { prisma } from './db'
+import {
+  ABRUFBARE_PLATTFORMEN,
+  ABRUF_BEDINGUNG,
+  istAbrufbar,
+  UEBER_HANDLE,
+  type AbrufbarePlattform,
+  type Abrufkontext,
+} from './kennzahlen-bereit'
 import { ladeEinstellungen, speichereEinstellungen } from './einstellungen'
 import { holeProfilwerte as holeInstagram } from './instagram-kennzahlen'
 import { holeProfilwerte as holeTikTok } from './tiktok-kennzahlen'
+import { holeSeitenKennzahlen } from './meta'
 import { speichereMedium } from './medien'
 
 /**
@@ -19,33 +27,74 @@ import { speichereMedium } from './medien'
  * „älter als 24", sonst rutscht der Termin mit jedem Tag später und trifft
  * irgendwann die Nacht.
  *
- * **Geholt wird von Instagram und TikTok**, beide ohne Anmeldung von der
- * öffentlichen Profilseite. Facebook und LinkedIn bleiben von Hand gepflegt:
- * Für sie gibt es keinen Weg ohne genehmigte App. Welche Plattform an der
- * Reihe ist, entscheidet allein das Alter — die Warteschlange ist eine, nicht
- * eine je Anbieter.
+ * **Drei Plattformen, zwei Wege.** Instagram und TikTok werden aus ihrer
+ * öffentlichen Profilseite gelesen — dort beobachtet Preroll *fremde* Profile,
+ * und einen Weg über die offizielle Schnittstelle gibt es dafür nicht.
+ * Facebook geht über die **Graph API**: Die Seite ist dem Systemnutzer der
+ * Agentur zugewiesen, das Token liegt am Kunden, der dokumentierte Weg ist
+ * offen. LinkedIn bleibt von Hand gepflegt.
+ *
+ * Was eine Plattform zum Abruf braucht, sagt sie selbst (`bereit`) — bei
+ * Instagram und TikTok ein Handle, bei Facebook Seite und Token. Ohne das
+ * stünde die Bedingung in der Warteschlange, im Abruf und in der Meldung je
+ * einmal leicht verschieden da.
  */
 
 const LAUFABSTAND = 20 * 60_000
 const HALTBARKEIT = 20 * 3600_000
 
-/**
- * Die Plattformen, deren Zahlen Preroll selbst holt — samt Abruf und Quelle
- * fürs Protokoll. An einer Stelle, damit „welche gehen automatisch" nicht an
- * drei Stellen leicht verschieden beantwortet wird.
- */
-const ABRUFBAR = {
-  INSTAGRAM: { hole: holeInstagram, quelle: 'INSTAGRAM_WEB' as KennzahlenQuelle },
-  TIKTOK: { hole: holeTikTok, quelle: 'TIKTOK_WEB' as KennzahlenQuelle },
-} satisfies Partial<Record<Plattform, unknown>>
-
-export type AbrufbarePlattform = keyof typeof ABRUFBAR
-
-export function istAbrufbar(plattform: Plattform): plattform is AbrufbarePlattform {
-  return plattform in ABRUFBAR
+/** Was ein Abruf zurückgibt — dieselbe Form für alle Plattformen. */
+type Abrufwerte = {
+  follower: number | null
+  gefolgt: number | null
+  beitraege: number | null
+  likes: number | null
+  bio: string | null
+  website: string | null
+  profilbildUrl: string | null
 }
 
-export const ABRUFBARE_PLATTFORMEN = Object.keys(ABRUFBAR) as AbrufbarePlattform[]
+type Abrufergebnis = { ok: true; werte: Abrufwerte } | { ok: false; fehler: string }
+
+const LEER: Abrufwerte = {
+  follower: null,
+  gefolgt: null,
+  beitraege: null,
+  likes: null,
+  bio: null,
+  website: null,
+  profilbildUrl: null,
+}
+
+/**
+ * Der Abruf je Plattform. Die **Bedingung** dazu steht in
+ * `kennzahlen-bereit.ts` — sie ist eine Festlegung und gehört geprüft, der
+ * Abruf ist Netzwerkarbeit und lässt sich nicht sinnvoll testen.
+ */
+const HOLEN: Record<AbrufbarePlattform, (k: Abrufkontext) => Promise<Abrufergebnis>> = {
+  INSTAGRAM: async (k) => {
+    const e = await holeInstagram(k.handle!)
+    return e.ok ? { ok: true, werte: { ...LEER, ...e.werte } } : e
+  },
+  TIKTOK: async (k) => {
+    const e = await holeTikTok(k.handle!)
+    // TikTok führt keine Website im Profil — das Feld bleibt, wie es ist.
+    return e.ok ? { ok: true, werte: { ...LEER, ...e.werte, website: null } } : e
+  },
+  FACEBOOK: async (k) => {
+    const e = await holeSeitenKennzahlen(k.fbSeitenId!, k.fbSeitenToken!)
+    return e.ok
+      ? { ok: true, werte: { ...LEER, ...e.daten } }
+      : { ok: false, fehler: e.fehler.text }
+  },
+}
+
+// Durchgereicht, damit Aufrufer nicht zwei Module kennen müssen.
+export {
+  ABRUFBARE_PLATTFORMEN,
+  istAbrufbar,
+  type AbrufbarePlattform,
+} from './kennzahlen-bereit'
 
 export type Aktualisierung =
   | { ok: true; follower: number | null }
@@ -56,24 +105,28 @@ export async function aktualisiereKennzahlen(
   kundeId: string,
   plattform: AbrufbarePlattform = 'INSTAGRAM',
 ): Promise<Aktualisierung> {
-  const { hole, quelle } = ABRUFBAR[plattform]
+  const bedingung = ABRUF_BEDINGUNG[plattform]
 
   const kunde = await prisma.kunde.findUnique({
     where: { id: kundeId },
     select: {
       id: true,
       logoId: true,
+      fbSeitenId: true,
+      fbSeitenToken: true,
       profile: { where: { plattform }, select: { handle: true } },
     },
   })
   if (!kunde) return { ok: false, fehler: 'Kunde nicht gefunden.' }
 
-  const handle = kunde.profile[0]?.handle?.trim()
-  if (!handle) {
-    return { ok: false, fehler: `Für diesen Kunden ist kein ${plattform === 'TIKTOK' ? 'TikTok' : 'Instagram'}-Handle hinterlegt.` }
+  const kontext: Abrufkontext = {
+    handle: kunde.profile[0]?.handle ?? null,
+    fbSeitenId: kunde.fbSeitenId,
+    fbSeitenToken: kunde.fbSeitenToken,
   }
+  if (!bedingung.bereit(kontext)) return { ok: false, fehler: bedingung.fehlt }
 
-  const ergebnis = await hole(handle)
+  const ergebnis = await HOLEN[plattform](kontext)
   // Bewusst ohne `merkeAbgelaufen`: Gefragt wird ohne Sitzung, ein
   // Fehlschlag sagt also nichts über sie aus. Die erste Fassung meldete hier
   // eine abgelaufene Sitzung — und das rote Band im Backend behauptete, die
@@ -82,39 +135,42 @@ export async function aktualisiereKennzahlen(
 
   const { werte } = ergebnis
   const jetzt = new Date()
-  // Nur TikTok führt diese Zahl; bei Instagram gibt es sie nicht.
-  const likes = 'likes' in werte ? werte.likes : null
 
-  await prisma.plattformProfil.update({
+  const zahlen = {
+    follower: werte.follower,
+    gefolgt: werte.gefolgt,
+    beitraege: werte.beitraege,
+    likes: werte.likes,
+  }
+
+  /*
+    `upsert`, nicht `update`: Bei Facebook entsteht die Profilzeile mit der
+    Kanalzuordnung, bei den anderen mit dem Handle — aber ein Abruf soll auch
+    dann durchgehen, wenn sie aus irgendeinem Grund fehlt. Ein Knopf, der mit
+    „Zeile nicht gefunden" scheitert, ist keine Auskunft.
+  */
+  const gepflegt = {
+    ...zahlen,
+    // Bio und Website nur übernehmen, wenn die Quelle etwas liefert — ein
+    // leeres Feld dort soll eine gepflegte Angabe hier nicht löschen.
+    ...(werte.bio ? { bio: werte.bio } : {}),
+    ...(werte.website ? { website: werte.website } : {}),
+    standAm: jetzt,
+    quelle: bedingung.quelle,
+  }
+  await prisma.plattformProfil.upsert({
     where: { kundeId_plattform: { kundeId, plattform } },
-    data: {
-      follower: werte.follower,
-      gefolgt: werte.gefolgt,
-      beitraege: werte.beitraege,
-      ...(likes === null ? {} : { likes }),
-      // Bio und Website nur übernehmen, wenn die Quelle etwas liefert — ein
-      // leeres Feld dort soll eine gepflegte Angabe hier nicht löschen.
-      ...(werte.bio ? { bio: werte.bio } : {}),
-      ...('website' in werte && werte.website ? { website: werte.website } : {}),
-      standAm: jetzt,
-      quelle,
-    },
+    create: { kundeId, plattform, handle: kontext.handle, ...gepflegt },
+    update: gepflegt,
   })
 
   // Ein Tageswert je Kunde und Plattform — mehrere Läufe am selben Tag
   // überschreiben ihn.
   const tag = new Date(Date.UTC(jetzt.getFullYear(), jetzt.getMonth(), jetzt.getDate()))
-  const zahlen = {
-    follower: werte.follower,
-    gefolgt: werte.gefolgt,
-    beitraege: werte.beitraege,
-    likes,
-    quelle,
-  }
   await prisma.kennzahlVerlauf.upsert({
     where: { kundeId_plattform_datum: { kundeId, plattform, datum: tag } },
-    create: { kundeId, plattform, datum: tag, ...zahlen },
-    update: zahlen,
+    create: { kundeId, plattform, datum: tag, ...zahlen, quelle: bedingung.quelle },
+    update: { ...zahlen, quelle: bedingung.quelle },
   })
 
   // Das Profilbild nur, wenn noch keines hinterlegt ist — wer eines
@@ -159,17 +215,29 @@ export async function wacheUeberKennzahlen(): Promise<void> {
     if (e.kennzahlenLaufAm && Date.now() - e.kennzahlenLaufAm.getTime() < LAUFABSTAND) return
 
     /*
-      Eine Warteschlange über beide Plattformen, nicht eine je Anbieter: Sonst
-      käme TikTok bei vielen Kunden nie an die Reihe, weil Instagram den Takt
-      belegt. Das am längsten Ungeprüfte zuerst; `null` sortiert Prisma nach
-      vorn, und ein frisch eingetragenes Profil ist damit sofort dran.
+      Eine Warteschlange über alle abrufbaren Plattformen, nicht eine je
+      Anbieter: Sonst käme TikTok bei vielen Kunden nie an die Reihe, weil
+      Instagram den Takt belegt. Das am längsten Ungeprüfte zuerst; `null`
+      sortiert Prisma nach vorn, und ein frisch eingetragenes Profil ist damit
+      sofort dran.
+
+      Die Bedingung je Plattform steht hier ein zweites Mal — als Abfrage,
+      die `bereit` in SQL nachbildet. Ohne sie zöge der Lauf reihum Profile,
+      die er gar nicht holen kann, und käme nie bei denen an, die es könnten.
     */
     const faellig = await prisma.plattformProfil.findFirst({
       where: {
-        plattform: { in: ABRUFBARE_PLATTFORMEN },
-        handle: { not: null },
         kunde: { archiviert: false },
-        OR: [{ standAm: null }, { standAm: { lt: new Date(Date.now() - HALTBARKEIT) } }],
+        OR: [
+          { plattform: { in: UEBER_HANDLE }, handle: { not: null } },
+          {
+            plattform: 'FACEBOOK',
+            kunde: { fbSeitenId: { not: null }, fbSeitenToken: { not: null } },
+          },
+        ],
+        AND: [
+          { OR: [{ standAm: null }, { standAm: { lt: new Date(Date.now() - HALTBARKEIT) } }] },
+        ],
       },
       orderBy: { standAm: 'asc' },
       select: { kundeId: true, plattform: true },

@@ -606,6 +606,30 @@ Seite zu bewachen wäre die schlechtere Regel.
   Merkerfeld (`plattformenGesetzt`, `kanalGesetzt`); die Aktion fasst nur an,
   was mitgeschickt wurde. Deshalb reist `postenAktiv` versteckt im
   Kanal-Formular mit, obwohl sein Schalter im Profil steht.
+- **Facebook geht über die Graph API, nicht übers Auslesen** — als einzige der
+  drei. Der Unterschied ist kein Zufall: Bei Instagram und TikTok beobachtet
+  Preroll *fremde* Profile, und der dokumentierte Weg setzte eine Anmeldung
+  des Kontoinhabers voraus. Eine Facebook-Seite dagegen ist dem Systemnutzer
+  der Agentur zugewiesen, und ihr Token liegt ohnehin am Kunden
+  (`fbSeitenToken`). Geholt werden `followers_count`, `fan_count`, `about`,
+  `website` und das Profilbild; **Follower und „Gefällt mir" sind zwei
+  Zahlen**, seit man einer Seite folgen kann, ohne sie zu mögen — `fan_count`
+  landet in derselben Spalte wie TikToks Likes. Fehlt dem Systemnutzer
+  `pages_read_engagement`, scheitert die **ganze** Anfrage; ein zweiter
+  Versuch mit weniger Feldern brächte Bio und Bild und ließe die Zahlen still
+  leer.
+- **Woran ein Abruf hängt, steht einmal da** (`kennzahlen-bereit.ts`) — bei
+  Instagram und TikTok am Handle, bei Facebook an der Seitenzuordnung. Die
+  Bedingung wird an drei Stellen gebraucht: in der Warteschlange als SQL, im
+  Abruf als Prüfung, in der Oberfläche als Satz. Getrennt gepflegt liefen sie
+  auseinander, und ein Knopf wäre bedienbar, wo der Lauf nichts mehr findet.
+  Deshalb liegt sie **ohne** `server-only` und ist geprüft; nur der Abruf
+  selbst steht daneben.
+- **Die Facebook-Profilzeile entsteht mit der Kanalzuordnung.** Der Lauf sucht
+  fällige *Profile* — ohne Zeile gäbe es nichts nachzuziehen, und der
+  automatische Abruf käme für Facebook nie in Gang. Aus demselben Grund
+  schreibt `aktualisiereKennzahlen` per `upsert`: Ein Knopf, der mit „Zeile
+  nicht gefunden" scheitert, ist keine Auskunft.
 - **TikToks Zahlen kommen aus der Profilseite.** `tiktok.com/@handle` trägt
   den Zustand der Seite als JSON in einem
   `<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__">`; darin stehen Follower,

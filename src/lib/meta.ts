@@ -400,3 +400,79 @@ export async function posteAufInstagram(opts: {
 
   return { ok: true, daten: { externeId: veroeffentlicht.daten.id } }
 }
+
+// --------------------------------------------------------- Seiten-Kennzahlen
+
+export type SeitenKennzahlen = {
+  name: string | null
+  /** Wer der Seite folgt. */
+  follower: number | null
+  /** Die „Gefällt mir"-Angaben — bei einer Seite eine eigene Zahl neben den Followern. */
+  likes: number | null
+  bio: string | null
+  website: string | null
+  profilbildUrl: string | null
+}
+
+type SeitenAntwortFelder = {
+  name?: string
+  followers_count?: number
+  fan_count?: number
+  about?: string
+  website?: string
+  link?: string
+  picture?: { data?: { url?: string } }
+}
+
+/**
+ * Die Kennzahlen einer Facebook-Seite — über die Graph API, mit dem
+ * Seiten-Token, das ohnehin am Kunden liegt.
+ *
+ * **Kein Auslesen der Webseite wie bei Instagram und TikTok.** Für diese
+ * beiden gibt es keinen Weg ohne genehmigte App, weil Preroll dort *fremde*
+ * Profile beobachtet. Bei Facebook liegt der Fall anders: Die Seite ist dem
+ * Systemnutzer der Agentur zugewiesen, das Token dafür steht am Kunden — der
+ * dokumentierte Weg ist also offen und wird genommen. Er ist stabiler als
+ * jedes Auslesen und bricht nicht, wenn Meta seine Seiten umbaut.
+ *
+ * **Follower und „Gefällt mir" sind zwei Zahlen.** Facebook führt sie
+ * getrennt, seit man einer Seite folgen kann, ohne sie zu mögen. Beide werden
+ * geholt; `fan_count` landet in derselben Spalte wie TikToks Likes.
+ *
+ * Fehlt dem Systemnutzer das Recht `pages_read_engagement`, scheitert die
+ * **ganze** Anfrage — Meta liefert dann keinen Teil. Das ist unschön, aber
+ * ehrlicher als ein zweiter Versuch mit weniger Feldern: Der brächte Bio und
+ * Bild und ließe die Zahlen still leer, und niemand wüsste warum.
+ */
+export async function holeSeitenKennzahlen(
+  seitenId: string,
+  token: string,
+): Promise<MetaAntwort<SeitenKennzahlen>> {
+  const antwort = await anfrage<SeitenAntwortFelder>(seitenId, {
+    token,
+    felder: {
+      fields: 'name,followers_count,fan_count,about,website,link,picture.type(large){url}',
+    },
+  })
+  if (!antwort.ok) return antwort
+
+  const d = antwort.daten
+  const zahl = (wert: unknown) =>
+    typeof wert === 'number' && Number.isFinite(wert) ? wert : null
+  const text = (wert: unknown) =>
+    typeof wert === 'string' && wert.trim() ? wert.trim() : null
+
+  return {
+    ok: true,
+    daten: {
+      name: text(d.name),
+      follower: zahl(d.followers_count),
+      likes: zahl(d.fan_count),
+      bio: text(d.about),
+      // `website` ist die Seite des Unternehmens, `link` die bei Facebook.
+      // Das Eigene zuerst — die Facebook-Adresse steht ohnehin im Handle.
+      website: text(d.website) ?? text(d.link),
+      profilbildUrl: text(d.picture?.data?.url),
+    },
+  }
+}

@@ -228,11 +228,49 @@ export default async function StammdatenSeite({
         <Karte className="mt-4 p-5">
           <h3 className="mb-1 text-[13px] font-semibold">Facebook</h3>
           <p className="mb-4 text-[11.5px] leading-relaxed text-leiser">
-            Die Zahlen einer Facebook-Seite holt Preroll nicht — dafür bräuchte es die Graph API
-            mit Seitenrechten. Bis dahin von Hand, wenn sie gebraucht werden.
+            Follower und „Gefällt mir" holt Preroll über die Graph API — mit dem Seiten-Token aus
+            der Zuordnung unten. Anders als bei Instagram und TikTok ist das der dokumentierte
+            Weg: Die Seite gehört zum Systemnutzer der Agentur.
           </p>
 
+          {/* Eigenes Formular für den Abruf — siehe Instagram. */}
+          <form
+            id="kennzahlen-holen-facebook"
+            action={kennzahlenHolen.bind(null, kunde.id, slug, 'FACEBOOK')}
+          />
+
           <ProfilFelder
+            mitLikes
+            nebenKnopf={
+              <>
+                {kennzahlenStand === 'facebook-ok' && (
+                  <div className="mb-3">
+                    <Hinweis>Kennzahlen von Facebook übernommen.</Hinweis>
+                  </div>
+                )}
+                {kennzahlenStand === 'facebook-fehler' && (
+                  <div className="mb-3">
+                    <Fehler>{meldung}</Fehler>
+                  </div>
+                )}
+
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <Knopf
+                    klein
+                    type="submit"
+                    form="kennzahlen-holen-facebook"
+                    disabled={!kunde.fbSeitenId}
+                  >
+                    Jetzt von Facebook holen
+                  </Knopf>
+                  {!kunde.fbSeitenId && (
+                    <span className="text-[11.5px] text-leiser">
+                      Dafür unten eine Seite zuordnen.
+                    </span>
+                  )}
+                </div>
+              </>
+            }
             speichern={profilSpeichern.bind(null, kunde.id, 'FACEBOOK')}
             werte={facebook}
             handleBeschriftung="Seitenname"
