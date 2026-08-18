@@ -56,6 +56,16 @@ export function PlattformModusWahl({
             </span>
 
             <select
+              /*
+                Der Schlüssel trägt den gespeicherten Stand. React setzt ein
+                Formular nach einer Server-Aktion zurück — auf den Wert, mit
+                dem das Feld eingehängt wurde. Ohne den Schlüssel stünde nach
+                dem Abwählen wieder „nur planen" da, obwohl gespeichert
+                wurde: Es sah aus, als ließe sich die Plattform nicht
+                abschalten. Ändert sich der Stand, hängt React das Feld neu
+                ein; bleibt er gleich, überlebt eine begonnene Eingabe.
+              */
+              key={`${plattform}-${modus}`}
               name={`modus_${plattform}`}
               defaultValue={modus}
               className="ml-auto rounded-[5px] border border-rahmen-3 bg-flaeche px-2.5 py-1.5 text-[12.5px] text-tinte focus:border-rahmen-4 focus:outline-none"

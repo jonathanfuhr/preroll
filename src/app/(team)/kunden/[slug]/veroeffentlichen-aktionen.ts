@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { uebernehmePlattformen } from '@/lib/kunde-plattformen'
+import { entferneAbgewaehlte, uebernehmePlattformen } from '@/lib/kunde-plattformen'
 import { ladeLinkedInZugang, linkedInOrganisationen } from '@/lib/linkedin-zugang'
 import { metaSeiten } from '@/lib/plattform-zugang'
 import { moeglichePlattformen, wahlAusFormular } from '@/lib/plattformen'
@@ -143,6 +143,15 @@ export async function veroeffentlichenSpeichern(
     })
     if (formular.get('plattformenUebernehmen') === 'on') {
       await uebernehmePlattformen(kundeId, plattformen)
+    } else {
+      /*
+        Auch ohne den Haken: Was der Kunde nicht mehr bespielt, fliegt aus den
+        Beiträgen. Der Haken zieht die Wahl **hin**, das hier räumt sie **weg**
+        — zwei verschiedene Absichten. Ohne das Wegräumen stünde in der
+        Datenbank eine Plattform, die nirgends mehr erscheint, und käme beim
+        nächsten Anhaken ungefragt zurück.
+      */
+      await entferneAbgewaehlte(kundeId, plattformen)
     }
   }
 
@@ -162,7 +171,9 @@ export async function veroeffentlichenSpeichern(
     })
   }
 
-  revalidatePath(ziel, 'layout')
+  // Über den Kundenzweig, nicht nur über die Stammdatenseite: Die
+  // Plattformwahl schlägt bis in Post-Liste, Kalender und Kundenseite durch.
+  revalidatePath(`/kunden/${slug}`, 'layout')
 }
 
 /**

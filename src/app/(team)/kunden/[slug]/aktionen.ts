@@ -388,6 +388,47 @@ export async function postStatusSetzen(postId: string, status: PostStatus) {
   revalidatePath(`/kunden/${post.kunde.slug}`, 'layout')
 }
 
+/**
+ * Mehrere Beiträge auf einmal — Phase wechseln oder löschen.
+ *
+ * Eigene Aktionen statt einer Schleife über die einzelnen im Browser: Ein
+ * halb durchgelaufener Stapel wäre ein Zustand, den niemand erklären kann,
+ * und dreißig Rundgänge zum Server sind auch nicht schneller. Beides läuft
+ * deshalb als **eine** Anweisung.
+ *
+ * Der Kunde kommt als Parameter und wird mitgeprüft: Ohne ihn ließe sich
+ * über eine fremde Kennung an Beiträgen eines anderen Kunden herumräumen —
+ * die Liste zeigt nur die eigenen, aber darauf verlässt sich der Server nie.
+ */
+export async function postsStatusSetzen(
+  slug: string,
+  ids: string[],
+  status: PostStatus,
+): Promise<number> {
+  await nutzerOderRaus()
+  if (ids.length === 0) return 0
+
+  const { count } = await prisma.post.updateMany({
+    where: { id: { in: ids }, kunde: { slug } },
+    data: { status },
+  })
+
+  revalidatePath(`/kunden/${slug}`, 'layout')
+  return count
+}
+
+export async function postsLoeschen(slug: string, ids: string[]): Promise<number> {
+  await nutzerOderRaus()
+  if (ids.length === 0) return 0
+
+  const { count } = await prisma.post.deleteMany({
+    where: { id: { in: ids }, kunde: { slug } },
+  })
+
+  revalidatePath(`/kunden/${slug}`, 'layout')
+  return count
+}
+
 export async function postLoeschen(postId: string) {
   await nutzerOderRaus()
   const post = await prisma.post.delete({ where: { id: postId }, include: { kunde: true } })

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { PlattformMarken } from '@/components/plattform-marken'
 import { Karte, Leerzustand, StatusBadge, TypBadge } from '@/components/ui'
+import { Sammelleiste } from './sammelleiste'
 import { TerminKnopf } from './termin-knopf'
 import { ZeilenMenue } from './zeilen-menue'
 import { kalenderwoche } from '@/lib/format'
@@ -64,6 +65,34 @@ export function Postliste({
   const [suche, setSuche] = useState(startSuche)
   const [filter, setFilter] = useState<Filter>(startFilter)
   const [kopiert, setKopiert] = useState(false)
+  /*
+    Die Auswahl für den Sammelzugriff. Als Menge und nicht als Feld an der
+    Zeile: Sie überlebt so das Umstellen von Suche und Filter, und wer nach
+    „Recruiting" sucht, drei anhakt und dann nach „Team" sucht, hat die drei
+    noch. Beim Ausführen wird gegen die sichtbaren Zeilen geschnitten — was
+    man nicht sieht, löscht man nicht.
+  */
+  const [ausgewaehlt, setAusgewaehlt] = useState<Set<string>>(new Set())
+
+  const umschalten = (id: string) =>
+    setAusgewaehlt((vorher) => {
+      const neu = new Set(vorher)
+      if (neu.has(id)) neu.delete(id)
+      else neu.add(id)
+      return neu
+    })
+
+  /** Eine ganze Gruppe an- oder abwählen — je nachdem, was überwiegt. */
+  const gruppeUmschalten = (ids: string[]) =>
+    setAusgewaehlt((vorher) => {
+      const neu = new Set(vorher)
+      const alleDrin = ids.every((id) => neu.has(id))
+      for (const id of ids) {
+        if (alleDrin) neu.delete(id)
+        else neu.add(id)
+      }
+      return neu
+    })
 
   const gefiltert = useMemo(() => {
     const begriff = suche.trim().toLowerCase()
@@ -89,6 +118,11 @@ export function Postliste({
     }
     return gruppen
   }, [gefiltert])
+
+  // Nur was gerade in der Liste steht: Ein Filterwechsel darf keine Beiträge
+  // mit in eine Sammelaktion nehmen, die niemand mehr vor sich sieht.
+  const sichtbarAusgewaehlt = gefiltert.filter((z) => ausgewaehlt.has(z.id)).map((z) => z.id)
+  const alleSichtbaren = gefiltert.map((z) => z.id)
 
   return (
     <>
@@ -162,6 +196,12 @@ export function Postliste({
         </span>
       </div>
 
+      <Sammelleiste
+        slug={slug}
+        ids={sichtbarAusgewaehlt}
+        aufAufheben={() => setAusgewaehlt(new Set())}
+      />
+
       {gefiltert.length === 0 ? (
         <Leerzustand titel="Nichts gefunden" text="Andere Suche oder anderer Filter." />
       ) : (
@@ -181,6 +221,14 @@ export function Postliste({
                   Datum daneben ablesen, und die 55 px entscheiden darüber,
                   ob der Titel ohne Rollen im Bild ist.
                 */}
+                <th className="w-8 px-2 py-2.5 md:px-3">
+                  <Kaestchen
+                    an={alleSichtbaren.length > 0 && sichtbarAusgewaehlt.length === alleSichtbaren.length}
+                    teils={sichtbarAusgewaehlt.length > 0}
+                    beschriftung="Alle sichtbaren Beiträge auswählen"
+                    aufKlick={() => gruppeUmschalten(alleSichtbaren)}
+                  />
+                </th>
                 {['', 'KW', 'Datum', 'Typ', 'Titel', 'Status', 'Wer', 'Kommentare', ''].map((kopf, i) => (
                   <th
                     key={i}
@@ -197,8 +245,17 @@ export function Postliste({
             {abschnitte.map((abschnitt) => (
               <tbody key={abschnitt.titel}>
                 <tr>
+                  {/* Der ganze Monat auf einmal — die häufigste Vorauswahl. */}
+                  <td className="border-b border-rahmen bg-flaeche-leise/60 px-2 py-1.5 md:px-3">
+                    <Kaestchen
+                      an={abschnitt.zeilen.every((z) => ausgewaehlt.has(z.id))}
+                      teils={abschnitt.zeilen.some((z) => ausgewaehlt.has(z.id))}
+                      beschriftung={`Alle Beiträge aus ${abschnitt.titel} auswählen`}
+                      aufKlick={() => gruppeUmschalten(abschnitt.zeilen.map((z) => z.id))}
+                    />
+                  </td>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     className="border-b border-rahmen bg-flaeche-leise/60 px-3 py-1.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still"
                   >
                     {abschnitt.titel}
@@ -208,8 +265,17 @@ export function Postliste({
                 {abschnitt.zeilen.map((zeile) => (
                   <tr
                     key={zeile.id}
-                    className="border-b border-rahmen last:border-b-0 hover:bg-flaeche-leise"
+                    className={`border-b border-rahmen last:border-b-0 hover:bg-flaeche-leise ${
+                      ausgewaehlt.has(zeile.id) ? 'bg-akzent-zart' : ''
+                    }`}
                   >
+                    <td className="w-8 px-2 py-2 md:px-3">
+                      <Kaestchen
+                        an={ausgewaehlt.has(zeile.id)}
+                        beschriftung={`${zeile.titel} auswählen`}
+                        aufKlick={() => umschalten(zeile.id)}
+                      />
+                    </td>
                     <td className="w-11 px-2 py-2 md:w-14 md:px-3">
                       <Link href={`/kunden/${slug}/posts/${zeile.id}`} className="block">
                         {zeile.bild ? (
@@ -291,5 +357,39 @@ export function Postliste({
         </Karte>
       )}
     </>
+  )
+}
+
+/**
+ * Ein Kästchen, das auch „teilweise" ausdrücken kann.
+ *
+ * Über die Monats- und Kopfzeile ist das der Normalfall: Drei von acht
+ * Beiträgen gewählt ist weder an noch aus, und ein Kästchen, das dabei leer
+ * aussieht, verschweigt die halbe Auswahl.
+ */
+function Kaestchen({
+  an,
+  teils,
+  beschriftung,
+  aufKlick,
+}: {
+  an: boolean
+  teils?: boolean
+  beschriftung: string
+  aufKlick: () => void
+}) {
+  return (
+    <input
+      type="checkbox"
+      checked={an}
+      // `indeterminate` gibt es nur als Eigenschaft, nicht als Attribut.
+      ref={(el) => {
+        if (el) el.indeterminate = !an && Boolean(teils)
+      }}
+      onChange={aufKlick}
+      aria-label={beschriftung}
+      title={beschriftung}
+      className="block size-4 cursor-pointer accent-[var(--color-akzent)]"
+    />
   )
 }
