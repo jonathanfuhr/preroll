@@ -1,6 +1,7 @@
 'use client'
 
 import { Auswahl, Knopf, Schalter } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export type TeamZeile = {
   id: string
@@ -79,9 +80,9 @@ export function BetreuungFormular({
       </div>
 
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )

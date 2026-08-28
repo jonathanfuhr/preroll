@@ -1,6 +1,7 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Abschnitt, Eingabe, Feld, Fehler, Hinweis, Karte, Knopf, Schalter } from '@/components/ui'
 import { aworkSpeichern, aworkTesten } from '../aktionen'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export const metadata = { title: 'awork — Preroll' }
 
@@ -83,9 +84,9 @@ export default async function AworkSeite({
                 <Knopf klein type="submit" formAction={aworkTesten}>
                   Verbindung prüfen
                 </Knopf>
-                <Knopf klein art="primaer" type="submit">
+                <SpeichernKnopf klein art="primaer">
                   Speichern
-                </Knopf>
+                </SpeichernKnopf>
               </div>
             </div>
           </form>

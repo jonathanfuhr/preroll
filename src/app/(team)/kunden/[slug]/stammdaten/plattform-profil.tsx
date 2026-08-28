@@ -1,6 +1,7 @@
 import { formatiereTag } from '@/lib/datum'
 import { istGepflegt, type Profilwerte } from '@/lib/plattform-profil'
 import { Eingabe, Feld, Knopf } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 /**
  * Die Angaben zu einem Profil: Handle, Bio, Website und die drei Zahlen.
@@ -107,9 +108,9 @@ export function ProfilFelder({
         koppeln, ein Dialog-OK.
       */}
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )

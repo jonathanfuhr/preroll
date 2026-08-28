@@ -1,5 +1,6 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 import {
   instagramSitzungSpeichern,
   kennzahlenSpeichern,
@@ -32,9 +33,9 @@ export default async function WorkspaceSeite({
               </Feld>
             </div>
             <div className="flex justify-end">
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>
@@ -63,9 +64,9 @@ export default async function WorkspaceSeite({
               <Eingabe name="agenturWebsite" defaultValue={e.agenturWebsite ?? ''} />
             </Feld>
             <div className="flex justify-end">
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>
@@ -145,9 +146,9 @@ export default async function WorkspaceSeite({
               ) : (
                 <span />
               )}
-              <Knopf klein art="primaer" type="submit">
+              <SpeichernKnopf klein art="primaer">
                 Speichern und prüfen
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>
@@ -205,9 +206,9 @@ export default async function WorkspaceSeite({
             <KennzahlenAnleitung />
 
             <div className="flex justify-end">
-              <Knopf klein art="primaer" type="submit">
+              <SpeichernKnopf klein art="primaer">
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>

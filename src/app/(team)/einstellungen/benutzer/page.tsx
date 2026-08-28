@@ -6,6 +6,7 @@ import { thumbUrl } from '@/lib/urls'
 import { Abschnitt, Eingabe, Feld, Fehler, Hinweis, Karte, Knopf, Schalter } from '@/components/ui'
 import { anmeldungSpeichern, pushEinrichten } from '../aktionen'
 import { NutzerAnlegen, NutzerZeile } from './verwaltung'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export const metadata = { title: 'Benutzer — Preroll' }
 
@@ -138,9 +139,9 @@ export default async function BenutzerSeite({
             </Hinweis>
 
             <div className="flex justify-end">
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>

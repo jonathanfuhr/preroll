@@ -2,6 +2,7 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { Abschnitt, Eingabe, Feld, Karte, Knopf, Schalter } from '@/components/ui'
 import { klappeSpeichern } from '../aktionen'
 import { KlappeEinrichtung } from '../klappe'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export const metadata = { title: 'Klappe — Preroll' }
 
@@ -64,9 +65,9 @@ export default async function KlappeSeite({
                 </Feld>
 
                 <div className="flex justify-end">
-                  <Knopf klein type="submit">
+                  <SpeichernKnopf klein>
                     Speichern
-                  </Knopf>
+                  </SpeichernKnopf>
                 </div>
               </form>
             </Karte>
@@ -117,9 +118,9 @@ export default async function KlappeSeite({
                 </Feld>
 
                 <div className="flex justify-end">
-                  <Knopf klein type="submit">
+                  <SpeichernKnopf klein>
                     Speichern
-                  </Knopf>
+                  </SpeichernKnopf>
                 </div>
               </form>
             </Karte>

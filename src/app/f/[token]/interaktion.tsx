@@ -6,6 +6,7 @@ import { freigabeBeschriftung, STUFE_TEXT } from '@/lib/freigabe'
 import { KommentarFeld, type Erwaehnbar } from '@/components/kommentar-feld'
 import { KommentarInhalt } from '@/components/kommentar-inhalt'
 import { InternBadge, Knopf, Textfeld } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 import {
   freigabeErteilen,
   gastKommentarBearbeiten,
@@ -207,9 +208,9 @@ function Eintrag({
             >
               abbrechen
             </button>
-            <Knopf art="primaer" klein type="submit">
+            <SpeichernKnopf art="primaer" klein>
               Speichern
-            </Knopf>
+            </SpeichernKnopf>
           </div>
         </form>
       ) : (

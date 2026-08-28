@@ -2,6 +2,7 @@ import type { Plattform } from '@prisma/client'
 import { moeglichePlattformen } from '@/lib/plattformen'
 import { PlattformModusWahl } from '@/components/plattform-modus'
 import { Auswahl, Feld, Fehler, Hinweis, Knopf, Schalter, Warnung } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export type MetaSeitenZeile = {
   id: string
@@ -118,9 +119,9 @@ export function PlattformwahlKarte({
       )}
 
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )
@@ -231,9 +232,9 @@ export function MetaKanaele({
       )}
 
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )
@@ -340,9 +341,9 @@ export function LinkedInKanal({
       )}
 
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { ALLE_ROLLEN, ROLLE_TEXT } from '@/lib/rollen'
 import { passwortRegelText } from '@/lib/passwort'
 import { Auswahl, Eingabe, Feld, Karte, Knopf, Schalter } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 import {
   nutzerAnlegen,
   nutzerRolleSetzen,
@@ -150,9 +151,9 @@ export function NutzerZeile({ nutzer }: { nutzer: NutzerDaten }) {
             />
 
             <div className="flex justify-end">
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
 

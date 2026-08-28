@@ -1,4 +1,5 @@
 import { Eingabe, Feld, Fehler, Hinweis, Karte, Knopf } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 import {
   kopplungAnstossen,
   kopplungFertigstellen,
@@ -123,9 +124,9 @@ export function KlappeEinrichtung({
               />
             </Feld>
             <div className="flex justify-end">
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </div>

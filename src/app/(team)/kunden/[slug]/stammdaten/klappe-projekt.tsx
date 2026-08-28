@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { Auswahl, Fehler, Hinweis, Knopf } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export type KlappeProjektZeile = {
   id: string
@@ -90,9 +91,9 @@ export function KlappeProjektWahl({
         >
           {laeuft ? 'Wird geholt …' : `Projektliste aktualisieren (${projekte.length})`}
         </button>
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )

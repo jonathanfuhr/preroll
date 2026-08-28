@@ -17,6 +17,7 @@ import {
   metaZugangSpeichern,
 } from '../veroeffentlichen-aktionen'
 import { kundenAmLinkedInZugang, ladeLinkedInZugang } from '@/lib/linkedin-zugang'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export const metadata = { title: 'Veröffentlichen — Preroll' }
 
@@ -120,9 +121,9 @@ export default async function VeroeffentlichenSeite({
                 <Knopf klein type="submit" formAction={laufAnstossen}>
                   Jetzt laufen lassen
                 </Knopf>
-                <Knopf klein art="primaer" type="submit">
+                <SpeichernKnopf klein art="primaer">
                   Speichern
-                </Knopf>
+                </SpeichernKnopf>
               </div>
             </div>
           </form>
@@ -181,9 +182,9 @@ export default async function VeroeffentlichenSeite({
                     <Knopf klein type="submit" formAction={metaZugangPruefen}>
                       Verbindung prüfen
                     </Knopf>
-                    <Knopf klein art="primaer" type="submit">
+                    <SpeichernKnopf klein art="primaer">
                       Speichern
-                    </Knopf>
+                    </SpeichernKnopf>
                   </div>
                 </div>
               </form>
@@ -310,9 +311,9 @@ export default async function VeroeffentlichenSeite({
                 />
               </Feld>
               <div className="flex justify-end">
-                <Knopf klein type="submit">
+                <SpeichernKnopf klein>
                   Speichern
-                </Knopf>
+                </SpeichernKnopf>
               </div>
             </form>
           </Karte>

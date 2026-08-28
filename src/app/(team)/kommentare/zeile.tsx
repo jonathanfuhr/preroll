@@ -4,6 +4,7 @@ import type { KommentarStatus } from '@prisma/client'
 import { useState } from 'react'
 import { KommentarFeld, type Erwaehnbar } from '@/components/kommentar-feld'
 import { Knopf } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 import {
   kommentarBearbeiten,
   kommentarLoeschen,
@@ -65,9 +66,9 @@ export function KommentarZeile({
           >
             abbrechen
           </button>
-          <Knopf art="primaer" klein type="submit">
+          <SpeichernKnopf art="primaer" klein>
             Speichern
-          </Knopf>
+          </SpeichernKnopf>
         </div>
       </form>
     )

@@ -4,6 +4,7 @@ import type { MailTransport } from '@prisma/client'
 import { useState } from 'react'
 import { SMTP_PRESETS } from '@/lib/mail/presets'
 import { Auswahl, Eingabe, Feld, Knopf, Schalter } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 type MailEinstellungen = {
   mailTransport: MailTransport
@@ -200,9 +201,9 @@ export function MailFelder({
       )}
 
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )

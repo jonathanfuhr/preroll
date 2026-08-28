@@ -10,6 +10,7 @@ import {
   type VariantenVideo,
 } from './varianten-medien'
 import { Auswahl, Feld, Hinweis, Knopf, Textfeld } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export type VariantenZeile = {
   id: string
@@ -298,9 +299,9 @@ function Fassungskarte({
           </Feld>
 
           <div className="flex justify-end">
-            <Knopf klein type="submit">
+            <SpeichernKnopf klein>
               Fassung speichern
-            </Knopf>
+            </SpeichernKnopf>
           </div>
         </form>
   )

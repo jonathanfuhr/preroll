@@ -1,6 +1,7 @@
 'use client'
 
 import { Auswahl, Hinweis, Knopf } from '@/components/ui'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export type AworkProjektZeile = {
   id: string
@@ -74,9 +75,9 @@ export function AworkProjektWahl({
       )}
 
       <div className="flex justify-end">
-        <Knopf klein type="submit">
+        <SpeichernKnopf klein>
           Speichern
-        </Knopf>
+        </SpeichernKnopf>
       </div>
     </form>
   )

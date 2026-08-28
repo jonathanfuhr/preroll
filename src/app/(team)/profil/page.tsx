@@ -7,6 +7,7 @@ import { BildAblage } from '@/components/bild-ablage'
 import { PushAnmeldung } from '@/components/push-anmeldung'
 import { Abschnitt, Eingabe, Feld, Fehler, Hinweis, Karte, Knopf, Schalter } from '@/components/ui'
 import { meineBenachrichtigungen, passwortAendern, profilSpeichern } from '../einstellungen/benutzer-aktionen'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 export const metadata = { title: 'Profil & Sicherheit — Preroll' }
 export const dynamic = 'force-dynamic'
@@ -66,9 +67,9 @@ export default async function ProfilSeite({
               </Feld>
             </div>
             <div className="flex justify-end">
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>
@@ -135,9 +136,9 @@ export default async function ProfilSeite({
             />
             <div className="flex items-center justify-between gap-4">
               <PushAnmeldung />
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
         </Karte>

@@ -27,6 +27,7 @@ import { ProfilFelder } from './plattform-profil'
 import { LinkedInKanal, MetaKanaele, PlattformwahlKarte } from './veroeffentlichen'
 import { linkedInAppSteht, linkedInOrganisationen, ladeLinkedInZugang } from '@/lib/linkedin-zugang'
 import { linkedInKanalSpeichern } from '../veroeffentlichen-aktionen'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 /**
  * Stammdaten, nach Plattform gegliedert.
@@ -144,9 +145,9 @@ export default async function StammdatenSeite({
 
             <div className="flex justify-end">
               {/* Still wie in jedem anderen Abschnitt — siehe `ProfilFelder`. */}
-              <Knopf klein type="submit">
+              <SpeichernKnopf klein>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </form>
 

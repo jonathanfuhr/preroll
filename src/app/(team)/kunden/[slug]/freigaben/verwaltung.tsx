@@ -13,6 +13,7 @@ import { ROLLE_TEXT } from '@/lib/rollen'
 import type { Rolle } from '@prisma/client'
 import type { Plattform } from '@prisma/client'
 import { PLATTFORM_TEXT, sortierePlattformen } from '@/lib/plattformen'
+import { SpeichernKnopf } from '@/components/speichern-knopf'
 
 /** Konten, die als zusätzlicher Ansprechpartner in Frage kommen. */
 type Waehlbar = { id: string; name: string; rolle: Rolle }
@@ -375,9 +376,9 @@ export function ZugangKarte({
             >
               Zugang löschen
             </button>
-            <Knopf art="primaer" type="submit">
+            <SpeichernKnopf art="primaer">
               Speichern
-            </Knopf>
+            </SpeichernKnopf>
           </div>
         </form>
       )}

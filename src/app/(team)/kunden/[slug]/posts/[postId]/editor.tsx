@@ -26,6 +26,7 @@ import { type KlappeVideoWahl } from './klappe-feld'
 import { VideoQuellen } from './video-quellen'
 import { terminFelder } from '@/lib/datum'
 import { videoVonLinkLaden } from '../../video-download-aktionen'
+import { SpeichernKnopf, SpeichernMelder } from '@/components/speichern-knopf'
 import {
   Abschnitt,
   Eingabe,
@@ -201,6 +202,8 @@ export function PostEditor({
   }
 }) {
   const [dialogOffen, setDialogOffen] = useState(false)
+  // Der Speichern-Knopf steht außerhalb seines Formulars; von dort kommt der Stand.
+  const [speichert, setSpeichert] = useState(false)
   // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
   // im Dialog und über den Eckdaten.
   const downloadstand = useDownloadstand(post.id, downloadStand)
@@ -275,9 +278,15 @@ export function PostEditor({
               Blick. Er steht außerhalb des Formulars und findet es über `form`.
             */}
             <div className="mt-3">
-              <Knopf art="primaer" type="submit" form={FORMULAR}>
+              {/*
+                `laeuft` von Hand: `useFormStatus` liest den Kontext des
+                umgebenden Formulars, und dieser Knopf steht außerhalb — er
+                findet sein Formular über `form=`. Den Stand meldet deshalb
+                ein unsichtbares Bauteil von innen.
+              */}
+              <SpeichernKnopf art="primaer" form={FORMULAR} laeuft={speichert}>
                 Speichern
-              </Knopf>
+              </SpeichernKnopf>
             </div>
           </div>
 
@@ -345,6 +354,7 @@ export function PostEditor({
       )}
 
       <form id={FORMULAR} action={postSpeichern.bind(null, post.id)} className="grid gap-8">
+        <SpeichernMelder onLaeuft={setSpeichert} />
         {/* -------------------------------------------------------- Eckdaten */}
         <Abschnitt titel="Eckdaten">
           <div className="grid gap-4 rounded-md border border-rahmen bg-flaeche p-5">
