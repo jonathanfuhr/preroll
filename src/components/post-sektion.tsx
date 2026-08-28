@@ -1,6 +1,7 @@
 import type { Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import { Fragment, type ReactNode } from 'react'
 import { kalenderwoche } from '@/lib/format'
+import { formatiereTermin } from '@/lib/datum'
 import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
 import { IPhoneVorschau } from './iphone'
@@ -19,13 +20,15 @@ import { VorschauWahl, type Vorschauart } from './vorschau-wahl'
  * Mobil: alles untereinander, Szenen gestapelt statt zweispaltig.
  */
 
-const DATUM = new Intl.DateTimeFormat('de-DE', {
+// Zone ausdrücklich — siehe `datum.ts`. Der Kunde soll die Uhrzeit der
+// Agentur lesen, nicht die seines Laptops.
+const DATUM: Intl.DateTimeFormatOptions = {
   weekday: 'short',
   day: '2-digit',
   month: '2-digit',
   year: 'numeric',
-})
-const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
+}
+const UHRZEIT: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' }
 
 const TYP_TEXT: Record<PostTyp, string> = {
   REEL: 'Reel',
@@ -311,7 +314,7 @@ export function PostSektion({
         */}
         <div className="flex w-full flex-wrap items-end gap-x-6 gap-y-4 sm:w-auto xl:hidden">
           <span className="text-[12.5px] text-[#77746f] sm:text-[13px]">
-            {DATUM.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)}
+            {formatiereTermin(post.postenAm, DATUM)} · {formatiereTermin(post.postenAm, UHRZEIT)}
           </span>
           <StatusLeiste
             stufe={abgeleiteteStufe(post.status, post.postenAm)}
@@ -446,7 +449,7 @@ export function PostSektion({
           <div className="grid gap-5 xl:sticky xl:top-24">
             <div className="hidden gap-4 xl:grid">
               <span className="text-[13px] text-[#77746f]">
-                {DATUM.format(post.postenAm)} · {UHRZEIT.format(post.postenAm)}
+                {formatiereTermin(post.postenAm, DATUM)} · {formatiereTermin(post.postenAm, UHRZEIT)}
               </span>
               {/* Ein Etikett sagt nur, wo etwas steht — nicht, was noch kommt. */}
               <StatusLeiste

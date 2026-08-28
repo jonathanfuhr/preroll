@@ -24,6 +24,7 @@ import type { Zielreel } from './uebertragen'
 import { FreigabeFeld, type FreigabeZeile } from './freigabe-feld'
 import { type KlappeVideoWahl } from './klappe-feld'
 import { VideoQuellen } from './video-quellen'
+import { terminFelder } from '@/lib/datum'
 import { videoVonLinkLaden } from '../../video-download-aktionen'
 import {
   Abschnitt,
@@ -591,8 +592,13 @@ export function PostEditor({
         />
 
         <div className="mt-3 flex max-w-[344px] flex-wrap items-center gap-2">
+          {/*
+            Der einzige Weg zu den Medien. Der zweite Knopf oben rechts **im**
+            Geräterahmen ist weg: Zwei Wege zur selben Sache, einer davon im
+            Bild versteckt — einer reicht, und der Name sagt jetzt beides.
+          */}
           <Knopf klein onClick={() => setDialogOffen(true)}>
-            Hochladen
+            Hochladen/Ersetzen
           </Knopf>
           {post.typ === 'REEL' && thumbnailAutomatisch && (
             <span className="w-full text-[11px] leading-tight text-leiser">

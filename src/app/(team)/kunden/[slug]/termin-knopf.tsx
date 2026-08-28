@@ -1,21 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { formatiereTermin, terminFelder } from '@/lib/datum'
 import { Knopf } from '@/components/ui'
 import { postTerminSetzen } from './aktionen'
 
-const DATUM = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
-
-/** `2026-08-11` und `10:00` — die Werte, die `<input type="date|time">` erwartet. */
-function felder(termin: Date | null): { datum: string; uhrzeit: string } {
-  if (!termin) return { datum: '', uhrzeit: '' }
-  const zwei = (n: number) => String(n).padStart(2, '0')
-  return {
-    datum: `${termin.getFullYear()}-${zwei(termin.getMonth() + 1)}-${zwei(termin.getDate())}`,
-    uhrzeit: `${zwei(termin.getHours())}:${zwei(termin.getMinutes())}`,
-  }
-}
+/*
+  Zone ausdrücklich, nicht die des Betrachters: Dieses Bauteil rendert im
+  Browser, und ein Termin ist eine Uhrzeit an der Wand des Büros. Ohne die
+  Angabe zeigte es einem Reisenden etwas anderes als dem Kollegen daneben —
+  und beim Speichern sprang der Wert.
+*/
+const DATUM: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' }
+const UHRZEIT: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' }
 
 /**
  * Der Termin in der Post-Liste — anzusehen und mit einem Klick zu ändern.
@@ -39,7 +36,7 @@ export function TerminKnopf({
   standardUhrzeit: string
 }) {
   const [offen, setOffen] = useState(false)
-  const start = felder(postenAm)
+  const start = terminFelder(postenAm)
 
   return (
     <>
@@ -51,9 +48,11 @@ export function TerminKnopf({
       >
         {postenAm ? (
           <>
-            {DATUM.format(postenAm)}
+            {formatiereTermin(postenAm, DATUM)}
             {/* Am Telefon zweizeilig — nebeneinander kosten sie 55 px, die dem Titel fehlen. */}
-            <span className="block text-still md:ml-1.5 md:inline">{UHRZEIT.format(postenAm)}</span>
+            <span className="block text-still md:ml-1.5 md:inline">
+              {formatiereTermin(postenAm, UHRZEIT)}
+            </span>
           </>
         ) : (
           <span className="text-stiller">ungeplant</span>

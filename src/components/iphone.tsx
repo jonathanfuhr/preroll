@@ -174,17 +174,6 @@ function Platzhalter({ text, aufKlick }: { text: string; aufKlick?: () => void }
 }
 
 /** Kleiner Knopf über einem vorhandenen Medium, zum Ersetzen. */
-function ErsetzenKnopf({ aufKlick }: { aufKlick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={aufKlick}
-      className="absolute right-2 top-2 z-10 rounded-[4px] bg-black/55 px-2.5 py-1 text-[10.5px] font-medium text-white backdrop-blur transition-colors hover:bg-black/75"
-    >
-      ersetzen
-    </button>
-  )
-}
 
 // ----------------------------------------------------------------- Beitrag 3:4
 
@@ -216,7 +205,6 @@ export function IPhoneBeitrag({
     >
       {bild ? (
         <>
-          {aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
           {istVideo ? (
             <ReelFlaeche />
           ) : (
@@ -280,7 +268,6 @@ export function IPhoneKarussell({
         slides={slides}
         verhaeltnis={verhaeltnis}
         aufUpload={aufUpload}
-        ersetzenKnopf={aufUpload ? <ErsetzenKnopf aufKlick={aufUpload} /> : null}
       />
 
       <Aktionsleiste />
@@ -348,7 +335,6 @@ export function IPhoneReel({
           </span>
         )}
 
-        {medium && aufUpload && <ErsetzenKnopf aufKlick={aufUpload} />}
 
         <div className="relative z-10">
           <Statusleiste hell />

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Verhaeltnis } from '@prisma/client'
-import { useRef, useState, type ReactNode, type TouchEvent } from 'react'
+import { useRef, useState, type TouchEvent } from 'react'
 import { flaechenHoehe, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 
 /**
@@ -21,12 +21,10 @@ export function KarussellFlaeche({
   slides,
   verhaeltnis = 'HOCH_4_5',
   aufUpload,
-  ersetzenKnopf,
 }: {
   slides: string[]
   verhaeltnis?: Verhaeltnis
   aufUpload?: () => void
-  ersetzenKnopf?: ReactNode
 }) {
   const [aktiv, setAktiv] = useState(0)
   const anzahl = Math.max(slides.length, 1)
@@ -58,11 +56,8 @@ export function KarussellFlaeche({
         onTouchEnd={wischEnde}
       >
         {bild ? (
-          <>
-            {ersetzenKnopf}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bild} alt={`Slide ${aktiv + 1}`} className="h-full w-full object-cover" />
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={bild} alt={`Slide ${aktiv + 1}`} className="h-full w-full object-cover" />
         ) : (
           /*
             Der Platzhalter steht hier und kommt nicht als Funktion von außen:

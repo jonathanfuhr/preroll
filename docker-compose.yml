@@ -32,6 +32,12 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      # Ohne diese Zeile läuft der Container in UTC — und damit rechnet der
+      # Server in einer anderen „Ortszeit" als der Browser. Genau daran hing,
+      # dass Posting-Uhrzeiten beim Speichern um zwei Stunden sprangen. Alles,
+      # was Ortszeit liest (ZIP-Dateinamen, Kalenderwoche, Monatsraster),
+      # stimmt damit auf einen Schlag.
+      TZ: ${TZ:-Europe/Berlin}
       DATABASE_URL: postgresql://preroll:${POSTGRES_PASSWORD:-preroll}@postgres:5432/preroll?schema=public
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET fehlt}
       APP_URL: ${APP_URL:-http://localhost:3000}

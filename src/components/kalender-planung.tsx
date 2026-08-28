@@ -1,6 +1,7 @@
 'use client'
 
 import type { PostTyp } from '@prisma/client'
+import { formatiereTermin } from '@/lib/datum'
 import {
   DndContext,
   DragOverlay,
@@ -39,7 +40,8 @@ function tagesSchluessel(tag: Date): string {
   return `${tag.getFullYear()}-${mm}-${tt}`
 }
 
-const UHRZEIT = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' })
+// Zone ausdrücklich — dieses Bauteil rendert im Browser, siehe `datum.ts`.
+const UHRZEIT: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' }
 
 // ---------------------------------------------------------------- Bausteine
 
@@ -78,7 +80,7 @@ function ZiehbarerEintrag({
 
   const plattformen = sortierePlattformen(eintrag.plattformen ?? [])
   const beschriftung = `${TYP_TEXT[eintrag.typ]} · ${eintrag.titel}${
-    eintrag.postenAm ? ` · ${UHRZEIT.format(eintrag.postenAm)} Uhr` : ''
+    eintrag.postenAm ? ` · ${formatiereTermin(eintrag.postenAm, UHRZEIT)} Uhr` : ''
   }${plattformen.length > 0 ? ` · ${plattformen.map((p) => PLATTFORM_TEXT[p]).join(', ')}` : ''}`
 
   return (

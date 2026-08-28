@@ -283,6 +283,21 @@ Seite zu bewachen wäre die schlechtere Regel.
   wäre ein Termin, den niemand gewollt hat. Ein **leeres Datum** stellt den
   Beitrag zurück auf „Ungeplant" (`postTerminSetzen`); das ist ein gültiger
   Stand und braucht keinen eigenen Knopf.
+- **Ein Posting-Termin ist eine Uhrzeit an der Wand des Büros** und gilt in
+  `Europe/Berlin` (`ZONE` in `datum.ts`). Zwei Dinge halten das zusammen: Der
+  Container bekommt `TZ` gesetzt — sonst läuft er in UTC und rechnet in einer
+  anderen „Ortszeit" als der Browser —, und alles, was **im Browser**
+  formatiert wird, nennt die Zone ausdrücklich (`formatiereTermin`,
+  `terminFelder`, `terminAusEingabe`). Genau daran hing, dass die Uhrzeit beim
+  Speichern um zwei Stunden sprang. Reine Datumsfelder bleiben davon
+  unberührt: Sie liegen als `DATE` in UTC und laufen weiter über
+  `formatiereTag`.
+- **Ein verstrichener Termin wird nicht nachgeholt** (`VERFALL`, 15 Minuten).
+  Wer zu spät final setzt, plant um — auf einen Zeitpunkt in der Zukunft — und
+  setzt dann final. Ganz auf null geht es nicht: Der Takt prüft ein Fenster,
+  kein Wimpernschlag; 15 Minuten decken Takt und Neustart ab. Damit erledigt
+  sich auch die Frage, wann ein Beitrag final wurde — sie muss nirgends
+  festgehalten werden.
 - **Posts dürfen ungeplant sein.** `postenAm` ist optional. Der Anlegen-Dialog
   fragt bewusst kein Datum ab — ein erfundener Termin ist schlechter als gar
   keiner. Ungeplante Posts stehen im Kalender in der Spalte „Ungeplant" und
@@ -576,6 +591,22 @@ Seite zu bewachen wäre die schlechtere Regel.
   am Link (`videoDownloadUrl !== url`) und schreibt nichts mehr. In den
   **ZIP-Export** kommt eine Klappe-Fassung im Moment des Exports als
   Durchreiche (`klappeVideoFuersZip`) — Team: Original, Gast: Abspielfassung.
+- **Ein Weg zu den Medien, nicht zwei.** Der Knopf unter dem Rahmen heißt
+  „Hochladen/Ersetzen"; den zweiten oben rechts **im** Schirm gibt es nicht
+  mehr — er tat dasselbe und war im Bild versteckt.
+- **Der Medien-Dialog einer Fassung kennt das Format, das gerade gewählt ist**,
+  nicht das gespeicherte. Sonst sagte er nach der Wahl von 1:1 weiter 4:5 an,
+  solange niemand gespeichert hat — und man lud gegen die falsche Vorgabe
+  hoch. Das Auswahlfeld ist deshalb kontrolliert, und die Fassungskarte trägt
+  einen Schlüssel mit dem gespeicherten Format, damit sie nach dem Speichern
+  frisch startet.
+- **Kommentare lassen sich auch im Post-Editor schreiben**, nicht nur über den
+  Freigabe-Link. Das Feld steht **oben** in der Liste: Ein neuer Strang gehört
+  an den Anfang. Es liegt in einem eigenen Bauteil
+  (`KommentarSchreiben`), weil es nach dem Senden **zurückgesetzt** werden
+  muss — `KommentarFeld` hält seinen Text für die @-Erwähnungen in eigenem
+  Zustand, und React leert nur unkontrollierte Felder. Ohne das Zurücksetzen
+  schriebe der zweite Klick denselben Kommentar noch einmal.
 - **Medien-Upload läuft über den Geräterahmen.** Kein eigener Ablagebereich im
   Formular: Die leere Fläche im iPhone-Mockup ist der Knopf, ein Klick öffnet
   `MedienDialog` — und der zeigt je Post-Typ etwas anderes (Beitrag: eine

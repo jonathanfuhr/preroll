@@ -44,12 +44,22 @@ export { medienFuerPost } from './veroeffentlichung-medien'
  *
  * ## Wie lange nachgeholt wird
  *
- * Ein verschlafener Termin wird nachgeholt, aber nicht endlos: Sechs Stunden
- * decken einen Neustart und eine durchschlafene Nacht ab und landen noch im
- * selben Arbeitstag. Was älter ist, geht nicht mehr raus — ein Beitrag, der um
- * 10:00 Uhr geplant war und um 23:00 Uhr erscheint, ist schlimmer als keiner.
+ * **Fast gar nicht.** Ist der Termin verstrichen, geht nichts mehr raus: Dann
+ * wird umgeplant — auf einen Zeitpunkt in der Zukunft, und sei es zehn
+ * Minuten — und danach auf Final gesetzt. Ein Beitrag, der um 10:00 geplant
+ * war und um 15:00 erscheint, ist schlimmer als keiner.
+ *
+ * Ganz auf null geht es trotzdem nicht: Der Takt läuft im Minutenabstand und
+ * prüft ein **Fenster**, keinen Zeitpunkt. Bei einer Frist von null fiele ein
+ * Beitrag durch, sobald der Takt eine Sekunde nach seinem Termin greift oder
+ * der Container gerade neu startet. 15 Minuten decken beides ab; alles
+ * Spätere ist eine Entscheidung, keine Panne.
+ *
+ * Das erledigt zugleich einen zweiten Fall: Wer um 15:00 auf Final zieht,
+ * während 10:00 geplant war, löst damit **keine** Veröffentlichung mehr aus.
+ * Es braucht also keine Buchführung darüber, wann ein Beitrag final wurde.
  */
-export const VERFALL = 6 * 3600_000
+export const VERFALL = 15 * 60_000
 
 /** Nach einem Fehlschlag frühestens so viel später wieder. */
 export const WIEDERHOLABSTAND = 5 * 60_000
@@ -240,7 +250,10 @@ export async function fuehreFaelligeAus(jetzt = new Date()): Promise<number> {
     where: { stand: 'GEPLANT', geplantFuer: { lt: verfallen } },
     data: {
       stand: 'FEHLGESCHLAGEN',
-      meldung: `Der Termin liegt mehr als ${VERFALL / 3600_000} Stunden zurück — nicht mehr veröffentlicht.`,
+      meldung:
+        `Der Termin liegt mehr als ${VERFALL / 60_000} Minuten zurück — nicht mehr ` +
+        'veröffentlicht. Für einen neuen Versuch den Beitrag auf einen Zeitpunkt in der ' +
+        'Zukunft umplanen.',
       erledigtAm: jetzt,
     },
   })

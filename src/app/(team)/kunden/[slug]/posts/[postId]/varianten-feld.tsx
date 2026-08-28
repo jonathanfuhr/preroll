@@ -83,6 +83,121 @@ export function VariantenFeld({
   return (
     <div className="grid gap-4">
       {varianten.map((v) => (
+        /*
+          Der Schlüssel trägt das gespeicherte Format: Ändert der Server es,
+          hängt React die Karte neu ein und der Zustand darin startet frisch.
+          Ohne ihn zeigte sie nach dem Speichern weiter den alten Stand.
+        */
+        <Fassungskarte
+          key={`${v.id}-${v.verhaeltnis ?? ''}`}
+          v={v}
+          postId={postId}
+          postTyp={postTyp}
+          postVerhaeltnis={postVerhaeltnis}
+          kundeSlug={kundeSlug}
+          geerbteMedien={geerbteMedien}
+          erlaubteFormate={erlaubteFormate}
+          frei={frei}
+          ausserhalb={ausserhalb}
+          speichern={speichern}
+          loeschen={loeschen}
+          medienVerwerfen={medienVerwerfen}
+        />
+      ))}
+
+      {frei.length === 0 && varianten.length > 0 ? (
+        <Hinweis>
+          Jede Plattform dieses Beitrags hat eine Fassung. Mehr geht nicht — eine zweite für
+          dieselbe Plattform wäre nicht entscheidbar.
+        </Hinweis>
+      ) : offen ? (
+        <form
+          action={anlegen}
+          className="grid gap-3.5 rounded-md border border-dashed border-rahmen-3 p-4"
+        >
+          <Feld
+            beschriftung="Für welche Plattformen"
+            hinweis="Alles, was hier nicht angehakt ist, bekommt weiterhin das Hauptformat."
+          >
+            <div className="flex flex-wrap gap-3">
+              {frei.map((p) => (
+                <label key={p} className="flex items-center gap-1.5 text-[12.5px] text-tinte-3">
+                  <input type="checkbox" name="plattformen" value={p} />
+                  {PLATTFORM_TEXT[p]}
+                </label>
+              ))}
+            </div>
+          </Feld>
+
+          <Feld
+            beschriftung="Caption"
+            hinweis="Leer lassen heißt: die Caption des Beitrags gilt."
+          >
+            <Textfeld name="caption" rows={4} />
+          </Feld>
+
+          <div className="flex justify-between gap-2">
+            <Knopf klein art="leise" type="button" onClick={() => setOffen(false)}>
+              Abbrechen
+            </Knopf>
+            <Knopf klein art="primaer" type="submit">
+              Fassung anlegen
+            </Knopf>
+          </div>
+        </form>
+      ) : (
+        <div>
+          <Knopf klein art="leise" type="button" onClick={() => setOffen(true)}>
+            Anderes Caption/Format hinzufügen
+          </Knopf>
+          {frei.length === 0 && (
+            <p className="mt-2 text-[11.5px] text-stiller">
+              Dafür braucht der Beitrag mindestens zwei Plattformen.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Eine Fassung als Karte.
+ *
+ * Eigenes Bauteil, weil sie **Zustand** braucht: Das gewählte Format muss
+ * sofort am Medien-Dialog ankommen, nicht erst nach dem Speichern. Innerhalb
+ * der Schleife im Elternteil ginge das nicht.
+ */
+function Fassungskarte({
+  v,
+  postId,
+  postTyp,
+  postVerhaeltnis,
+  kundeSlug,
+  geerbteMedien,
+  erlaubteFormate,
+  frei,
+  ausserhalb,
+  speichern,
+  loeschen,
+  medienVerwerfen,
+}: {
+  v: VariantenZeile
+  postId: string
+  postTyp: 'REEL' | 'KARUSSELL' | 'BEITRAG'
+  postVerhaeltnis: Verhaeltnis
+  kundeSlug: string
+  geerbteMedien: VariantenMedium[]
+  erlaubteFormate: Verhaeltnis[]
+  frei: Plattform[]
+  ausserhalb: Plattform[]
+  speichern: (varianteId: string, formular: FormData) => Promise<void>
+  loeschen: (varianteId: string) => Promise<void>
+  medienVerwerfen: (varianteId: string) => Promise<void>
+}) {
+  const [format, setFormat] = useState<Verhaeltnis | ''>(v.verhaeltnis ?? '')
+
+  return (
         <form
           key={v.id}
           action={speichern.bind(null, v.id)}
@@ -145,7 +260,17 @@ export function VariantenFeld({
                 : 'Wirkt erst mit eigenen Medien — sonst stünde das geerbte Bild in einer Fläche, für die es nicht gemacht ist.'
             }
           >
-            <Auswahl name="verhaeltnis" defaultValue={v.verhaeltnis ?? ''}>
+            {/*
+              Kontrolliert, nicht `defaultValue`: Der Medien-Dialog daneben
+              muss das **gerade gewählte** Format ansagen. Vorher bekam er den
+              gespeicherten — wer 1:1 wählte und sofort die Kachel anklickte,
+              las dort weiter 4:5 und lud gegen die falsche Vorgabe hoch.
+            */}
+            <Auswahl
+              name="verhaeltnis"
+              value={format}
+              onChange={(e) => setFormat(e.target.value as Verhaeltnis | '')}
+            >
               <option value="">— wie der Beitrag —</option>
               {erlaubteFormate.map((f) => (
                 <option key={f} value={f}>
@@ -164,7 +289,7 @@ export function VariantenFeld({
               varianteId={v.id}
               kundeSlug={kundeSlug}
               typ={postTyp}
-              verhaeltnis={v.verhaeltnis ?? postVerhaeltnis}
+              verhaeltnis={format || postVerhaeltnis}
               medien={v.medien}
               geerbt={geerbteMedien}
               video={v.video}
@@ -178,60 +303,5 @@ export function VariantenFeld({
             </Knopf>
           </div>
         </form>
-      ))}
-
-      {frei.length === 0 && varianten.length > 0 ? (
-        <Hinweis>
-          Jede Plattform dieses Beitrags hat eine Fassung. Mehr geht nicht — eine zweite für
-          dieselbe Plattform wäre nicht entscheidbar.
-        </Hinweis>
-      ) : offen ? (
-        <form
-          action={anlegen}
-          className="grid gap-3.5 rounded-md border border-dashed border-rahmen-3 p-4"
-        >
-          <Feld
-            beschriftung="Für welche Plattformen"
-            hinweis="Alles, was hier nicht angehakt ist, bekommt weiterhin das Hauptformat."
-          >
-            <div className="flex flex-wrap gap-3">
-              {frei.map((p) => (
-                <label key={p} className="flex items-center gap-1.5 text-[12.5px] text-tinte-3">
-                  <input type="checkbox" name="plattformen" value={p} />
-                  {PLATTFORM_TEXT[p]}
-                </label>
-              ))}
-            </div>
-          </Feld>
-
-          <Feld
-            beschriftung="Caption"
-            hinweis="Leer lassen heißt: die Caption des Beitrags gilt."
-          >
-            <Textfeld name="caption" rows={4} />
-          </Feld>
-
-          <div className="flex justify-between gap-2">
-            <Knopf klein art="leise" type="button" onClick={() => setOffen(false)}>
-              Abbrechen
-            </Knopf>
-            <Knopf klein art="primaer" type="submit">
-              Fassung anlegen
-            </Knopf>
-          </div>
-        </form>
-      ) : (
-        <div>
-          <Knopf klein art="leise" type="button" onClick={() => setOffen(true)}>
-            Anderes Caption/Format hinzufügen
-          </Knopf>
-          {frei.length === 0 && (
-            <p className="mt-2 text-[11.5px] text-stiller">
-              Dafür braucht der Beitrag mindestens zwei Plattformen.
-            </p>
-          )}
-        </div>
-      )}
-    </div>
   )
 }

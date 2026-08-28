@@ -1,6 +1,7 @@
 import type { KommentarStatus } from '@prisma/client'
 import { KommentarInhalt } from './kommentar-inhalt'
 import type { Erwaehnbar } from './kommentar-feld'
+import { KommentarSchreiben } from './kommentar-schreiben'
 import { InternBadge, Karte } from './ui'
 import { KommentarZeile } from '@/app/(team)/kommentare/zeile'
 
@@ -41,22 +42,27 @@ export function KommentarListe({
   kommentare: Kommentareintrag[]
   erwaehnbar: Erwaehnbar[]
 }) {
-  if (kommentare.length === 0) {
-    return (
-      <Karte className="p-5">
-        <p className="text-[12.5px] leading-relaxed text-leiser">
-          Noch keine Rückmeldung zu diesem Beitrag. Was der Kunde im Freigabe-Link schreibt,
-          erscheint hier.
-        </p>
-      </Karte>
-    )
-  }
-
   const straenge = kommentare.filter((k) => !k.antwortAufId)
   const antwortenZu = (id: string) => kommentare.filter((k) => k.antwortAufId === id)
 
   return (
     <div className="grid gap-3">
+      {/*
+        Schreiben, nicht nur lesen. Bisher ging das nur über den
+        Freigabe-Link — wer im Beitrag arbeitet und etwas festhalten will,
+        musste die Seite wechseln. Das Feld steht **oben**: Ein neuer Strang
+        gehört an den Anfang, und bei zwanzig Rückmeldungen sucht man es unten
+        vergeblich.
+      */}
+      <KommentarSchreiben postId={postId} erwaehnbar={erwaehnbar} />
+
+      {straenge.length === 0 && (
+        <p className="px-1 text-[12.5px] leading-relaxed text-leiser">
+          Noch keine Rückmeldung zu diesem Beitrag. Was der Kunde im Freigabe-Link schreibt,
+          erscheint hier.
+        </p>
+      )}
+
       {straenge.map((kommentar) => (
         <Karte
           key={kommentar.id}

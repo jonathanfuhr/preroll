@@ -1,17 +1,20 @@
 'use client'
 
+import { formatiereTermin } from '@/lib/datum'
 import type { PostStatus } from '@prisma/client'
 import Link from 'next/link'
 import { useMemo, useState, useTransition } from 'react'
 import type { Veroeffentlichungslage } from '@/lib/status'
 import { Karte, KnopfLink, Leerzustand, StatusBadge } from '@/components/ui'
 
-const DATUM = new Intl.DateTimeFormat('de-DE', {
+// Zone ausdrücklich: Hier steht ein Posting-Termin, und der gilt in der Zone
+// der Agentur — dieses Bauteil rendert im Browser. Siehe `datum.ts`.
+const DATUM: Intl.DateTimeFormatOptions = {
   weekday: 'short',
   day: '2-digit',
   month: '2-digit',
   year: 'numeric',
-})
+}
 
 export type Kundenkachel = {
   id: string
@@ -163,7 +166,7 @@ export function Kundenuebersicht({
                               klein
                             />
                           )}
-                          {DATUM.format(kunde.naechsterTermin)}
+                          {formatiereTermin(kunde.naechsterTermin, DATUM)}
                         </span>
                       ) : (
                         '—'

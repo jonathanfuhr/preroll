@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db'
 import { ladeGastEin, meldeFreigabe, meldeNeuenKommentar } from '@/lib/benachrichtigungen'
 import { aktualisiereKennzahlen, type AbrufbarePlattform } from '@/lib/kennzahlen-auftrag'
 import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
+import { terminAusEingabe } from '@/lib/datum'
 import { effektivePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
 import { offeneStufe } from '@/lib/freigabe'
@@ -284,7 +285,7 @@ export async function postSpeichern(postId: string, formular: FormData) {
       // ein von Hand gebogenes Formular soll kein 16:9-Karussell anlegen.
       ...(gewaehlt && istErlaubt(typ, gewaehlt) ? { verhaeltnis: gewaehlt } : {}),
       // Leeres Datumsfeld heißt: der Post wird wieder ungeplant.
-      postenAm: datum ? new Date(`${datum}T${uhrzeit}`) : null,
+      postenAm: datum ? terminAusEingabe(datum, uhrzeit) : null,
     },
     include: { kunde: true },
   })
@@ -338,7 +339,7 @@ export async function postTerminieren(postId: string, tag: string | null) {
 
   await prisma.post.update({
     where: { id: postId },
-    data: { postenAm: new Date(`${tag}T${uhrzeit}`) },
+    data: { postenAm: terminAusEingabe(tag, uhrzeit) },
   })
 
   // In Klappe trägt das Video das Datum im Namen — der zieht mit.
@@ -369,7 +370,7 @@ export async function postTerminSetzen(postId: string, formular: FormData) {
 
   await prisma.post.update({
     where: { id: postId },
-    data: { postenAm: tag ? new Date(`${tag}T${uhrzeit}`) : null },
+    data: { postenAm: tag ? terminAusEingabe(tag, uhrzeit) : null },
   })
 
   // In Klappe trägt das Video das Datum im Namen — der zieht mit.
