@@ -2,7 +2,7 @@ import type { Mail } from './typen'
 
 function huelle(titel: string, inhalt: string, fusszeile?: string): string {
   return `<!doctype html>
-<html lang="de"><body style="margin:0;background:#eceae7;padding:32px 16px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1c1a18;">
+<html lang="de"><body style="margin:0;background:#ffffff;padding:32px 16px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#1c1a18;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border:1px solid #e6e3df;border-radius:8px;">
       <tr><td style="padding:28px 32px 8px;">
