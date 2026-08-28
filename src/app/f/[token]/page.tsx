@@ -7,6 +7,7 @@ import { formatiereTag } from '@/lib/datum'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
 import { feedVorschau, postsImZeitraum } from '@/lib/export-sicht'
+import { fuerKundensicht } from '@/lib/stand-anwenden'
 import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
@@ -114,8 +115,20 @@ export default async function ExportSeite({
 
   const erwaehnbar = await erwaehnbarePersonen(exp.kundeId)
 
-  // Live-Sicht: bei jedem Aufruf frisch aus der Datenbank, kein Schnappschuss.
-  const alle = await prisma.post.findMany({
+  /*
+    Live — mit einer Ausnahme. Solange ein Beitrag in einer **sichtbaren**
+    Phase steht (Konzept, Vorschau, Final), sieht der Kunde bei jedem Aufruf
+    den frischen Stand. Sobald gearbeitet wird (Produktion, Korrektur), zeigt
+    `fuerKundensicht` den eingefrorenen Stand der Phase davor: Ein halb
+    ausgetauschtes Karussell und eine Caption mitten im Umschreiben sind keine
+    Arbeitsgrundlage, sondern eine Einladung zur Rückfrage.
+
+    Ersetzt wird nur der **Inhalt**. Termin, Phase, Freigaben und Kommentare
+    bleiben live — der Termin, weil er Planung ist und keine Gestaltung: Wird
+    ein Beitrag in der Produktion umgeplant, stünde er sonst im Kalender des
+    Kunden an einem Tag, an dem er nicht mehr erscheint.
+  */
+  const roh = await prisma.post.findMany({
     where: { kundeId: exp.kundeId },
     orderBy: { postenAm: 'asc' },
     include: {
@@ -123,8 +136,10 @@ export default async function ExportSeite({
       szenen: { orderBy: { position: 'asc' } },
       freigaben: { orderBy: { erstelltAm: 'asc' } },
       varianten: { orderBy: { position: 'asc' }, include: { medien: POST_MEDIEN } },
+      staende: true,
     },
   })
+  const alle = roh.map((p) => fuerKundensicht(p, p.staende))
 
   /*
     Welche Monate es gibt, sagen die Beiträge — nicht eine Tabelle. Vorher war

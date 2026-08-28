@@ -470,7 +470,15 @@ enum PostStatus {
    */
   ENTWURF
   KONZEPT
+  /**
+   * Zwischen Konzept und Vorschau wird gedreht und gestaltet. Der Kunde sieht
+   * dabei weiter den **Konzept-Stand** — nicht die halbfertige Arbeit. Welche
+   * Phasen so wirken, steht in `src/lib/phasen.ts`.
+   */
+  PRODUKTION
   VORSCHAU
+  /** Wie Produktion, eine Runde später: Der Kunde sieht weiter die Vorschau. */
+  KORREKTUR
   FINAL
 }
 
@@ -533,6 +541,7 @@ model Post {
   klappeStandAm       DateTime?
 
   szenen       Szene[]
+  staende      PostStand[]
   medien       PostMedium[]
   varianten    PostVariante[]
   customWerte  CustomFeldWert[]
@@ -642,6 +651,40 @@ enum MediumRolle {
   MEDIUM // Beitragsbild oder Reel-Video
   SLIDE // Karussell-Slide
   THUMBNAIL // Reel-Thumbnail (9:16)
+}
+
+/**
+ * Was der Kunde in einer Phase zu sehen bekam — festgeschrieben in dem Moment,
+ * in dem der Beitrag die Phase betrat.
+ *
+ * **Warum je Phase eine Zeile und nicht ein „letzter Stand" je Beitrag:** Beim
+ * Wechsel von Vorschau zurück auf Produktion soll der Kunde wieder das
+ * *Konzept* sehen. Ein einzelner letzter Stand zeigte dann die Vorschau — die
+ * Zeile muss also an der Phase hängen, nicht am Beitrag.
+ *
+ * Geschrieben wird nur für die **sichtbaren** Phasen (Konzept, Vorschau,
+ * Final); die Arbeitsphasen zeigen den Stand ihrer Vorgängerin.
+ *
+ * `inhalt` ist ein JSON-Dokument (`Standinhalt` in `src/lib/post-stand.ts`).
+ * Relational gespiegelt wären es vier weitere Tabellen — Beitrag, Fassungen,
+ * Medien, Szenen —, und abgefragt wird ein Stand nie nach einzelnen Feldern,
+ * sondern immer als Ganzes.
+ *
+ * **Dateien werden nicht kopiert.** Der Stand hält Medien-Kennungen; die Datei
+ * bleibt ohnehin in der Bibliothek, auch wenn sie am Beitrag ersetzt wird.
+ */
+model PostStand {
+  id     String     @id @default(cuid())
+  postId String
+  post   Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  phase  PostStatus
+
+  inhalt Json
+
+  erstelltAm DateTime @default(now())
+
+  @@unique([postId, phase])
+  @@map("post_stand")
 }
 
 model PostMedium {

@@ -161,8 +161,11 @@ describe('stufenErklaerung', () => {
 describe('naechstePhase', () => {
   it('schiebt vom Entwurf bis zum Final durch', () => {
     expect(naechstePhase('ENTWURF')).toBe('KONZEPT')
-    expect(naechstePhase('KONZEPT')).toBe('VORSCHAU')
-    expect(naechstePhase('VORSCHAU')).toBe('FINAL')
+    // Zwischen den sichtbaren Phasen liegt je eine Arbeitsphase.
+    expect(naechstePhase('KONZEPT')).toBe('PRODUKTION')
+    expect(naechstePhase('PRODUKTION')).toBe('VORSCHAU')
+    expect(naechstePhase('VORSCHAU')).toBe('KORREKTUR')
+    expect(naechstePhase('KORREKTUR')).toBe('FINAL')
   })
 
   it('endet bei Final — „Gepostet" wird berechnet, nicht gesetzt', () => {
@@ -180,5 +183,34 @@ describe('abgeleiteteStufe mit Entwurf', () => {
 
   it('hat in der Zeitleiste kein Gegenstück', () => {
     expect(STUFEN).not.toContain('ENTWURF')
+  })
+})
+
+describe('abgeleiteteStufe bei den Arbeitsphasen', () => {
+  /*
+    Beim Kunden gibt es die Arbeitsphasen nicht. Er sieht in ihnen den Stand
+    der Phase davor — und die Leiste soll genau diese Stufe zeigen, nicht
+    „Produktion". Das wäre eine Auskunft über unseren Betrieb.
+  */
+  it('bildet Produktion auf Konzept und Korrektur auf Vorschau ab', () => {
+    const kuenftig = new Date(Date.now() + 86400_000)
+    expect(abgeleiteteStufe('PRODUKTION', kuenftig)).toBe('KONZEPT')
+    expect(abgeleiteteStufe('KORREKTUR', kuenftig)).toBe('VORSCHAU')
+  })
+
+  it('lässt die sichtbaren Phasen unverändert', () => {
+    const kuenftig = new Date(Date.now() + 86400_000)
+    expect(abgeleiteteStufe('KONZEPT', kuenftig)).toBe('KONZEPT')
+    expect(abgeleiteteStufe('VORSCHAU', kuenftig)).toBe('VORSCHAU')
+    expect(abgeleiteteStufe('FINAL', kuenftig)).toBe('FINAL')
+  })
+
+  /*
+    Eine Arbeitsphase mit vergangenem Termin ist **nicht** gepostet —
+    veröffentlicht wird nur Finales.
+  */
+  it('macht aus einer Arbeitsphase mit vergangenem Termin kein „Gepostet"', () => {
+    const vergangen = new Date(Date.now() - 86400_000)
+    expect(abgeleiteteStufe('KORREKTUR', vergangen)).toBe('VORSCHAU')
   })
 })

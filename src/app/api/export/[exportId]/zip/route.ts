@@ -60,6 +60,10 @@ export async function GET(
       // Der Kunde bekommt ausschließlich Finales. Beim Team zählt der Zeitraum
       // und nicht der Freigabestand — es exportiert auch, was der Kunde noch
       // nicht gesehen hat.
+      //
+      // Eingefrorene Stände spielen hier deshalb keine Rolle: `FINAL` ist eine
+      // sichtbare Phase und wird live gelesen, und was in Produktion oder
+      // Korrektur steht, ist nie final — es kommt gar nicht erst bis hierher.
       ...(alsGast ? { status: 'FINAL' as const } : {}),
     },
     orderBy: { postenAm: 'asc' },

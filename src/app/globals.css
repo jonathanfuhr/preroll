@@ -51,6 +51,16 @@
     als hell gegen dunkel.
   */
   --color-gepostet: #1e5c34;
+  /*
+    Die beiden Arbeitsphasen — Produktion und Korrektur — teilen sich eine
+    Farbe. Sie bedeuten für den, der eine Liste überfliegt, dasselbe: Hier
+    wird gearbeitet, der Kunde sieht den Stand davor. Welche Runde es ist,
+    sagt das Wort daneben; zwei ähnliche Blautöne wären eine Unterscheidung
+    ohne Unterschied. Ein ruhiges Blau, weil es weder nach Konzeptgrau noch
+    nach Vorschauorange aussieht und keinen Alarm auslöst.
+  */
+  --color-arbeit: #3f6ea3;
+  --color-arbeit-flaeche: #eef3f9;
 
   /* Post-Typen — auch die Punkte im Kalender */
   --color-typ-reel: #b00900;

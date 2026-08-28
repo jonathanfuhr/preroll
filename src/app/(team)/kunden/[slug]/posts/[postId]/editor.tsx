@@ -12,7 +12,8 @@ import {
   type Downloadstand,
 } from '@/components/download-fortschritt'
 import { kalenderwoche } from '@/lib/format'
-import type { Anzeigephase } from '@/lib/status'
+import { PHASEN, PHASE_TEXT, type Anzeigephase } from '@/lib/status'
+import { arbeitsphaseHinweis } from '@/lib/phasen'
 import { PhasenBadge } from '@/components/ui'
 import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { PlattformWahl } from '@/components/plattform-wahl'
@@ -68,13 +69,8 @@ type PostDaten = {
 
 type CustomFeld = { id: string; name: string; typ: CustomFeldTyp; wert: string | null }
 
-const STATUS: PostStatus[] = ['ENTWURF', 'KONZEPT', 'VORSCHAU', 'FINAL']
-const STATUS_TEXT: Record<PostStatus, string> = {
-  ENTWURF: 'Entwurf',
-  KONZEPT: 'Konzept',
-  VORSCHAU: 'Vorschau',
-  FINAL: 'Final',
-}
+const STATUS: PostStatus[] = [...PHASEN]
+const STATUS_TEXT = PHASE_TEXT
 /** Ein Name, damit Titel und Speichern-Knopf außerhalb des Formulars stehen können. */
 const FORMULAR = 'post-formular'
 
@@ -91,7 +87,9 @@ const TERMIN = new Intl.DateTimeFormat('de-DE', {
 const STATUS_AKTIV: Record<PostStatus, string> = {
   ENTWURF: 'bg-flaeche-tief text-tinte-3',
   KONZEPT: 'bg-konzept-flaeche text-konzept',
+  PRODUKTION: 'bg-arbeit-flaeche text-arbeit',
   VORSCHAU: 'bg-vorschau-flaeche text-vorschau',
+  KORREKTUR: 'bg-arbeit-flaeche text-arbeit',
   FINAL: 'bg-final-flaeche text-final',
 }
 
@@ -204,6 +202,7 @@ export function PostEditor({
   const [dialogOffen, setDialogOffen] = useState(false)
   // Der Speichern-Knopf steht außerhalb seines Formulars; von dort kommt der Stand.
   const [speichert, setSpeichert] = useState(false)
+  const hinweis = arbeitsphaseHinweis(post.status)
   // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
   // im Dialog und über den Eckdaten.
   const downloadstand = useDownloadstand(post.id, downloadStand)
@@ -300,8 +299,8 @@ export function PostEditor({
             </a>
 
             {/*
-              Der Umschalter zeigt die vier Phasen, die sich setzen lassen.
-              „Gepostet" steht daneben statt als fünfter Knopf: Es wird aus
+              Der Umschalter zeigt die sechs Phasen, die sich setzen lassen.
+              „Gepostet" steht daneben statt als siebter Knopf: Es wird aus
               Final plus vergangenem Termin berechnet und lässt sich nicht
               anklicken — ein Knopf, der nichts tut, wäre eine Falle.
             */}
@@ -311,6 +310,17 @@ export function PostEditor({
                 <PhasenBadge phase={phase} klein />
               )}
             </span>
+            {/*
+              In einer Arbeitsphase steht daneben, was der Kunde in der
+              Zwischenzeit sieht. Ohne den Zusatz wäre „Produktion" eine
+              Auskunft über unseren Betrieb; mit ihm ist es eine über den
+              Kunden — und das ist die Frage, die sich hier stellt.
+            */}
+            {hinweis && (
+              <span className="rounded-[4px] bg-arbeit-flaeche px-2 py-1 text-[11.5px] text-arbeit">
+                {hinweis}
+              </span>
+            )}
             <div className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]">
               {STATUS.map((status) => (
                 <form key={status} action={postStatusSetzen.bind(null, post.id, status)}>

@@ -21,6 +21,7 @@ import { freiePlattformen } from '@/lib/varianten'
 import { brichVideoDownloadAb } from '@/lib/video-download'
 import { platzAus, schreibeVideoPlatz } from '@/lib/video-platz'
 import { klappeVideoNachziehen } from './klappe-aktionen'
+import { friereStaendeEin } from '@/lib/stand-schreiben'
 
 async function nutzerOderRaus() {
   const nutzer = await aktuellerNutzer()
@@ -381,6 +382,9 @@ export async function postTerminSetzen(postId: string, formular: FormData) {
 
 export async function postStatusSetzen(postId: string, status: PostStatus) {
   await nutzerOderRaus()
+  // Erst einfrieren, dann umschalten: Danach ist die alte Phase nicht mehr
+  // abzulesen, und der Stand hinge an einer Angabe, die es nicht mehr gibt.
+  await friereStaendeEin([postId], status)
   const post = await prisma.post.update({
     where: { id: postId },
     data: { status },
@@ -408,6 +412,20 @@ export async function postsStatusSetzen(
 ): Promise<number> {
   await nutzerOderRaus()
   if (ids.length === 0) return 0
+
+  /*
+    Eingefroren wird gegen dieselbe Bedingung, gegen die auch geschrieben
+    wird — der Kunde kommt mit hinein. Über eine fremde Kennung ließe sich
+    sonst der Stand eines Beitrags festschreiben, der jemand anderem gehört.
+  */
+  const eigene = await prisma.post.findMany({
+    where: { id: { in: ids }, kunde: { slug } },
+    select: { id: true },
+  })
+  await friereStaendeEin(
+    eigene.map((p) => p.id),
+    status,
+  )
 
   const { count } = await prisma.post.updateMany({
     where: { id: { in: ids }, kunde: { slug } },

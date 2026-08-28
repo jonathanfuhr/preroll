@@ -1,4 +1,5 @@
 import type { PostStatus, VeroeffentlichungStand } from '@prisma/client'
+import { geltendePhase, PHASENFOLGE } from './phasen'
 
 /**
  * Der Stand eines Beitrags, wie ihn der Kunde sieht — vier Stufen statt drei.
@@ -44,7 +45,9 @@ export const STUFE_TEXT: Record<Stufe, string> = {
 export const ANZEIGEPHASEN = [
   'ENTWURF',
   'KONZEPT',
+  'PRODUKTION',
   'VORSCHAU',
+  'KORREKTUR',
   'FINAL',
   'GEPOSTET',
   'FEHLGESCHLAGEN',
@@ -54,7 +57,9 @@ export type Anzeigephase = (typeof ANZEIGEPHASEN)[number]
 export const ANZEIGEPHASE_TEXT: Record<Anzeigephase, string> = {
   ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',
+  PRODUKTION: 'Produktion',
   VORSCHAU: 'Vorschau',
+  KORREKTUR: 'Korrektur',
   FINAL: 'Final',
   GEPOSTET: 'Gepostet',
   FEHLGESCHLAGEN: 'Fehlgeschlagen',
@@ -123,6 +128,15 @@ export function abgeleiteteStufe(
   // damit der Typ vollständig ist.
   if (phase === 'FEHLGESCHLAGEN') return 'FINAL'
   if (phase === 'ENTWURF') return 'KONZEPT'
+  /*
+    Die Arbeitsphasen haben beim Kunden kein Gegenstück — er sieht in ihnen
+    den Stand der vorangehenden sichtbaren Phase, und die Leiste soll genau
+    diese Stufe zeigen. Stünde dort „Produktion", wäre es eine Auskunft über
+    unseren Betrieb und nicht über das, was vor ihm liegt.
+  */
+  if (phase === 'PRODUKTION' || phase === 'KORREKTUR') {
+    return geltendePhase(phase) === 'VORSCHAU' ? 'VORSCHAU' : 'KONZEPT'
+  }
   return phase
 }
 
@@ -153,12 +167,14 @@ export function stufenErklaerung(stufe: Stufe, mitFreigaben: boolean): string {
  * Die Reihenfolge, in der ein Beitrag durchs Haus geht. `GEPOSTET` fehlt
  * hier: Das wird berechnet, nicht gesetzt.
  */
-export const PHASEN = ['ENTWURF', 'KONZEPT', 'VORSCHAU', 'FINAL'] as const
+export const PHASEN = PHASENFOLGE
 
 export const PHASE_TEXT: Record<PostStatus, string> = {
   ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',
+  PRODUKTION: 'Produktion',
   VORSCHAU: 'Vorschau',
+  KORREKTUR: 'Korrektur',
   FINAL: 'Final',
 }
 

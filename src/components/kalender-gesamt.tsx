@@ -64,7 +64,9 @@ const VOREINSTELLUNG: Anzeigephase[] = ['FINAL', 'GEPOSTET', 'FEHLGESCHLAGEN']
 const STATUS_PUNKT: Record<Anzeigephase, string> = {
   ENTWURF: 'bg-still',
   KONZEPT: 'bg-konzept',
+  PRODUKTION: 'bg-arbeit',
   VORSCHAU: 'bg-vorschau',
+  KORREKTUR: 'bg-arbeit',
   FINAL: 'bg-final',
   GEPOSTET: 'bg-gepostet',
   FEHLGESCHLAGEN: 'bg-akzent',

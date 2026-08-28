@@ -16,7 +16,11 @@ const STATUS_STIL: Record<Anzeigephase, string> = {
   // beurteilen soll.
   ENTWURF: 'bg-flaeche-tief text-still',
   KONZEPT: 'bg-konzept-flaeche text-konzept',
+  // Produktion und Korrektur teilen sich eine Farbe: Für den, der die Liste
+  // überfliegt, heißen beide dasselbe — hier wird gearbeitet.
+  PRODUKTION: 'bg-arbeit-flaeche text-arbeit',
   VORSCHAU: 'bg-vorschau-flaeche text-vorschau',
+  KORREKTUR: 'bg-arbeit-flaeche text-arbeit',
   FINAL: 'bg-final-flaeche text-final',
   /*
     Gepostet bleibt in der Familie von Final, aber als volle Fläche: Das

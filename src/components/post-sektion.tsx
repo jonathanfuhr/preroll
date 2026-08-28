@@ -39,7 +39,9 @@ const TYP_TEXT: Record<PostTyp, string> = {
 const STATUS_TEXT: Record<PostStatus, string> = {
   ENTWURF: 'Entwurf',
   KONZEPT: 'Konzept',
+  PRODUKTION: 'Produktion',
   VORSCHAU: 'Vorschau',
+  KORREKTUR: 'Korrektur',
   FINAL: 'Final',
 }
 
@@ -47,7 +49,9 @@ const STATUS_STIL: Record<PostStatus, { flaeche: string; farbe: string }> = {
   // Ein Entwurf erreicht den Kunden nie — der Eintrag ist reine Formsache.
   ENTWURF: { flaeche: 'var(--color-flaeche-tief)', farbe: 'var(--color-still)' },
   KONZEPT: { flaeche: 'var(--color-konzept-flaeche)', farbe: 'var(--color-konzept)' },
+  PRODUKTION: { flaeche: 'var(--color-arbeit-flaeche)', farbe: 'var(--color-arbeit)' },
   VORSCHAU: { flaeche: 'var(--color-vorschau-flaeche)', farbe: 'var(--color-vorschau)' },
+  KORREKTUR: { flaeche: 'var(--color-arbeit-flaeche)', farbe: 'var(--color-arbeit)' },
   FINAL: { flaeche: 'var(--color-final-flaeche)', farbe: 'var(--color-final)' },
 }
 
