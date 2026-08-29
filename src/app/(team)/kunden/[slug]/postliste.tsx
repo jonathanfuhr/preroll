@@ -124,7 +124,14 @@ export function Postliste({
 
   // Nur was gerade in der Liste steht: Ein Filterwechsel darf keine Beiträge
   // mit in eine Sammelaktion nehmen, die niemand mehr vor sich sieht.
-  const sichtbarAusgewaehlt = gefiltert.filter((z) => ausgewaehlt.has(z.id)).map((z) => z.id)
+  /*
+    Die Auswahl überlebt Suche und Filter, wirkt aber nur auf Sichtbares —
+    was man nicht sieht, ändert man nicht. Mitgegeben werden ganze Zeilen,
+    nicht nur Kennungen: Die Sammelleiste muss Phase und Termin kennen, um zu
+    sagen, was ein Wechsel beim Kunden bewirkt.
+  */
+  const sichtbareAuswahl = gefiltert.filter((z) => ausgewaehlt.has(z.id))
+  const sichtbarAusgewaehlt = sichtbareAuswahl.map((z) => z.id)
   const alleSichtbaren = gefiltert.map((z) => z.id)
 
   return (
@@ -201,7 +208,11 @@ export function Postliste({
 
       <Sammelleiste
         slug={slug}
-        ids={sichtbarAusgewaehlt}
+        posten={sichtbareAuswahl.map((z) => ({
+          id: z.id,
+          status: z.status,
+          postenAm: z.postenAm,
+        }))}
         aufAufheben={() => setAusgewaehlt(new Set())}
       />
 

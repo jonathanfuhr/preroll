@@ -267,13 +267,29 @@ Seite zu bewachen wäre die schlechtere Regel.
   anhakt und dann nach „Team" sucht, hat die drei noch. Ausgeführt wird gegen
   die gerade gefilterten Zeilen geschnitten: **Was man nicht sieht, löscht man
   nicht.** Die Leiste zeigt deshalb die geschnittene Zahl, nicht die gemerkte.
+- **Ein Phasenwechsel sagt vorher, was er beim Kunden bewirkt**
+  (`kundenwirkung.ts`) — im Editor wie in der Sammelleiste. Seit es
+  Arbeitsphasen gibt, ist ein Wechsel keine reine Hausangelegenheit mehr: Er
+  nimmt einen Beitrag von der Kundenseite, stellt ihn dorthin, friert den
+  gezeigten Stand ein oder wirft den Kunden auf einen **früheren** Stand
+  zurück (Vorschau → Produktion zeigt wieder das Konzept). Gefragt wird
+  **nur, wenn wirklich etwas geschieht** — ein Fenster bei jedem Klick wird
+  weggeklickt, ohne gelesen zu werden, und schützt dann vor nichts. Gerechnet
+  wird allein aus den zwei Phasen und dem Termin, **ohne** Inhaltsvergleich:
+  Der bräuchte die Stände aller ausgewählten Beiträge und beantwortete am Ende
+  nur, ob sich zufällig etwas unterscheidet — die Frage ist aber, *was der
+  Wechsel tut*. Jeder Satz sagt, was **der Kunde** erlebt, nicht was das
+  Werkzeug tut. Im Stapel werden die Sätze entdoppelt, und der Fuß nennt, bei
+  wie vielen der ausgewählten Beiträge überhaupt etwas passiert.
 - **Sammelaktionen laufen als eine Anweisung** (`postsStatusSetzen`,
   `postsLoeschen`), nicht als Schleife im Browser: Ein halb durchgelaufener
   Stapel wäre ein Zustand, den niemand erklären kann. Der Kunde kommt als
   Parameter mit in die Bedingung — die Liste zeigt nur seine Beiträge, aber
   darauf verlässt sich der Server nie. **Löschen fragt nach und nennt die
-  Zahl**, Phasenwechsel nicht: Eine Phase lässt sich zurückstellen, dreißig
-  gelöschte Beiträge sind weg.
+  Zahl**; ein Phasenwechsel fragt nur, wenn er beim Kunden etwas bewirkt.
+  Früher fragte er nie — eine Phase ließ sich ja zurückstellen. Das stimmt nur
+  noch halb: Der eingefrorene Stand, den ein Wechsel überschreibt, kommt nicht
+  zurück.
 - **In der Post-Liste führen drei Wege in den Beitrag** — Vorschaubild, Typ
   und Titel. Das Bild allein war ein zu kleines Ziel. Der **Termin dagegen
   öffnet ein kleines Fenster** mit Datum, Uhrzeit, OK und Abbrechen: Umplanen

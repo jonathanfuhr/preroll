@@ -1,7 +1,7 @@
 'use client'
 
 import type { CustomFeldTyp, Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { IPhoneVorschau } from '@/components/iphone'
 import { MedienDialog } from '@/components/medien-dialog'
 import type { Erwaehnbar } from '@/components/kommentar-feld'
@@ -14,6 +14,8 @@ import {
 import { kalenderwoche } from '@/lib/format'
 import { PHASEN, PHASE_TEXT, type Anzeigephase } from '@/lib/status'
 import { arbeitsphaseHinweis } from '@/lib/phasen'
+import { hatWirkung, kundenwirkung, wirkungSaetze } from '@/lib/kundenwirkung'
+import { WirkungRueckfrage } from '@/components/wirkung-rueckfrage'
 import { PhasenBadge } from '@/components/ui'
 import { ERLAUBT, postBeschriftung, VERHAELTNIS_TEXT } from '@/lib/verhaeltnis'
 import { PlattformWahl } from '@/components/plattform-wahl'
@@ -205,6 +207,12 @@ export function PostEditor({
   // Der Speichern-Knopf steht außerhalb seines Formulars; von dort kommt der Stand.
   const [speichert, setSpeichert] = useState(false)
   const hinweis = arbeitsphaseHinweis(post.status)
+
+  // Die Rückfrage vor einem Wechsel, der beim Kunden etwas bewirkt.
+  const [frage, setFrage] = useState<{ status: PostStatus; saetze: string[] } | null>(null)
+  const bestaetigt = useRef<PostStatus | null>(null)
+  const phasenFeld = useRef<HTMLDivElement>(null)
+  const terminAlsDatum = post.postenAm ? new Date(post.postenAm) : null
   // Der Stand wird an einer Stelle abgefragt und an beide Balken gereicht —
   // im Dialog und über den Eckdaten.
   const downloadstand = useDownloadstand(post.id, downloadStand)
@@ -323,9 +331,31 @@ export function PostEditor({
                 {hinweis}
               </span>
             )}
-            <div className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]">
+            <div
+              ref={phasenFeld}
+              className="flex items-center gap-1 rounded-md border border-rahmen-3 bg-flaeche p-[3px]"
+            >
               {STATUS.map((status) => (
-                <form key={status} action={postStatusSetzen.bind(null, post.id, status)}>
+                <form
+                  key={status}
+                  data-phase={status}
+                  action={postStatusSetzen.bind(null, post.id, status)}
+                  /*
+                    Bewirkt der Wechsel beim Kunden etwas, wird erst gefragt.
+                    Abgefangen wird am Formular und nicht am Knopf, damit auch
+                    die Tastatur denselben Weg nimmt.
+                  */
+                  onSubmit={(e) => {
+                    if (bestaetigt.current === status) {
+                      bestaetigt.current = null
+                      return
+                    }
+                    const wirkung = kundenwirkung(post.status, status, terminAlsDatum)
+                    if (!hatWirkung(wirkung)) return
+                    e.preventDefault()
+                    setFrage({ status, saetze: wirkungSaetze(wirkung) })
+                  }}
+                >
                   <button
                     type="submit"
                     className={`flex items-center gap-[7px] rounded-[4px] px-3.5 py-2 text-[12.5px] transition-colors ${
@@ -342,6 +372,29 @@ export function PostEditor({
                 </form>
               ))}
             </div>
+
+            {frage && (
+              <WirkungRueckfrage
+                titel={`Auf „${PHASE_TEXT[frage.status]}" setzen?`}
+                saetze={frage.saetze}
+                bestaetigung={`Auf ${PHASE_TEXT[frage.status]} setzen`}
+                aufAbbrechen={() => setFrage(null)}
+                aufBestaetigen={() => {
+                  /*
+                    Der Merker lässt genau diesen einen Absendevorgang durch;
+                    das Formular selbst bleibt das, was die Aktion auslöst —
+                    ein zweiter Weg daran vorbei wäre eine Stelle mehr, an der
+                    die Rückfrage vergessen werden kann.
+                  */
+                  bestaetigt.current = frage.status
+                  const formular = phasenFeld.current?.querySelector<HTMLFormElement>(
+                    `form[data-phase="${frage.status}"]`,
+                  )
+                  setFrage(null)
+                  formular?.requestSubmit()
+                }}
+              />
+            )}
           </div>
         </div>
 
