@@ -47,3 +47,30 @@ describe('Phasen', () => {
     expect(arbeitsphaseHinweis('VORSCHAU')).toBeNull()
   })
 })
+
+/*
+  Zwei Fragen, die beim Durchgehen aufkamen und leicht falsch beantwortet
+  werden — deshalb hier festgehalten statt nur im Kopf.
+*/
+describe('Der Rückweg durch die Phasen', () => {
+  /**
+   * Von der Vorschau zurück in die Produktion sieht der Kunde wieder das
+   * **Konzept**, nicht die Vorschau. Das ist der Punkt, an dem ein einzelner
+   * „letzter Stand" je Beitrag die falsche Antwort gäbe.
+   */
+  it('zeigt in der Produktion immer den Konzept-Stand, egal woher man kommt', () => {
+    expect(geltendePhase('PRODUKTION')).toBe('KONZEPT')
+  })
+
+  /**
+   * Eingefroren wird nur beim Verlassen einer **sichtbaren** Phase. Wer aus
+   * einer Arbeitsphase heraus die Phase wechselt, schreibt keinen Stand — die
+   * halbfertige Arbeit darf nie zu dem werden, was der Kunde später als
+   * freigegebenen Stand sieht.
+   */
+  it('friert beim Verlassen einer Arbeitsphase nichts ein', () => {
+    expect(istSichtbarePhase('PRODUKTION')).toBe(false)
+    expect(istSichtbarePhase('KORREKTUR')).toBe(false)
+    expect(istSichtbarePhase('ENTWURF')).toBe(false)
+  })
+})
