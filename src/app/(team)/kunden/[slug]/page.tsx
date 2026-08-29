@@ -91,6 +91,7 @@ export default async function PostsSeite({
             slides: ersteMedien(post, 'SLIDE').length,
             wer: post.verantwortlich?.initialen ?? null,
             kommentare: post._count.kommentare,
+            freigabeStufe: offeneStufe(post.status),
             freigabeOffen:
               offeneStufe(post.status) !== null &&
               !post.freigaben.some((f) => f.stufe === offeneStufe(post.status)),

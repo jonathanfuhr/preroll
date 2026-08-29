@@ -307,11 +307,23 @@ Seite zu bewachen wäre die schlechtere Regel.
   ein Post die `standardUhrzeit` des Kunden aus den Stammdaten. Wird ein bereits
   terminierter Post umgelegt, **bleibt seine Uhrzeit** — wer ihn zwei Tage
   schiebt, will die Zeit nicht neu setzen (`postTerminieren`).
-- **Freigaben hängen am einzelnen Post, nicht am Link** — und es sind zwei:
-  Konzept vor dem Dreh, Vorschau danach. Welche ansteht, ergibt sich aus dem
-  Status (`src/lib/freigabe.ts`), nie aus dem Formular. Das Team kann eine
-  Freigabe stellvertretend eintragen; solche Einträge lösen keine
-  Benachrichtigung aus.
+- **Freigaben hängen am einzelnen Post, nicht am Link** — und es ist eine je
+  Phase außer Final. In den **sichtbaren** Phasen (Konzept, Vorschau) kommt
+  sie vom Kunden, in den **Arbeitsphasen** (Entwurf, Produktion, Korrektur)
+  aus dem Haus: Sie sagt „das kann so zum Kunden", und jede interne Runde
+  segnet ab, was in der **nächsten** sichtbaren Phase gezeigt wird. Welche
+  ansteht, ergibt sich aus der Phase (`src/lib/freigabe.ts`), nie aus dem
+  Formular. **Ein Feld `intern` gibt es nicht** — das sagt schon die Stufe
+  (`istInterneStufe`); zwei Angaben über dieselbe Sache können einander
+  widersprechen. Interne Freigaben erteilen nur `ADMIN` und
+  `PROJEKTMANAGER` (`darfInternFreigeben`), geprüft am Server. Auf der
+  Kundenseite ist von den internen **nichts** zu sehen: `freigabeStand` und
+  `freigabeFortschritt` nehmen dort `nurKunde`, und in einer Arbeitsphase
+  wird von ihm gar nichts verlangt (`offeneKundenstufe`) — eine Freigabe, um
+  die zweimal gebeten wird, sät Zweifel an der ersten. Eine fehlende Freigabe
+  **blockiert nicht**; sie steht als Haken oder Kreuz in der Beitragsliste,
+  bei Final ein Strich. Das Team kann eine Freigabe stellvertretend
+  eintragen; solche Einträge lösen keine Benachrichtigung aus.
 - **Freigabe-Links öffnen sich nie ohne Anmeldung.** Dreistufig wie in Klappe:
   E-Mail → Code → Name. Die Gast-Sitzung gilt 40 Tage. Ein Gast mit leerem
   Namen bedeutet „Anmeldung noch nicht abgeschlossen". **Ausnahme:** Wer am
@@ -335,6 +347,16 @@ Seite zu bewachen wäre die schlechtere Regel.
   nur bei sich selbst, die Administration überall** (`kommentar-rechte.ts`);
   geprüft wird am Server, die Knöpfe sind Bequemlichkeit. Ein Strang ist
   flach: Auf eine Antwort wird nicht noch einmal geantwortet.
+- **Der Speichern-Knopf sagt, dass er gespeichert hat** (`SpeichernKnopf`):
+  „Speichern" · „Speichert …" (gesperrt) · „Gespeichert" für zweieinhalb
+  Sekunden. Einmal gebaut, überall verwendet — eine Rückmeldung, die nur bei
+  der Hälfte der Formulare kommt, ist schlechter als gar keine. Zwei Fallen
+  stecken darin: `useFormStatus` gibt zwischendurch **`undefined`** statt
+  `false` zurück (ungefiltert ein dritter Zustand, an dem der Wecker für
+  „Gespeichert" hängen blieb), und der Wechsel muss **während des Renderns**
+  geschehen — ein Effekt läuft erst nach dem Zeichnen, und dazwischen blitzt
+  wieder „Speichern" auf. Steht ein Knopf außerhalb seines Formulars (der
+  Post-Editor hängt ihn über `form=` an), meldet `SpeichernMelder` von innen.
 - **`#intern` behält einen Kommentar im Haus.** Für Abstimmungen, die den
   Kunden nichts angehen. Die Marke am Wortanfang genügt (`istIntern`), und
   **nur das Team** setzt sie — beim Gast ist `#intern` gewöhnlicher Text.
@@ -391,8 +413,10 @@ Seite zu bewachen wäre die schlechtere Regel.
   sich nicht an Monatsgrenzen. Ein Gast bekommt immer genau einen Monat und
   nur `FINAL`: Ihm einen freien Zeitraum zu erlauben hieße, ihm über die
   Adresse den ganzen Bestand zu geben.
-- **Export ist eine Live-Sicht, kein Schnappschuss.** Änderungen an Posts
-  erscheinen sofort im Freigabe-Link.
+- **Export ist eine Live-Sicht — solange die Phase sichtbar ist.** In Konzept,
+  Vorschau und Final erscheinen Änderungen sofort im Freigabe-Link. In den
+  Arbeitsphasen steht dort der eingefrorene Stand; das ist der einzige Fall,
+  in dem der Link nicht das Aktuelle zeigt.
 - **Sprungmarken sind schlichte `<a>`, kein `next/link`.** Kalender und
   Feed-Kacheln der Kundenseite zeigen mit `#post-<id>` auf den Beitrag
   weiter unten. Über `next/link` behandelt der Router den Klick als
@@ -431,12 +455,49 @@ Seite zu bewachen wäre die schlechtere Regel.
   verlorener Block kostet vier Megabyte statt der ganzen Datei. Der Tunnel
   bleibt zudem als Rückfahrkarte konfiguriert (`preroll.caddy`, Weg 1) — wer
   ihn wieder einschaltet, hat die Grenze zurück.
-- **Fünf Phasen intern, vier beim Kunden.** Entwurf → Konzept → Vorschau →
-  Final, dazu berechnet „Gepostet". **`ENTWURF` verlässt das Haus nie:** in
-  keiner Freigabe, in keinem Raster, ohne Gegenstück in der Kunden-Zeitleiste
-  (`postsImZeitraum` siebt ihn aus). Neu angelegte Posts starten dort. Das
-  ersetzt den früheren Schalter „Konzepte mitzeigen" am Link — ob ein Beitrag
-  vorzeigbar ist, hängt am Beitrag, nicht am Monat.
+- **Sechs Phasen intern, vier beim Kunden.** Entwurf → Konzept → Produktion →
+  Vorschau → Korrektur → Final, dazu berechnet „Gepostet". **`ENTWURF`
+  verlässt das Haus nie:** in keiner Freigabe, in keinem Raster, ohne
+  Gegenstück in der Kunden-Zeitleiste (`postsImZeitraum` siebt ihn aus). Neu
+  angelegte Posts starten dort. Das ersetzt den früheren Schalter „Konzepte
+  mitzeigen" am Link — ob ein Beitrag vorzeigbar ist, hängt am Beitrag, nicht
+  am Monat.
+- **Sichtbare Phasen und Arbeitsphasen** (`src/lib/phasen.ts`). Sichtbar sind
+  Konzept, Vorschau und Final — dort liest die Kundenseite **live**. Arbeit
+  sind Entwurf, Produktion und Korrektur; dort steht der **eingefrorene
+  Stand** der vorangehenden sichtbaren Phase. Zwischen Konzept und Vorschau
+  wird gedreht, zwischen Vorschau und Final nachgebessert, und der Kunde
+  schaute dabei zu: ein halb ausgetauschtes Karussell, eine Caption mitten im
+  Umschreiben. Beim Kunden bleiben es **vier** Stufen — `abgeleiteteStufe`
+  bildet Produktion auf Konzept ab und Korrektur auf Vorschau; die Wörter
+  „Produktion" und „Korrektur" stehen auf seiner Seite nirgends. Im Editor
+  steht neben dem Etikett, was er stattdessen sieht (`arbeitsphaseHinweis`).
+  Beide Arbeitsphasen teilen sich **eine** Farbe: Wer die Liste überfliegt,
+  liest bei beiden dasselbe — hier wird gearbeitet.
+- **Eingefroren wird beim Verlassen einer sichtbaren Phase, nicht beim
+  Betreten** (`friereStaendeEin`). Beim Eintritt festgeschrieben wäre der
+  Stand in dem Moment überholt, in dem er zum ersten Mal gezeigt wird — die
+  ganze Konzeptrunde liegt dazwischen, und der Kunde sähe beim Phasenwechsel
+  einen Sprung **zurück**. Beim Verlassen hält er genau das, was zuletzt auf
+  seinem Bildschirm stand. Nebenbei bleibt es bei **einer** Schreibstelle:
+  Solange die Phase sichtbar ist, wird live gelesen, es gibt also nichts
+  fortzuschreiben. Eingefroren wird bei **jedem** Wechsel aus einer sichtbaren
+  Phase, nicht nur in eine Arbeitsphase — sonst fehlte nach Konzept →
+  Vorschau → Produktion der Konzept-Stand.
+- **Je Phase ein Stand, nicht einer je Beitrag** (`PostStand`,
+  `@@unique([postId, phase])`). Von Vorschau zurück auf Produktion soll wieder
+  das **Konzept** gelten; ein einzelner „letzter Stand" zeigte die Vorschau.
+  Der Inhalt liegt als JSON (`Standinhalt`) — relational gespiegelt wären es
+  vier weitere Tabellen, und abgefragt wird ein Stand nie nach Feldern,
+  sondern immer als Ganzes. **Nicht** hinein gehören der Termin (Planung, keine
+  Gestaltung — eingefroren stünde ein umgeplanter Beitrag im Kalender des
+  Kunden am falschen Tag), Kommentare, Freigaben und alles, was zum Kunden
+  gehört statt zum Beitrag. **Dateien werden nicht kopiert**, nur ihre
+  Kennungen. Angewendet wird **einmal**, direkt hinter der Abfrage
+  (`fuerKundensicht`): Kalender, Raster, Geräterahmen und ZIP bekommen
+  dieselbe Form wie immer. Ohne passenden Stand gilt live — besser der falsche
+  Zeitpunkt als eine leere Seite. Einen **Verlauf** alter Stände gibt es
+  bewusst nicht; ein Rückweg überschreibt.
 - **„Gepostet" wird berechnet, innen wie außen.** Final plus Termin in der
   Vergangenheit ergibt „Gepostet". Die Stufe steht **nicht** in der Datenbank:
   Ein fünfter Wert müsste nachgezogen werden und stünde falsch, sobald ein

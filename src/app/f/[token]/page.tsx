@@ -9,7 +9,7 @@ import { ladeEinstellungen } from '@/lib/einstellungen'
 import { feedVorschau, postsImZeitraum } from '@/lib/export-sicht'
 import { fuerKundensicht } from '@/lib/stand-anwenden'
 import { kalenderwoche } from '@/lib/format'
-import { freigabeFortschritt, freigabeStand } from '@/lib/freigabe'
+import { freigabeFortschritt, freigabeStand, istInterneStufe } from '@/lib/freigabe'
 import { reelVideoQuelle } from '@/lib/reel-video'
 import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { profilKarte } from '@/lib/plattform-profil'
@@ -157,6 +157,7 @@ export default async function ExportSeite({
   const monate: Monatseintrag[] = monatsliste.map((m) => {
     const stand = freigabeFortschritt(
       postsImZeitraum(alle, { zeitraumVon: m.von, zeitraumBis: m.bis }),
+      true,
     )
     return {
       monat: m.monat,
@@ -250,7 +251,7 @@ export default async function ExportSeite({
   // Bei eigenen Kanälen gibt es niemanden, der freigeben müsste — dann steht
   // auf der Seite auch nichts davon.
   const mitFreigaben = exp.kunde.freigabenNoetig
-  const fortschritt = freigabeFortschritt(sektionen)
+  const fortschritt = freigabeFortschritt(sektionen, true)
 
   /*
     Darf der Kunde die Dateien selbst holen, steht der Knopf oben in der Leiste.
@@ -536,20 +537,31 @@ export default async function ExportSeite({
                       freigabeStand(
                         post.status,
                         post.freigaben.map((f) => f.stufe),
+                        true,
                       ).offen
                     }
                     erledigt={
                       freigabeStand(
                         post.status,
                         post.freigaben.map((f) => f.stufe),
+                        true,
                       ).erledigt
                     }
-                    erteilte={post.freigaben.map((f) => ({
-                      stufe: f.stufe,
-                      autorName: f.autorName,
-                      am: f.erstelltAm.toISOString(),
-                      vomTeam: Boolean(f.nutzerId),
-                    }))}
+                    /*
+                      Nur die externen Freigaben. Die internen sind eine
+                      Hausangelegenheit — auf der Kundenseite wäre „Produktion
+                      freigegeben von Helena" eine Auskunft über unseren
+                      Ablauf, und in einer Arbeitsphase stünde dort eine
+                      Aufgabe, die der Kunde gar nicht erledigen kann.
+                    */
+                    erteilte={post.freigaben
+                      .filter((f) => !istInterneStufe(f.stufe))
+                      .map((f) => ({
+                        stufe: f.stufe,
+                        autorName: f.autorName,
+                        am: f.erstelltAm.toISOString(),
+                        vomTeam: Boolean(f.nutzerId),
+                      }))}
                     gastName={anzeigename}
                   />
                   <KommentarBereich

@@ -13,7 +13,7 @@ import { istErlaubt, standardVerhaeltnis } from '@/lib/verhaeltnis'
 import { terminAusEingabe } from '@/lib/datum'
 import { effektivePlattformen, plattformenAusFormular } from '@/lib/plattformen'
 import { darfBearbeiten, darfLoeschen } from '@/lib/kommentar-rechte'
-import { offeneStufe } from '@/lib/freigabe'
+import { darfInternFreigeben, istInterneStufe, offeneStufe } from '@/lib/freigabe'
 import { klappeVideoAnlegen, klappeVideoBeschreibung, klappeVideoName } from '@/lib/klappe'
 import { slugify } from '@/lib/slug'
 import { internAbleiten } from '@/lib/kommentar-intern'
@@ -832,6 +832,13 @@ export async function freigabeEintragen(postId: string, formular: FormData) {
 
   const stufe = offeneStufe(post.status)
   if (!stufe) return
+
+  /*
+    Eine interne Freigabe sagt „das kann so zum Kunden". Das ist nicht die
+    Entscheidung derer, die es gebaut haben — deshalb nur Administration und
+    Projektmanagement. Geprüft am Server; der fehlende Knopf ist Bequemlichkeit.
+  */
+  if (istInterneStufe(stufe) && !darfInternFreigeben(nutzer.rolle)) return
 
   const autorName = text(formular, 'autorName')
   if (!autorName) {

@@ -804,9 +804,23 @@ model Export {
  * Der Kunde gibt zweimal frei: einmal das Konzept, nach dem Dreh die Vorschau.
  * Welche Stufe ansteht, ergibt sich aus dem Status des Posts.
  */
+/**
+ * Jede Phase außer Final trägt genau eine Freigabe. Welche gerade ansteht,
+ * sagt die Phase des Beitrags — die Stufen heißen deshalb wie sie.
+ *
+ * Ein Feld `intern` braucht es nicht: Ob eine Freigabe aus dem Haus kommt oder
+ * vom Kunden, sagt schon die Stufe (`istInterneStufe` in `src/lib/freigabe.ts`).
+ * Eine zweite Angabe daneben könnte ihr widersprechen.
+ */
 enum Freigabestufe {
+  /** Intern: Bevor der Kunde das Konzept sieht, segnet das Haus es ab. */
+  ENTWURF
   KONZEPT
+  /** Intern: Was in der Produktion entstand, bevor es als Vorschau rausgeht. */
+  PRODUKTION
   VORSCHAU
+  /** Intern: Die Korrekturrunde, bevor der Beitrag final wird. */
+  KORREKTUR
 }
 
 model Freigabe {

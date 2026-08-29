@@ -2,7 +2,7 @@
 
 import type { Freigabestufe } from '@prisma/client'
 import { useState } from 'react'
-import { freigabeBeschriftung, STUFE_TEXT } from '@/lib/freigabe'
+import { freigabeBeschriftung, istInterneStufe, STUFE_TEXT } from '@/lib/freigabe'
 import { Eingabe, Feld, Hinweis, Karte, Knopf, Textfeld } from '@/components/ui'
 import { freigabeEintragen, freigabeZuruecknehmen } from '../../aktionen'
 
@@ -29,6 +29,7 @@ export function FreigabeFeld({
   gepostet,
   freigaben,
   vorschlagName,
+  darfIntern,
 }: {
   postId: string
   offen: Freigabestufe | null
@@ -37,8 +38,13 @@ export function FreigabeFeld({
   gepostet: boolean
   freigaben: FreigabeZeile[]
   vorschlagName: string | null
+  /** Darf die angemeldete Person interne Freigaben erteilen? */
+  darfIntern: boolean
 }) {
   const [dialog, setDialog] = useState(false)
+  // Eine interne Freigabe kommt aus dem Haus und wird hier direkt erteilt —
+  // eine externe trägt das Team nur stellvertretend ein.
+  const intern = offen !== null && istInterneStufe(offen)
 
   return (
     <div className="grid gap-3">
@@ -49,6 +55,11 @@ export function FreigabeFeld({
               <div>
                 <div className="text-[13px] font-medium text-final">
                   {STUFE_TEXT[f.stufe]} freigegeben
+                  {istInterneStufe(f.stufe) && (
+                    <span className="ml-2 rounded-[3px] bg-arbeit-flaeche px-1.5 py-0.5 text-[10.5px] font-normal text-arbeit">
+                      intern
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 text-[11.5px] text-leiser">
                   von {f.autorName} · {ZEIT.format(new Date(f.am))}
@@ -73,8 +84,8 @@ export function FreigabeFeld({
       {!offen ? (
         <Hinweis>
           {gepostet
-            ? 'Dieser Beitrag ist gepostet — Konzept und Vorschau sind durch, es steht keine Freigabe mehr aus.'
-            : 'Dieser Beitrag steht auf Final — Konzept und Vorschau sind durch, es steht keine Freigabe mehr aus.'}
+            ? 'Dieser Beitrag ist gepostet — alle Freigaben sind durch, es steht keine mehr aus.'
+            : 'Dieser Beitrag steht auf Final — alle Freigaben sind durch, es steht keine mehr aus.'}
         </Hinweis>
       ) : erledigt ? (
         <Hinweis>
@@ -84,22 +95,32 @@ export function FreigabeFeld({
       ) : (
         <Karte className="flex flex-wrap items-center justify-between gap-3 p-4">
           <p className="max-w-[420px] text-[12.5px] leading-relaxed text-leise">
-            Offen: <strong>{STUFE_TEXT[offen]}</strong>. Normalerweise gibt der Kunde auf der
-            Export-Seite frei. Hat er auf anderem Weg zugestimmt, hier eintragen.
+            Offen: <strong>{STUFE_TEXT[offen]}</strong>.{' '}
+            {intern
+              ? 'Eine interne Freigabe: Sie sagt, dass der Beitrag so zum Kunden kann.'
+              : 'Normalerweise gibt der Kunde auf der Export-Seite frei. Hat er auf anderem Weg zugestimmt, hier eintragen.'}
+            {intern && !darfIntern && (
+              <> Erteilen dürfen sie Administration und Projektmanagement.</>
+            )}
           </p>
-          <Knopf klein onClick={() => setDialog(true)}>
-            {freigabeBeschriftung(offen)}
-          </Knopf>
+          {(!intern || darfIntern) && (
+            <Knopf klein onClick={() => setDialog(true)}>
+              {freigabeBeschriftung(offen)}
+            </Knopf>
+          )}
         </Karte>
       )}
 
       {dialog && offen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinte/25 px-3 sm:px-6">
           <div className="w-full max-w-[440px] rounded-md border border-rahmen bg-flaeche p-5 shadow-xl sm:p-6">
-            <h3 className="text-[16px] font-semibold">{STUFE_TEXT[offen]}-Freigabe eintragen</h3>
+            <h3 className="text-[16px] font-semibold">
+              {STUFE_TEXT[offen]}-Freigabe {intern ? 'erteilen' : 'eintragen'}
+            </h3>
             <p className="mt-1.5 text-[12.5px] leading-relaxed text-leise">
-              Für den Fall, dass der Kunde außerhalb der Export-Seite zugestimmt hat. Der Eintrag
-              ist als „von der Agentur eingetragen" gekennzeichnet.
+              {intern
+                ? 'Eine interne Freigabe — sie bleibt im Haus und taucht beim Kunden nicht auf.'
+                : 'Für den Fall, dass der Kunde außerhalb der Export-Seite zugestimmt hat. Der Eintrag ist als „von der Agentur eingetragen" gekennzeichnet.'}
             </p>
 
             {/*
@@ -116,7 +137,11 @@ export function FreigabeFeld({
             >
               <Feld
                 beschriftung="Wer hat freigegeben?"
-                hinweis="Name der Person beim Kunden — sie steht später an der Freigabe."
+                hinweis={
+                  intern
+                    ? 'Der eigene Name — er steht später an der Freigabe.'
+                    : 'Name der Person beim Kunden — sie steht später an der Freigabe.'
+                }
               >
                 <Eingabe
                   name="autorName"

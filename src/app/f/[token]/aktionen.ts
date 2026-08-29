@@ -15,7 +15,7 @@ import { darfBearbeiten, darfLoeschen, type Betrachter } from '@/lib/kommentar-r
 import { internAbleiten } from '@/lib/kommentar-intern'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
-import { offeneStufe } from '@/lib/freigabe'
+import { offeneKundenstufe } from '@/lib/freigabe'
 import { env } from '@/lib/env'
 import { sendeMail } from '@/lib/mail'
 import { vorlageAnmeldecode } from '@/lib/mail/vorlagen'
@@ -244,7 +244,13 @@ export async function freigabeErteilen(token: string, postId: string, formular: 
   const post = await prisma.post.findUnique({ where: { id: postId } })
   if (!post || post.kundeId !== exp.kundeId) return
 
-  const stufe = offeneStufe(post.status)
+  /*
+    Nur die externen Stufen. Steht der Beitrag in einer Arbeitsphase, wird vom
+    Kunden nichts verlangt — und über die Adresse soll sich auch keine interne
+    Freigabe eintragen lassen, die er gar nicht erteilen kann. Die Oberfläche
+    zeigt den Knopf dort ohnehin nicht; darauf verlässt sich der Server nie.
+  */
+  const stufe = offeneKundenstufe(post.status)
   if (!stufe) return
 
   const freigabe = await prisma.freigabe.upsert({

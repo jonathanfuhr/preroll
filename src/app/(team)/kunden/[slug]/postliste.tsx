@@ -1,6 +1,6 @@
 'use client'
 
-import type { Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
+import type { Freigabestufe, Plattform, PostStatus, PostTyp, Verhaeltnis } from '@prisma/client'
 import type { Veroeffentlichungslage } from '@/lib/status'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
@@ -10,6 +10,7 @@ import { Sammelleiste } from './sammelleiste'
 import { TerminKnopf } from './termin-knopf'
 import { ZeilenMenue } from './zeilen-menue'
 import { kalenderwoche } from '@/lib/format'
+import { istInterneStufe, STUFE_TEXT } from '@/lib/freigabe'
 
 const MONAT = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' })
 
@@ -30,6 +31,8 @@ export type Postzeile = {
   slides: number
   wer: string | null
   kommentare: number
+  /** Welche Freigabe in dieser Phase ansteht; null bei Final. */
+  freigabeStufe: Freigabestufe | null
   freigabeOffen: boolean
 }
 
@@ -229,7 +232,7 @@ export function Postliste({
                     aufKlick={() => gruppeUmschalten(alleSichtbaren)}
                   />
                 </th>
-                {['', 'KW', 'Datum', 'Typ', 'Titel', 'Status', 'Wer', 'Kommentare', ''].map((kopf, i) => (
+                {['', 'KW', 'Datum', 'Typ', 'Titel', 'Status', 'Freigabe', 'Wer', 'Kommentare', ''].map((kopf, i) => (
                   <th
                     key={i}
                     className={`px-3 py-2.5 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still ${
@@ -343,6 +346,16 @@ export function Postliste({
                         veroeffentlichungen={zeile.veroeffentlichungen}
                       />
                     </td>
+                    {/*
+                      Die Freigabe **der laufenden Phase** — Haken oder Kreuz.
+                      Welche gemeint ist, sagt die Phase daneben; bei Final
+                      steht ein Strich, weil dort nichts mehr abzusegnen ist.
+                      Der Titel nennt die Stufe im Klartext, damit ein Zeichen
+                      allein nicht raten lässt.
+                    */}
+                    <td className="px-3 py-2">
+                      <Freigabezeichen stufe={zeile.freigabeStufe} offen={zeile.freigabeOffen} />
+                    </td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.wer ?? '—'}</td>
                     <td className="px-3 py-2 text-[12px] text-leise">{zeile.kommentare || '—'}</td>
                     <td className="px-3 py-2">
@@ -391,5 +404,48 @@ function Kaestchen({
       title={beschriftung}
       className="block size-4 cursor-pointer accent-[var(--color-akzent)]"
     />
+  )
+}
+
+/**
+ * Ob die Freigabe der laufenden Phase vorliegt.
+ *
+ * Ein Zeichen statt eines Wortes, weil die Spalte schmal bleiben soll — die
+ * Tabelle rollt am Telefon ohnehin schon waagerecht. Was das Zeichen bedeutet,
+ * steht im `title`; ein Haken ohne Erklärung ließe offen, *wessen* Freigabe
+ * gemeint ist, und das ist je nach Phase das Team oder der Kunde.
+ */
+function Freigabezeichen({
+  stufe,
+  offen,
+}: {
+  stufe: Freigabestufe | null
+  offen: boolean
+}) {
+  if (!stufe) {
+    return (
+      <span className="text-[12px] text-stiller" title="Final — hier ist nichts mehr abzusegnen">
+        —
+      </span>
+    )
+  }
+
+  const wer = istInterneStufe(stufe) ? 'intern' : 'vom Kunden'
+  return offen ? (
+    <span
+      className="text-[13px] font-semibold text-akzent"
+      title={`${STUFE_TEXT[stufe]} noch nicht freigegeben (${wer})`}
+      aria-label={`${STUFE_TEXT[stufe]} noch nicht freigegeben`}
+    >
+      ✗
+    </span>
+  ) : (
+    <span
+      className="text-[13px] font-semibold text-final"
+      title={`${STUFE_TEXT[stufe]} freigegeben (${wer})`}
+      aria-label={`${STUFE_TEXT[stufe]} freigegeben`}
+    >
+      ✓
+    </span>
   )
 }

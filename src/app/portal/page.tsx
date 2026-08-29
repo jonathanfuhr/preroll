@@ -72,7 +72,7 @@ export default async function PortalSeite() {
           zeitraumBis: neuester.bis,
         })
       : []
-    return { exp, monat: neuester, stand: freigabeFortschritt(sichtbar) }
+    return { exp, monat: neuester, stand: freigabeFortschritt(sichtbar, true) }
   })
 
   const offen = mitStand.filter((e) => !e.stand.vollstaendig)

@@ -197,6 +197,8 @@ export function PostEditor({
     erledigt: boolean
     zeilen: FreigabeZeile[]
     vorschlagName: string | null
+    /** Darf die angemeldete Person die internen Freigaben erteilen? */
+    darfIntern: boolean
   }
 }) {
   const [dialogOffen, setDialogOffen] = useState(false)
@@ -579,7 +581,7 @@ export function PostEditor({
       {freigabenNoetig && (
       <Abschnitt
         titel="Freigaben"
-        hinweis="Der Kunde gibt jeden Beitrag einzeln frei — beim Konzept das Konzept, nach dem Dreh die Vorschau."
+        hinweis="Jede Phase außer Final trägt eine Freigabe. In Konzept und Vorschau kommt sie vom Kunden; in Entwurf, Produktion und Korrektur aus dem Haus — sie sagt, dass der Beitrag so zum Kunden kann."
       >
         <FreigabeFeld
           postId={post.id}
@@ -588,6 +590,7 @@ export function PostEditor({
           gepostet={phase === 'GEPOSTET'}
           freigaben={freigabe.zeilen}
           vorschlagName={freigabe.vorschlagName}
+          darfIntern={freigabe.darfIntern}
         />
       </Abschnitt>
       )}

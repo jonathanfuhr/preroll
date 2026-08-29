@@ -6,7 +6,7 @@ import { erwaehnbarePersonen } from '@/lib/erwaehnbar'
 import { darfBearbeiten } from '@/lib/kommentar-rechte'
 import { prisma } from '@/lib/db'
 import { ladeEinstellungen } from '@/lib/einstellungen'
-import { freigabeStand } from '@/lib/freigabe'
+import { darfInternFreigeben, freigabeStand } from '@/lib/freigabe'
 import { anzeigePhase } from '@/lib/status'
 import { effektivePlattformen } from '@/lib/plattformen'
 import { freiePlattformen } from '@/lib/varianten'
@@ -352,6 +352,7 @@ export default async function PostSeite({
             vomTeam: Boolean(f.nutzerId),
           })),
           vorschlagName: post.kunde.hauptAnsprechpartner?.name ?? null,
+          darfIntern: ich ? darfInternFreigeben(ich.rolle) : false,
         }}
         meldungen={{
           klappe:
