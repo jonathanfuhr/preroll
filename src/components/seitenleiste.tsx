@@ -92,6 +92,9 @@ function Stern({ gefuellt }: { gefuellt: boolean }) {
 
 const BEREICHE = [
   { pfad: '', text: 'Posts' },
+  // Gleich hinter den Posts: Die Review-Seite zeigt dieselben Beiträge, nur
+  // am Stück statt in der Tabelle.
+  { pfad: '/review', text: 'Review' },
   { pfad: '/kommentare', text: 'Kommentare' },
   { pfad: '/freigaben', text: 'Freigaben' },
   { pfad: '/stammdaten', text: 'Stammdaten' },
@@ -181,7 +184,15 @@ function Navigationsinhalt({
         </Link>
       </div>
 
-      <nav className="grid gap-0.5 px-3">
+      {/*
+        `minmax(0,1fr)` statt der voreingestellten `auto`-Spalte: Eine
+        Rasterspalte wird sonst mindestens so breit wie ihr **min-content**,
+        und das ist bei einem langen Kundennamen die volle Textbreite —
+        `truncate` am Namen hilft dagegen nicht, es wirkt erst innerhalb der
+        Zeile. Die Zeilen ragten dadurch 79 px über die Leiste hinaus und
+        legten sich mitsamt Zahl über den Inhalt daneben.
+      */}
+      <nav className="grid grid-cols-[minmax(0,1fr)] gap-0.5 px-3">
         <Punkt href="/kunden" aktiv={pfad === '/kunden'}>
           Kunden
         </Punkt>

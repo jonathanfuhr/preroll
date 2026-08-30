@@ -506,6 +506,19 @@ Seite zu bewachen wäre die schlechtere Regel.
   angelegte Posts starten dort. Das ersetzt den früheren Schalter „Konzepte
   mitzeigen" am Link — ob ein Beitrag vorzeigbar ist, hängt am Beitrag, nicht
   am Monat.
+- **Die Seitenleiste hält ihre Spalte** (`grid-cols-[minmax(0,1fr)]`). Eine
+  Rasterspalte wird sonst mindestens so breit wie ihr **min-content**, und das
+  ist bei einem langen Kundennamen die volle Textbreite — `truncate` am Namen
+  hilft dagegen nicht, es wirkt erst innerhalb der Zeile. Gemessen ragten die
+  Zeilen 79 px über die 224 px breite Leiste hinaus und legten sich mitsamt
+  Zahl über den Inhalt daneben.
+- **Die Review-Seite steht als Menüpunkt beim Kunden**, gleich hinter den
+  Posts — sie zeigt dieselben Beiträge, nur am Stück. Ihre **Monatswahl steht
+  waagerecht in der Seite**, nicht in der Leiste: Die linke Spalte trägt hier
+  die Navigation des Backends, und der Monat ist ohnehin eine Sicht
+  *innerhalb* der Seite, kein eigenes Ziel. Als Untermenü wüchse er zudem mit
+  jedem Monat weiter — nach einem Jahr zwölf Einträge unter einem Punkt. Beim
+  Kunden bleibt die senkrechte Leiste, denn dort ist die Spalte frei.
 - **Zwei Seiten zeigen den Plan am Stück, und sie zeigen Verschiedenes.**
   Die **Review-Seite** (`/kunden/<slug>/review`) ist die interne Sicht: alle
   Phasen inklusive Entwurf, immer der **aktuelle** Stand statt der

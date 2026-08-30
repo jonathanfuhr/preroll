@@ -18,7 +18,7 @@ import { ExportHero, ExportTopbar, KalenderKarte } from '@/components/export-rah
 import { IPhoneFeed } from '@/components/iphone'
 import { Monatskalender, type Kalendereintrag } from '@/components/kalender'
 import { KommentarListe } from '@/components/kommentar-liste'
-import { Monatsleiste, MonatsleisteMobil, type Monatseintrag } from '@/components/monatsleiste'
+import { MonatsleisteMobil, type Monatseintrag } from '@/components/monatsleiste'
 import { PostSektion } from '@/components/post-sektion'
 import { StatusBadge } from '@/components/ui'
 import { TikTokFeed } from '@/components/tiktok-rahmen'
@@ -141,15 +141,15 @@ export default async function ReviewSeite({
   )
 
   return (
-    <div className="-m-6 flex min-h-screen sm:-m-8">
-      <Monatsleiste
-        monate={monate}
-        basis={`/kunden/${slug}/review`}
-        aktiv={monat.monat}
-        mitFreigaben={false}
-      />
-
-      <div className="min-w-0 flex-1">
+    /*
+      Anders als beim Kunden **keine** senkrechte Monatsleiste: Die linke
+      Spalte trägt hier die Navigation des Backends. Der Monat steht deshalb
+      als waagerechte Reihe unter dem Band — er ist eine Sicht innerhalb
+      dieser Seite, kein eigenes Ziel, und als Untermenü wüchse er mit jedem
+      Monat weiter.
+    */
+    <div className="-m-6 min-h-screen sm:-m-8">
+      <div className="min-w-0">
         {/*
           Das Band sagt, worin sich diese Seite von der Kundenseite
           unterscheidet — sonst verwechselt man die beiden, und das ist die
@@ -168,6 +168,7 @@ export default async function ReviewSeite({
           basis={`/kunden/${slug}/review`}
           aktiv={monat.monat}
           mitFreigaben={false}
+          immerSichtbar
         />
 
         <ExportTopbar

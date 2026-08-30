@@ -63,25 +63,38 @@ export function Monatsleiste({
   )
 }
 
-/** Dieselben Monate als waagerechte Reihe — für Telefon und Tablet. */
+/**
+ * Dieselben Monate als waagerechte Reihe — am Telefon und Tablet, und auf der
+ * **Review-Seite in jeder Breite**.
+ *
+ * Dort ist die linke Spalte schon vergeben: Sie trägt die Navigation des
+ * Backends. Der Monat gehört auch gar nicht dorthin — die Leiste führt zu
+ * Zielen, der Monat ist eine Sicht **innerhalb** der Review-Seite. Und er
+ * wächst: Nach einem Jahr stünden zwölf Einträge unter einem Menüpunkt.
+ */
 export function MonatsleisteMobil({
   monate,
   basis,
   aktiv,
   mitFreigaben,
+  immerSichtbar,
 }: {
   monate: Monatseintrag[]
   /** Wohin die Einträge zeigen — `/f/<token>` oder `/kunden/<slug>/review`. */
   basis: string
   aktiv: string
   mitFreigaben: boolean
+  /** Auch auf breiten Schirmen zeigen — dort, wo es keine senkrechte Leiste gibt. */
+  immerSichtbar?: boolean
 }) {
   if (monate.length < 2) return null
 
   return (
     <nav
       aria-label="Monate"
-      className="flex gap-1.5 overflow-x-auto border-b border-rahmen bg-flaeche-leise px-4 py-2 lg:hidden"
+      className={`flex gap-1.5 overflow-x-auto border-b border-rahmen bg-flaeche-leise px-4 py-2 ${
+        immerSichtbar ? '' : 'lg:hidden'
+      }`}
     >
       {monate.map((monat) => (
         <Eintrag key={monat.monat} monat={monat} basis={basis} aktiv={aktiv} mitFreigaben={mitFreigaben} />
