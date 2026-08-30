@@ -1,5 +1,6 @@
 import { ladeEinstellungen } from '@/lib/einstellungen'
-import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld } from '@/components/ui'
+import { sitzungsumfang } from '@/lib/instagram-cookies'
+import { Abschnitt, Eingabe, Fehler, Feld, Hinweis, Karte, Knopf, Schalter, Textfeld, Warnung } from '@/components/ui'
 import { SpeichernKnopf } from '@/components/speichern-knopf'
 import {
   instagramSitzungSpeichern,
@@ -18,6 +19,8 @@ export default async function WorkspaceSeite({
 }) {
   const { ig, meldung } = await searchParams
   const e = await ladeEinstellungen()
+  // Was in der Sitzung wirklich drinsteht — „hinterlegt" sagt zu wenig.
+  const umfang = sitzungsumfang(e.instagramCookies)
 
   return (
     <>
@@ -106,17 +109,48 @@ export default async function WorkspaceSeite({
                 <span className="text-leiser">
                   seit {e.instagramCookiesAm ? DATUM.format(e.instagramCookiesAm) : '—'}
                   {e.instagramGeprueftAm && ` · geprüft ${DATUM.format(e.instagramGeprueftAm)}`}
+                  {umfang && ` · ${umfang.namen.join(', ')}`}
                 </span>
               </>
             )}
           </div>
 
+          {/*
+            „Hinterlegt" allein sagt zu wenig. Eine Sitzung aus bloßem
+            `sessionid` trägt die Reel-Downloads, taugt für die Kennzahlen aber
+            nicht — dort verlangt Instagram `csrftoken` und quittiert sonst mit
+            400. Vorher sah man der Sitzung das nicht an, und der Fehlschlag
+            wirkte wie ein Fehler an ganz anderer Stelle.
+          */}
+          {umfang && !umfang.csrftoken && (
+            <div className="mb-4">
+              <Warnung>
+                Die Sitzung enthält nur <code className="font-mono text-[11px]">sessionid</code>.
+                Für die Reel-Downloads reicht das. Die <strong>Profil-Kennzahlen</strong> brauchen
+                zusätzlich <code className="font-mono text-[11px]">csrftoken</code> — ohne ihn
+                weist Instagram die Anfrage ab, und der Rückfallweg steht dort nicht zur
+                Verfügung. Am einfachsten die ganze{' '}
+                <code className="font-mono text-[11px]">cookies.txt</code> einfügen; dieses Feld
+                nimmt sie unverändert an.
+              </Warnung>
+            </div>
+          )}
+
           <form action={instagramSitzungSpeichern} className="grid gap-4">
-            <Feld beschriftung="Instagram-Sitzung">
+            <Feld
+              beschriftung="Instagram-Sitzung"
+              hinweis={
+                'Nimmt dreierlei an: eine ganze cookies.txt, mehrere Cookies als ' +
+                '„name=wert; name=wert" oder nur den Wert von sessionid. Am besten die ganze ' +
+                'Datei — dann ist csrftoken dabei, und die Kennzahlen können sie mitbenutzen.'
+              }
+            >
               <Textfeld
                 name="instagramCookies"
-                rows={2}
-                placeholder={e.instagramCookies ? 'unverändert' : 'sessionid=…'}
+                rows={3}
+                placeholder={
+                  e.instagramCookies ? 'unverändert' : 'csrftoken=…; sessionid=…  oder ganze cookies.txt'
+                }
                 className="font-mono text-[11.5px]"
               />
             </Feld>

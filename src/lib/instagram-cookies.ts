@@ -90,3 +90,33 @@ export function cookieWert(kopfzeile: string | null, name: string): string | nul
   }
   return null
 }
+
+/**
+ * Was in der hinterlegten Sitzung wirklich drinsteht.
+ *
+ * Gebraucht, weil „hinterlegt" zu wenig sagt: Eine Sitzung aus bloßem
+ * `sessionid` trägt die Reel-Downloads, taugt aber für die Kennzahlen nicht —
+ * dieser Endpunkt verlangt `csrftoken` und quittiert sonst mit 400. Vorher
+ * stand in den Einstellungen nur „Hinterlegt seit …", und dass die Sitzung
+ * für die Hälfte ihrer Aufgaben unbrauchbar ist, sah man ihr nicht an.
+ */
+export type Sitzungsumfang = {
+  /** Ohne den geht gar nichts. */
+  sessionid: boolean
+  /** Ohne den gehen die Kennzahlen nicht. */
+  csrftoken: boolean
+  /** Alle gefundenen Namen, in der Reihenfolge von `GEBRAUCHT`. */
+  namen: string[]
+}
+
+export function sitzungsumfang(inhalt: string | null | undefined): Sitzungsumfang | null {
+  const kopf = cookieKopfzeile(inhalt)
+  if (!kopf) return null
+
+  const namen = GEBRAUCHT.filter((n) => cookieWert(kopf, n))
+  return {
+    sessionid: namen.includes('sessionid'),
+    csrftoken: namen.includes('csrftoken'),
+    namen,
+  }
+}

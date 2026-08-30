@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alsCookiedatei } from './instagram-cookies'
+import { alsCookiedatei, sitzungsumfang } from './instagram-cookies'
 
 describe('alsCookiedatei', () => {
   it('nimmt eine echte cookies.txt unverändert', () => {
@@ -29,5 +29,32 @@ describe('alsCookiedatei', () => {
   it('gibt bei leerer Eingabe nichts zurück — sonst würde eine Sitzung gelöscht', () => {
     expect(alsCookiedatei('')).toBeNull()
     expect(alsCookiedatei('   \n  ')).toBeNull()
+  })
+})
+
+describe('sitzungsumfang', () => {
+  const zeile = (n: string, w: string) => `.instagram.com\tTRUE\t/\tTRUE\t9999999999\t${n}\t${w}`
+
+  /*
+    Der Fall aus der Produktion: nur `sessionid`. Trägt die Reel-Downloads,
+    taugt für die Kennzahlen nicht — und das sah man der Sitzung vorher nicht
+    an, weil in den Einstellungen bloß „Hinterlegt" stand.
+  */
+  it('erkennt eine Sitzung ohne csrftoken als unvollständig', () => {
+    const u = sitzungsumfang(zeile('sessionid', 'abc'))
+    expect(u).toMatchObject({ sessionid: true, csrftoken: false, namen: ['sessionid'] })
+  })
+
+  it('erkennt eine vollständige Sitzung', () => {
+    const u = sitzungsumfang([zeile('sessionid', 'abc'), zeile('csrftoken', 'xyz')].join('\n'))
+    expect(u).toMatchObject({ sessionid: true, csrftoken: true })
+    expect(u!.namen).toEqual(['sessionid', 'csrftoken'])
+  })
+
+  it('gibt ohne Hinterlegung und ohne sessionid nichts zurück', () => {
+    expect(sitzungsumfang(null)).toBeNull()
+    expect(sitzungsumfang('')).toBeNull()
+    // Ohne sessionid ließe sich gar nichts abrufen — `cookieKopfzeile` sagt schon nein.
+    expect(sitzungsumfang(zeile('csrftoken', 'xyz'))).toBeNull()
   })
 })

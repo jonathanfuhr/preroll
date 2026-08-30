@@ -837,6 +837,14 @@ Seite zu bewachen wäre die schlechtere Regel.
   ohne ihn stand dort „abgewiesen (400)", und man suchte den Fehler beim
   Handle. Der Rohtext von Instagram reist bei jedem Fehlschlag mit; ohne ihn
   beginnt das Raten.
+- **Ein Feld für alle Formen der Sitzung** — `alsCookiedatei` nimmt eine ganze
+  `cookies.txt`, eine Liste `name=wert; name=wert` oder den blanken
+  `sessionid`-Wert. Ein zweites Feld für `csrftoken` gäbe es also nichts zu
+  bauen; was fehlte, war der **Hinweis darauf**: Der Platzhalter zeigte
+  `sessionid=…` und lotste damit in die halbe Form. Die Einstellungen nennen
+  jetzt, **welche** Cookies hinterlegt sind (`sitzungsumfang`), und warnen,
+  wenn `csrftoken` fehlt — „hinterlegt" allein sagt zu wenig, wenn die Sitzung
+  für die Hälfte ihrer Aufgaben untauglich ist.
 - **Eine Sitzung ohne `csrftoken` wird für Kennzahlen gar nicht erst
   versucht.** Sie quittiert diesen Endpunkt zuverlässig mit 400 und verdeckte
   damit den echten Grund des ersten, anonymen Versuchs hinter einem zweiten,
