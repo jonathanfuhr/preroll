@@ -10,13 +10,22 @@ import type { KennzahlenQuelle, Plattform } from '@prisma/client'
  * drei irgendwann auseinander, und ein Knopf wäre bedienbar, wo der Lauf
  * längst nichts mehr findet.
  *
- * **Zwei Wege, und der Unterschied ist kein Zufall.** Instagram und TikTok
- * werden aus ihrer öffentlichen Profilseite gelesen: Dort beobachtet Preroll
- * *fremde* Profile, und einen Weg über die offizielle Schnittstelle gibt es
- * dafür nicht — er setzte eine Anmeldung des Kontoinhabers voraus. Facebook
- * geht über die **Graph API**: Die Seite ist dem Systemnutzer der Agentur
- * zugewiesen, das Token liegt am Kunden. Deshalb hängt Facebook an der
- * Zuordnung, nicht an einem Handle.
+ * **Zwei Wege, und der Unterschied ist kein Zufall.** Wo eine Seite dem
+ * Systemnutzer der Agentur zugewiesen ist, geht es über die **Graph API** —
+ * offiziell, stabil und ohne Drosselung. Wo nicht, bleibt nur das Auslesen der
+ * öffentlichen Profilseite.
+ *
+ * **Instagram kann beides.** Hängt am Kunden eine Facebook-Seite mit
+ * verknüpftem Instagram-Konto, liefert die Graph API Follower, Beiträge, Bio
+ * und Profilbild — nachgemessen dieselben Zahlen wie das Auslesen, nur ohne
+ * dessen Nachteile. Fehlt die Zuordnung, greift weiter der öffentliche Weg;
+ * er ist der einzige für Profile, die der Agentur nicht zugewiesen sind.
+ *
+ * Dass der öffentliche Weg gebraucht wird, hat sich nebenbei bestätigt:
+ * Instagram liefert für einen Teil der Business-Konten einen Fehler aus
+ * eigenem Haus, und dagegen hilft nur die offizielle Schnittstelle.
+ *
+ * TikTok bleibt beim Auslesen — dort gibt es keinen Zugang der Agentur.
  */
 
 /** Woran ein Abruf hängt: das Profil und die Kanalzuordnung des Kunden. */
@@ -24,6 +33,8 @@ export type Abrufkontext = {
   handle: string | null
   fbSeitenId: string | null
   fbSeitenToken: string | null
+  /** Das verknüpfte Instagram-Konto — Voraussetzung für den Weg über Graph. */
+  igKontoId: string | null
 }
 
 export type Abrufbedingung = {
@@ -36,9 +47,19 @@ export type Abrufbedingung = {
 
 export const ABRUF_BEDINGUNG = {
   INSTAGRAM: {
+    // Welche Quelle es am Ende war, entscheidet der Abruf: Mit Zuordnung
+    // Graph, ohne sie das Auslesen. Hier steht der häufigere Fall.
     quelle: 'INSTAGRAM_WEB',
-    bereit: (k) => Boolean(k.handle?.trim()),
-    fehlt: 'Für diesen Kunden ist kein Instagram-Handle hinterlegt.',
+    /*
+      Zwei Wege, einer genügt: das zugeordnete Konto (Graph) **oder** ein
+      Handle (öffentliche Profilseite). Nur mit dem Handle zu prüfen hieße,
+      einen Kunden auszusperren, dessen Konto zugeordnet ist, aber dessen
+      Handle niemand eingetippt hat — obwohl gerade der den besseren Weg hat.
+    */
+    bereit: (k) => Boolean((k.igKontoId && k.fbSeitenToken) || k.handle?.trim()),
+    fehlt:
+      'Für diesen Kunden ist weder ein Instagram-Handle hinterlegt noch ein Instagram-Konto ' +
+      'über die Facebook-Seite zugeordnet.',
   },
   TIKTOK: {
     quelle: 'TIKTOK_WEB',
@@ -62,7 +83,18 @@ export function istAbrufbar(plattform: Plattform): plattform is AbrufbarePlattfo
   return plattform in ABRUF_BEDINGUNG
 }
 
-/** Die Plattformen, die an einem Handle hängen — für die Warteschlange. */
-export const UEBER_HANDLE = ABRUFBARE_PLATTFORMEN.filter(
-  (p) => !ABRUF_BEDINGUNG[p].bereit({ handle: null, fbSeitenId: 'x', fbSeitenToken: 'y' }),
+/**
+ * Die Plattformen, für die ein Handle allein genügt — für die Warteschlange.
+ *
+ * Instagram steht hier mit drin, obwohl es auch über die Zuordnung geht: Ein
+ * Handle reicht ihm, und die Warteschlange nimmt den zugeordneten Fall
+ * zusätzlich auf (siehe `wacheUeberKennzahlen`).
+ */
+export const UEBER_HANDLE = ABRUFBARE_PLATTFORMEN.filter((p) =>
+  ABRUF_BEDINGUNG[p].bereit({
+    handle: 'x',
+    fbSeitenId: null,
+    fbSeitenToken: null,
+    igKontoId: null,
+  }),
 )

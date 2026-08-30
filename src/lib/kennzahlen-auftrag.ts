@@ -1,4 +1,5 @@
 import 'server-only'
+import type { KennzahlenQuelle } from '@prisma/client'
 import { prisma } from './db'
 import {
   ABRUFBARE_PLATTFORMEN,
@@ -11,7 +12,7 @@ import {
 import { ladeEinstellungen, speichereEinstellungen } from './einstellungen'
 import { holeProfilwerte as holeInstagram } from './instagram-kennzahlen'
 import { holeProfilwerte as holeTikTok } from './tiktok-kennzahlen'
-import { holeSeitenKennzahlen } from './meta'
+import { holeInstagramKennzahlen as holeInstagramGraph, holeSeitenKennzahlen } from './meta'
 import { speichereMedium } from './medien'
 
 /**
@@ -70,7 +71,14 @@ type Abrufwerte = {
   profilbildUrl: string | null
 }
 
-type Abrufergebnis = { ok: true; werte: Abrufwerte } | { ok: false; fehler: string }
+/**
+ * `quelle` überschreibt die der Bedingung: Instagram kann über Graph **oder**
+ * über die Profilseite kommen, und in den Stammdaten soll stehen, welcher Weg
+ * es war — „automatisch geholt" ohne Angabe wäre bei zwei Wegen zu wenig.
+ */
+type Abrufergebnis =
+  | { ok: true; werte: Abrufwerte; quelle?: KennzahlenQuelle }
+  | { ok: false; fehler: string }
 
 const LEER: Abrufwerte = {
   follower: null,
@@ -89,6 +97,31 @@ const LEER: Abrufwerte = {
  */
 const HOLEN: Record<AbrufbarePlattform, (k: Abrufkontext) => Promise<Abrufergebnis>> = {
   INSTAGRAM: async (k) => {
+    /*
+      Der offizielle Weg zuerst, wo er offensteht: Ist dem Kunden eine
+      Facebook-Seite mit verknüpftem Instagram-Konto zugeordnet, liefert die
+      Graph API dieselben Zahlen — ohne Drosselung, ohne Bruch beim nächsten
+      Umbau der Profilseite und ohne den 400er, an dem der öffentliche Weg
+      für einen Teil der Business-Konten scheitert.
+
+      Ohne Zuordnung bleibt es beim Auslesen. Das ist kein Notbehelf, sondern
+      der einzige Weg für Profile, die der Agentur nicht zugewiesen sind.
+    */
+    if (k.igKontoId && k.fbSeitenToken) {
+      const g = await holeInstagramGraph(k.igKontoId, k.fbSeitenToken)
+      if (g.ok) {
+        const { handle: _handle, ...werte } = g.daten
+        return { ok: true, werte: { ...LEER, ...werte }, quelle: 'GRAPH_API' }
+      }
+      /*
+        Scheitert Graph, wird **nicht** still auf das Auslesen zurückgefallen:
+        Eine zugeordnete Seite, die keine Zahlen liefert, ist ein Zustand, den
+        jemand ansehen muss — ein abgelaufenes Token, ein entzogenes Recht.
+        Ein stiller Rückfall verstecktes das, bis irgendwann beides kaputt ist.
+      */
+      if (!k.handle?.trim()) return { ok: false, fehler: g.fehler.text }
+    }
+
     const e = await holeInstagram(k.handle!)
     return e.ok ? { ok: true, werte: { ...LEER, ...e.werte } } : e
   },
@@ -130,6 +163,7 @@ export async function aktualisiereKennzahlen(
       logoId: true,
       fbSeitenId: true,
       fbSeitenToken: true,
+      igKontoId: true,
       profile: { where: { plattform }, select: { handle: true } },
     },
   })
@@ -139,6 +173,7 @@ export async function aktualisiereKennzahlen(
     handle: kunde.profile[0]?.handle ?? null,
     fbSeitenId: kunde.fbSeitenId,
     fbSeitenToken: kunde.fbSeitenToken,
+    igKontoId: kunde.igKontoId,
   }
   if (!bedingung.bereit(kontext)) return { ok: false, fehler: bedingung.fehlt }
 
@@ -192,7 +227,8 @@ export async function aktualisiereKennzahlen(
     // Geht es wieder, verschwindet der alte Grund — ein Fehler, der stehen
     // bleibt, obwohl es längst läuft, ist schlimmer als keiner.
     letzterFehler: null,
-    quelle: bedingung.quelle,
+    // Welcher Weg es wirklich war — bei Instagram entscheidet sich das im Abruf.
+    quelle: ergebnis.quelle ?? bedingung.quelle,
   }
   await prisma.plattformProfil.upsert({
     where: { kundeId_plattform: { kundeId, plattform } },
@@ -269,6 +305,17 @@ export async function wacheUeberKennzahlen(): Promise<void> {
           {
             plattform: 'FACEBOOK',
             kunde: { fbSeitenId: { not: null }, fbSeitenToken: { not: null } },
+          },
+          /*
+            Instagram kommt auch ohne Handle in Frage, wenn das Konto über die
+            Facebook-Seite zugeordnet ist — dann geht es über die Graph API.
+            Ohne diesen Zweig bliebe ein Kunde außen vor, dessen Konto
+            zugeordnet ist, aber dessen Handle niemand eingetippt hat: also
+            ausgerechnet der mit dem besseren Weg.
+          */
+          {
+            plattform: 'INSTAGRAM',
+            kunde: { igKontoId: { not: null }, fbSeitenToken: { not: null } },
           },
         ],
         AND: [

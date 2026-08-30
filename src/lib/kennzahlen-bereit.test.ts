@@ -7,7 +7,7 @@ import {
   type Abrufkontext,
 } from './kennzahlen-bereit'
 
-const LEER: Abrufkontext = { handle: null, fbSeitenId: null, fbSeitenToken: null }
+const LEER: Abrufkontext = { handle: null, fbSeitenId: null, fbSeitenToken: null, igKontoId: null }
 
 describe('welche Plattformen Preroll selbst abruft', () => {
   /*
@@ -37,7 +37,7 @@ describe('woran ein Abruf hängt', () => {
       expect(ABRUF_BEDINGUNG[p].bereit({ ...LEER, handle: '   ' })).toBe(false)
       // Eine Facebook-Seite hilft ihnen nicht.
       expect(
-        ABRUF_BEDINGUNG[p].bereit({ handle: null, fbSeitenId: '1', fbSeitenToken: 't' }),
+        ABRUF_BEDINGUNG[p].bereit({ handle: null, fbSeitenId: '1', fbSeitenToken: 't', igKontoId: null }),
       ).toBe(false)
     }
   })
@@ -52,7 +52,7 @@ describe('woran ein Abruf hängt', () => {
     expect(b({ ...LEER, handle: 'Beispiel Handwerk' })).toBe(false)
     expect(b({ ...LEER, fbSeitenId: '123' })).toBe(false)
     expect(b({ ...LEER, fbSeitenToken: 'geheim' })).toBe(false)
-    expect(b({ handle: null, fbSeitenId: '123', fbSeitenToken: 'geheim' })).toBe(true)
+    expect(b({ handle: null, fbSeitenId: '123', fbSeitenToken: 'geheim', igKontoId: null })).toBe(true)
   })
 
   it('sagt in einem Satz, was fehlt', () => {
@@ -69,5 +69,30 @@ describe('UEBER_HANDLE', () => {
   */
   it('trennt die Handle-Plattformen von Facebook', () => {
     expect(UEBER_HANDLE).toEqual(['INSTAGRAM', 'TIKTOK'])
+  })
+})
+
+describe('Instagram: zwei Wege, einer genügt', () => {
+  const leer = { handle: null, fbSeitenId: null, fbSeitenToken: null, igKontoId: null }
+  const ig = ABRUF_BEDINGUNG.INSTAGRAM
+
+  it('reicht ein Handle allein', () => {
+    expect(ig.bereit({ ...leer, handle: 'thdvideo' })).toBe(true)
+  })
+
+  /*
+    Der Fall, der vorher durchfiel: Konto zugeordnet, Handle nie eingetippt —
+    ausgerechnet der Kunde mit dem besseren Weg wäre ausgesperrt gewesen.
+  */
+  it('reicht ein zugeordnetes Konto allein', () => {
+    expect(ig.bereit({ ...leer, igKontoId: '17841400000000000', fbSeitenToken: 'tok' })).toBe(true)
+  })
+
+  it('genügt eine Kontokennung ohne Token nicht — ohne Token keine Anfrage', () => {
+    expect(ig.bereit({ ...leer, igKontoId: '17841400000000000' })).toBe(false)
+  })
+
+  it('bleibt ohne beides unbereit', () => {
+    expect(ig.bereit(leer)).toBe(false)
   })
 })

@@ -757,6 +757,20 @@ Seite zu bewachen wäre die schlechtere Regel.
   Merkerfeld (`plattformenGesetzt`, `kanalGesetzt`); die Aktion fasst nur an,
   was mitgeschickt wurde. Deshalb reist `postenAktiv` versteckt im
   Kanal-Formular mit, obwohl sein Schalter im Profil steht.
+- **Instagram kann beide Wege — und Graph ist der bessere.** Ist dem Kunden
+  eine Facebook-Seite mit verknüpftem Instagram-Konto zugeordnet
+  (`igKontoId` + `fbSeitenToken`), kommen Follower, Gefolgt, Beiträge, Bio,
+  Website und Profilbild über `holeInstagramKennzahlen` — offiziell, ohne
+  Drosselung, ohne Bruch beim nächsten Umbau der Profilseite und ohne den
+  400er aus Metas eigenem Haus, an dem das Auslesen für einen Teil der
+  Business-Konten scheitert. Nachgemessen liefern beide Wege **dieselben
+  Zahlen**. Ein **App Review braucht es dafür nicht** — das gilt nur für
+  Business Discovery, also fremde Profile; ein zugewiesenes Konto genügt
+  `instagram_basic`. Ohne Zuordnung bleibt es beim Auslesen; das ist kein
+  Notbehelf, sondern der einzige Weg für nicht zugewiesene Profile. **Scheitert
+  Graph, wird nicht still zurückgefallen**, solange kein Handle da ist: Eine
+  zugeordnete Seite ohne Zahlen ist ein Zustand, den jemand ansehen muss.
+  Welcher Weg es war, steht als `quelle` am Profil.
 - **Facebook geht über die Graph API, nicht übers Auslesen** — als einzige der
   drei. Der Unterschied ist kein Zufall: Bei Instagram und TikTok beobachtet
   Preroll *fremde* Profile, und der dokumentierte Weg setzte eine Anmeldung

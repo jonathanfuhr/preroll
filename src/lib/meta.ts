@@ -476,3 +476,75 @@ export async function holeSeitenKennzahlen(
     },
   }
 }
+
+// ----------------------------------------------------- Instagram-Kennzahlen
+
+export type InstagramKennzahlen = {
+  handle: string | null
+  follower: number | null
+  gefolgt: number | null
+  beitraege: number | null
+  bio: string | null
+  website: string | null
+  profilbildUrl: string | null
+}
+
+type IgAntwortFelder = {
+  username?: string
+  followers_count?: number
+  follows_count?: number
+  media_count?: number
+  biography?: string
+  website?: string
+  profile_picture_url?: string
+}
+
+/**
+ * Instagram-Kennzahlen über die Graph API — der offizielle Weg.
+ *
+ * Möglich, sobald dem Kunden eine Facebook-Seite mit verknüpftem
+ * Instagram-Konto zugeordnet ist: Das Konto ist dann dem Systemnutzer der
+ * Agentur zugewiesen, und `instagram_basic` genügt. Ein App Review braucht es
+ * dafür **nicht** — das gilt nur für Business Discovery, also das Ausspähen
+ * *fremder* Profile.
+ *
+ * Nachgemessen liefert dieser Weg dieselben Zahlen wie das Auslesen der
+ * Profilseite (1396 Follower, 337 Beiträge bei @thdvideo), aber ohne dessen
+ * drei Nachteile: keine Drosselung nach zu vielen Anfragen, kein Bruch, wenn
+ * Instagram seine Seiten umbaut — und vor allem kein 400 aus Metas eigenem
+ * Haus, an dem der öffentliche Weg für einen Teil der Business-Konten
+ * scheitert.
+ *
+ * `follows_count` kommt mit, weil die Feed-Vorschau es zeigt. `website` führt
+ * Instagram als eigenes Feld, anders als bei einer Facebook-Seite.
+ */
+export async function holeInstagramKennzahlen(
+  igKontoId: string,
+  token: string,
+): Promise<MetaAntwort<InstagramKennzahlen>> {
+  const antwort = await anfrage<IgAntwortFelder>(igKontoId, {
+    token,
+    felder: {
+      fields:
+        'username,followers_count,follows_count,media_count,biography,website,profile_picture_url',
+    },
+  })
+  if (!antwort.ok) return antwort
+
+  const d = antwort.daten
+  const zahl = (wert: unknown) => (typeof wert === 'number' && Number.isFinite(wert) ? wert : null)
+  const text = (wert: unknown) => (typeof wert === 'string' && wert.trim() ? wert.trim() : null)
+
+  return {
+    ok: true,
+    daten: {
+      handle: text(d.username),
+      follower: zahl(d.followers_count),
+      gefolgt: zahl(d.follows_count),
+      beitraege: zahl(d.media_count),
+      bio: text(d.biography),
+      website: text(d.website),
+      profilbildUrl: text(d.profile_picture_url),
+    },
+  }
+}
