@@ -385,17 +385,21 @@ Seite zu bewachen wäre die schlechtere Regel.
   im Bauteil hängt, ist keine. Auf der Kundenseite sieht das Team seine
   internen Kommentare trotzdem, markiert: Sonst verschwände die eigene
   Antwort im Moment des Abschickens.
-- **Kommentar-Mails werden gesammelt, je Kunde** (`sammelfrist.ts`,
-  `kommentar-sammlung.ts`). Wer einen Monatsplan durchgeht, kommentiert fünf
-  Beiträge in zwei Minuten und löste damit fünf Mails an dieselbe Person aus;
-  die entwerten sich gegenseitig, und beim sechsten Mal richtet jemand einen
-  Filter ein. Verschickt wird, wenn **fünf Minuten lang kein neuer Kommentar
-  mehr kam** — am *letzten* gemessen, nicht am ersten: Sonst bräche der
+- **Kommentar- und Freigabe-Mails werden gesammelt, je Kunde**
+  (`sammelfrist.ts`, `meldung-sammlung.ts`). Wer einen Monatsplan durchgeht,
+  kommentiert zu fünf Beiträgen und gibt acht frei — und löste damit dreizehn
+  Mails an dieselbe Person aus;
+  die entwerten sich gegenseitig, und beim vierzehnten Mal richtet jemand einen
+  Filter ein. Verschickt wird, wenn **fünf Minuten lang nichts Neues mehr
+  kam** — am *letzten* gemessen, nicht am ersten: Sonst bräche der
   Versand mitten in eine laufende Durchsicht. Gruppiert **je Kunde**, nicht je
   Beitrag; eine Mail je Beitrag wäre wieder dieselbe Flut. **Push und Glocke
-  bleiben sofort** — sie unterbrechen nicht auf dieselbe Weise. Eine Zeile je
-  Empfänger und Kommentar: Wer was sehen darf, entscheidet der Verteiler beim
-  Eintreffen, nicht der Sammelversand — sonst stünde die Rechteprüfung zweimal
+  bleiben sofort** — sie unterbrechen nicht auf dieselbe Weise. Kommentare und Freigaben stehen in
+  **einer** Mail, nicht in zweien: Beides geschieht in derselben Durchsicht,
+  und zwei Mails über dieselbe halbe Stunde wären genau die Unterbrechung, die
+  hier abgeschafft werden soll. Eine Zeile je Empfänger und Ereignis: Wer was
+  sehen darf, entscheidet der Verteiler beim Eintreffen, nicht der
+  Sammelversand — sonst stünde die Rechteprüfung zweimal
   da. Beim Versand wird **erst gelöscht, dann gesendet**: Eine verlorene
   Meldung ist ärgerlich, eine Mailschleife schlimmer. Der Takt hängt an
   `instrumentation.ts` und **nicht** hinter dem Schalter fürs Veröffentlichen.

@@ -18,7 +18,7 @@ import { PLATTFORM_TEXT } from './plattformen'
 import { sendePush } from './push'
 import { empfaenger, hoertBeiAllenKundenMit } from './rollen'
 import { antwortadresseFuerKunden } from './antwortadresse'
-import { merkeKommentarVor } from './kommentar-sammlung'
+import { merkeVor } from './meldung-sammlung'
 
 /**
  * Benachrichtigungen gehen drei Wege: als Meldung in der Glocke, als E-Mail
@@ -82,7 +82,7 @@ async function verteile(
    * Nur für Kommentare: Eine Freigabe oder ein Fehlschlag beim Posten ist ein
    * Einzelereignis, das niemand mit anderen gebündelt sehen will.
    */
-  sammeln?: { kommentarId: string },
+  sammeln?: { art: 'KOMMENTAR'; kommentarId: string } | { art: 'FREIGABE'; freigabeId: string },
 ): Promise<void> {
   if (ziele.length === 0) return
 
@@ -112,7 +112,7 @@ async function verteile(
   for (const nutzer of ziele) {
     if (nutzer.mailBenachrichtigungen) {
       if (sammeln) {
-        await merkeKommentarVor(meldung.kundeId, nutzer.email, sammeln.kommentarId, meldung.url)
+        await merkeVor({ ...sammeln, kundeId: meldung.kundeId, email: nutzer.email, url: meldung.url })
       } else {
         await stilleZustellung(
           sendeMail({ ...mailBauen(nutzer.email), antwortAn }),
@@ -173,7 +173,13 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
           Wer als Agentur einen Plan durchkommentiert, schickt ihm sonst
           binnen Minuten fünf Mails. Die Antwortadresse setzt der Versand.
         */
-        await merkeKommentarVor(kunde.id, gast.email, kommentar.id, `${gastUrl}#post-${post.id}`)
+        await merkeVor({
+          art: 'KOMMENTAR',
+          kundeId: kunde.id,
+          email: gast.email,
+          kommentarId: kommentar.id,
+          url: `${gastUrl}#post-${post.id}`,
+        })
       }
       if (gast.pushBenachrichtigungen) {
         await stilleZustellung(
@@ -210,7 +216,7 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
     (an) => vorlageNeuerKommentar(an, kommentar.autorName, kunde.name, post.titel, lesbar, url),
     // Kommentare werden gesammelt: fünf Anmerkungen in einer Durchsicht sind
     // eine Mail, nicht fünf.
-    { kommentarId: kommentar.id },
+    { art: 'KOMMENTAR', kommentarId: kommentar.id },
   )
 }
 
@@ -335,6 +341,13 @@ export async function meldeFreigabe(freigabeId: string): Promise<void> {
       postId: freigabe.postId,
     },
     (an) => vorlageFreigabe(an, freigabe.autorName, kunde.name, `${stufe} · ${freigabe.post.titel}`, url),
+    /*
+      Freigaben werden gesammelt wie Kommentare — und dort fällt es sogar mehr
+      ins Gewicht: Wer einen Monatsplan durchgeht, gibt acht Beiträge
+      nacheinander frei. Acht Mails darüber sagen nichts, was eine nicht auch
+      sagt. Push und Glocke kommen weiterhin sofort.
+    */
+    { art: 'FREIGABE', freigabeId: freigabe.id },
   )
 }
 

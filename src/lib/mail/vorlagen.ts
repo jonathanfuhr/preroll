@@ -82,36 +82,58 @@ export function vorlageNeuerKommentar(
 }
 
 export type Sammeleintrag = {
+  art: 'KOMMENTAR' | 'FREIGABE'
   autor: string
   postTitel: string
+  /** Beim Kommentar sein Text, bei einer Freigabe die Stufe. */
   text: string
   intern: boolean
   url: string
 }
 
 /**
- * Mehrere Kommentare in einer Mail — was `kommentar-sammlung.ts` verschickt.
+ * Mehrere Meldungen in einer Mail — was `meldung-sammlung.ts` verschickt.
  *
- * Warum überhaupt: Wer einen Monatsplan durchgeht, kommentiert fünf Beiträge
- * in zwei Minuten. Fünf Mails dazu liest niemand einzeln; sie entwerten sich
- * gegenseitig, und beim sechsten Mal richtet man einen Filter ein.
+ * Warum überhaupt: Wer einen Monatsplan durchgeht, kommentiert zu fünf
+ * Beiträgen und gibt acht frei. Dreizehn Mails dazu liest niemand einzeln; sie
+ * entwerten sich gegenseitig, und beim vierzehnten Mal richtet man einen
+ * Filter ein.
  *
- * Aufgebaut wie die Beitragsliste selbst: je Kommentar der Beitrag, der Name
- * und der Text, jeder mit eigenem Link. Ein einzelner Knopf am Ende wäre
- * bequemer zu bauen und führte doch nur zu einem der fünf Beiträge.
+ * Aufgebaut wie die Beitragsliste selbst: je Eintrag der Beitrag, der Name und
+ * worum es geht, jeder mit eigenem Link. Ein einzelner Knopf am Ende wäre
+ * bequemer zu bauen und führte doch nur zu einem der dreizehn Beiträge.
+ *
+ * **Kommentare und Freigaben in einer Mail**, nicht in zweien: Beides geschieht
+ * in derselben Durchsicht, und zwei Mails über dieselbe halbe Stunde wären
+ * genau die Unterbrechung, die hier abgeschafft werden soll. Unterschieden
+ * werden sie an der Zeile, nicht am Umschlag.
  */
-export function vorlageKommentarSammlung(
-  an: string,
-  kunde: string,
-  eintraege: Sammeleintrag[],
-): Mail {
-  const anzahl = eintraege.length
-  const wieViele = anzahl === 1 ? 'Ein neuer Kommentar' : `${anzahl} neue Kommentare`
+export function vorlageSammlung(an: string, kunde: string, eintraege: Sammeleintrag[]): Mail {
+  const kommentare = eintraege.filter((e) => e.art === 'KOMMENTAR').length
+  const freigaben = eintraege.length - kommentare
+
+  const zaehle = (n: number, eins: string, viele: string) =>
+    n === 1 ? `Ein${eins}` : `${n} ${viele}`
 
   /*
-    Die Namen in den Betreff, solange es wenige sind: „3 neue Kommentare von
-    Anna und Bernd" sagt schon vor dem Öffnen, worum es geht. Ab drei Personen
-    wird die Zeile zur Aufzählung und der Betreff unlesbar.
+    Der Betreff nennt beides, wenn beides da ist. „3 neue Kommentare und 5
+    Freigaben" sagt vor dem Öffnen, was passiert ist; „13 Meldungen" sagt
+    nichts.
+  */
+  const teile = [
+    kommentare > 0 ? zaehle(kommentare, ' neuer Kommentar', 'neue Kommentare') : null,
+    freigaben > 0 ? zaehle(freigaben, 'e Freigabe', 'Freigaben') : null,
+  ].filter((t): t is string => t !== null)
+
+  // Mitten im Satz wird kleingeschrieben: „Ein neuer Kommentar und eine
+  // Freigabe", nicht „… und Eine Freigabe".
+  const kopf = teile
+    .map((t, i) => (i === 0 ? t : t.charAt(0).toLowerCase() + t.slice(1)))
+    .join(' und ')
+
+  /*
+    Die Namen dazu, solange es wenige sind. Ab drei Personen wird die Zeile zur
+    Aufzählung und der Betreff unlesbar.
   */
   const namen = [...new Set(eintraege.map((e) => e.autor))]
   const vonWem =
@@ -124,11 +146,11 @@ export function vorlageKommentarSammlung(
   const kuerzen = (text: string) => (text.length > 300 ? `${text.slice(0, 300)} …` : text)
 
   const text = [
-    `${wieViele}${vonWem} bei ${kunde}:`,
+    `${kopf}${vonWem} bei ${kunde}:`,
     '',
     ...eintraege.flatMap((e) => [
       `${e.autor} zu „${e.postTitel}"${e.intern ? ' (intern)' : ''}:`,
-      kuerzen(e.text),
+      e.art === 'FREIGABE' ? e.text : kuerzen(e.text),
       e.url,
       '',
     ]),
@@ -144,7 +166,9 @@ export function vorlageKommentarSammlung(
               : ''
           }
         </div>
-        <div style="color:#3a3733;">${kuerzen(e.text).replace(/\n/g, '<br>')}</div>
+        <div style="color:${e.art === 'FREIGABE' ? '#2f7a45' : '#3a3733'};">${
+          e.art === 'FREIGABE' ? `✓ ${e.text}` : kuerzen(e.text).replace(/\n/g, '<br>')
+        }</div>
         <div style="margin:10px 0 0;"><a href="${e.url}" style="color:#b00900;font-size:13px;text-decoration:none;">Beitrag öffnen →</a></div>
       </div>`,
     )
@@ -152,13 +176,13 @@ export function vorlageKommentarSammlung(
 
   return {
     an,
-    betreff: `${wieViele}${vonWem} — ${kunde}`,
+    betreff: `${kopf}${vonWem} — ${kunde}`,
     text,
     html: huelle(
-      `${wieViele} bei ${kunde}`,
+      `${kopf} bei ${kunde}`,
       html,
-      anzahl > 1
-        ? 'Gesammelt verschickt, damit nicht jede Anmerkung einzeln unterbricht.'
+      eintraege.length > 1
+        ? 'Gesammelt verschickt, damit nicht jede Meldung einzeln unterbricht.'
         : undefined,
     ),
   }
