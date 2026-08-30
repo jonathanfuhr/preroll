@@ -158,7 +158,14 @@ export function MailFelder({
           >
             <Eingabe name="msClientSecret" type="password" placeholder="unverändert" />
           </Feld>
-          <Feld beschriftung="Postfach" hinweis="UPN oder Objekt-ID des sendenden Kontos.">
+          <Feld
+            beschriftung="Postfach"
+            hinweis={
+              'UPN oder Objekt-ID des sendenden Kontos. Bei Microsoft 365 ist dieses Postfach ' +
+              'der Absender — die Adresse oben wird dabei nicht verwendet, und die Mails liegen ' +
+              'in dessen Gesendet-Ordner. Für ein reines Ausgangspostfach also hier eintragen.'
+            }
+          >
             <Eingabe name="msPostfach" defaultValue={e.msPostfach ?? ''} placeholder="preroll@thdvideo.de" />
           </Feld>
         </>

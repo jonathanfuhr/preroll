@@ -184,6 +184,7 @@ model Kunde {
    * stillschweigend Instagram.
    */
   profile PlattformProfil[]
+  mailstau KommentarSammlung[]
 
   // Vorbelegung für neue Posts, wenn beim Anlegen kein Termin gesetzt wird.
   standardUhrzeit String @default("10:00")
@@ -909,6 +910,8 @@ model Kommentar {
   @@index([postId])
   @@index([exportId])
   @@map("kommentar")
+  /** Wartende Sammel-Mails, die diesen Kommentar enthalten. */
+  sammlungen KommentarSammlung[]
 }
 
 // ------------------------------------------------------- Benachrichtigungen
@@ -928,6 +931,52 @@ enum BenachrichtigungArt {
  * und Push: Wer beides abgeschaltet hat, soll trotzdem sehen, was passiert
  * ist, sobald er die Oberfläche öffnet.
  */
+/**
+ * Eine Kommentar-Mail, die noch wartet.
+ *
+ * Kommentare kommen in Schüben: Wer einen Monatsplan durchgeht, schreibt zu
+ * fünf Beiträgen etwas — und löste damit fünf Mails aus, innerhalb von zwei
+ * Minuten, an dieselbe Person. Das liest niemand einzeln; es ist eine
+ * Unterbrechung je Satz.
+ *
+ * Deshalb wird gesammelt: Erst wenn **fünf Minuten lang kein neuer Kommentar**
+ * mehr kam, geht eine Mail mit allen raus. Gruppiert wird **je Kunde**, nicht
+ * je Beitrag — wer einen Plan durchsieht, tut das für einen Kunden, und eine
+ * Mail je Beitrag wäre wieder dieselbe Flut.
+ *
+ * **Push und Glocke bleiben sofort.** Sie unterbrechen nicht auf dieselbe
+ * Weise, und wer am Telefon mitliest, will es sofort wissen.
+ *
+ * Eine Zeile je Empfänger und Kommentar: Wer welchen Kommentar sehen darf,
+ * entscheidet der Verteiler beim Eintreffen, nicht der Sammelversand. Sonst
+ * müsste er die Rechte ein zweites Mal berechnen — und käme dabei irgendwann
+ * zu einem anderen Ergebnis.
+ */
+model KommentarSammlung {
+  id      String @id @default(cuid())
+  kundeId String
+  kunde   Kunde  @relation(fields: [kundeId], references: [id], onDelete: Cascade)
+
+  /** An wen — die Adresse ist der Schlüssel, Team wie Gast. */
+  email String
+
+  kommentarId String
+  kommentar   Kommentar @relation(fields: [kommentarId], references: [id], onDelete: Cascade)
+
+  /**
+   * Der Link für **diesen** Empfänger: Das Team bekommt den Beitrag im
+   * Backend, ein Gast seinen Freigabe-Link. Beim Versand nachzuschlagen hieße,
+   * die Unterscheidung ein zweites Mal zu treffen.
+   */
+  url String
+
+  erstelltAm DateTime @default(now())
+
+  @@index([kundeId, email])
+  @@index([erstelltAm])
+  @@map("kommentar_sammlung")
+}
+
 model Benachrichtigung {
   id       String              @id @default(cuid())
   nutzerId String

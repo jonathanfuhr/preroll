@@ -385,6 +385,30 @@ Seite zu bewachen wäre die schlechtere Regel.
   im Bauteil hängt, ist keine. Auf der Kundenseite sieht das Team seine
   internen Kommentare trotzdem, markiert: Sonst verschwände die eigene
   Antwort im Moment des Abschickens.
+- **Kommentar-Mails werden gesammelt, je Kunde** (`sammelfrist.ts`,
+  `kommentar-sammlung.ts`). Wer einen Monatsplan durchgeht, kommentiert fünf
+  Beiträge in zwei Minuten und löste damit fünf Mails an dieselbe Person aus;
+  die entwerten sich gegenseitig, und beim sechsten Mal richtet jemand einen
+  Filter ein. Verschickt wird, wenn **fünf Minuten lang kein neuer Kommentar
+  mehr kam** — am *letzten* gemessen, nicht am ersten: Sonst bräche der
+  Versand mitten in eine laufende Durchsicht. Gruppiert **je Kunde**, nicht je
+  Beitrag; eine Mail je Beitrag wäre wieder dieselbe Flut. **Push und Glocke
+  bleiben sofort** — sie unterbrechen nicht auf dieselbe Weise. Eine Zeile je
+  Empfänger und Kommentar: Wer was sehen darf, entscheidet der Verteiler beim
+  Eintreffen, nicht der Sammelversand — sonst stünde die Rechteprüfung zweimal
+  da. Beim Versand wird **erst gelöscht, dann gesendet**: Eine verlorene
+  Meldung ist ärgerlich, eine Mailschleife schlimmer. Der Takt hängt an
+  `instrumentation.ts` und **nicht** hinter dem Schalter fürs Veröffentlichen.
+- **Gesendet wird aus einem Ausgangspostfach, geantwortet an die
+  Projektverantwortliche** (`antwortadresseFuerKunden`). Ohne `Reply-To` landen
+  die Antworten im Sammelpostfach der Agentur und gehen dort unter — genau
+  deshalb gibt es die Trennung. Zuständig ist der Hauptansprechpartner des
+  Kunden; ist er stillgelegt oder fehlt er, bleibt das Feld leer, denn eine
+  erfundene Adresse wäre schlechter als keine. `Reply-To` können alle drei
+  Transporte. **Bei Microsoft 365 ist das Postfach der Absender** — Graph
+  sendet aus dem Konto, auf dem die Anfrage läuft, und die Adresse in den
+  Einstellungen wird dabei nicht verwendet. Wer den Absender wechseln will,
+  wechselt `msPostfach`; ein abweichendes `from` bräuchte „Senden als".
 - **@-Erwähnungen stehen im Text.** Format `@[Name](n:<id>)` für Team,
   `(g:<id>)` für Gäste — der Name liegt mit im Text, damit ein Kommentar auch
   nach einer Umbenennung lesbar bleibt. Der Text ist die **einzige** Quelle

@@ -17,6 +17,8 @@ import {
 import { PLATTFORM_TEXT } from './plattformen'
 import { sendePush } from './push'
 import { empfaenger, hoertBeiAllenKundenMit } from './rollen'
+import { antwortadresseFuerKunden } from './antwortadresse'
+import { merkeKommentarVor } from './kommentar-sammlung'
 
 /**
  * Benachrichtigungen gehen drei Wege: als Meldung in der Glocke, als E-Mail
@@ -74,6 +76,13 @@ async function verteile(
   }>,
   meldung: Meldung,
   mailBauen: (an: string) => Mail,
+  /**
+   * Statt sofort zu senden nur vormerken — die Sammlung schickt später eine
+   * Mail für alles, was in derselben Zeit für denselben Kunden zusammenkam.
+   * Nur für Kommentare: Eine Freigabe oder ein Fehlschlag beim Posten ist ein
+   * Einzelereignis, das niemand mit anderen gebündelt sehen will.
+   */
+  sammeln?: { kommentarId: string },
 ): Promise<void> {
   if (ziele.length === 0) return
 
@@ -93,9 +102,23 @@ async function verteile(
     'Meldungen anlegen',
   )
 
+  /*
+    Antworten gehen an die Projektverantwortliche, nicht ans Ausgangspostfach.
+    Einmal je Verteilung nachgeschlagen statt je Empfänger — es ist dieselbe
+    Adresse für alle.
+  */
+  const antwortAn = await antwortadresseFuerKunden(meldung.kundeId)
+
   for (const nutzer of ziele) {
     if (nutzer.mailBenachrichtigungen) {
-      await stilleZustellung(sendeMail(mailBauen(nutzer.email)), `Mail an ${nutzer.email}`)
+      if (sammeln) {
+        await merkeKommentarVor(meldung.kundeId, nutzer.email, sammeln.kommentarId, meldung.url)
+      } else {
+        await stilleZustellung(
+          sendeMail({ ...mailBauen(nutzer.email), antwortAn }),
+          `Mail an ${nutzer.email}`,
+        )
+      }
     }
     if (nutzer.pushBenachrichtigungen) {
       await stilleZustellung(
@@ -145,19 +168,12 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
     for (const { gast, export: exp } of beteiligungen) {
       const gastUrl = `${env.appUrl}/f/${exp.token}`
       if (gast.mailBenachrichtigungen) {
-        await stilleZustellung(
-          sendeMail(
-            vorlageNeuerKommentar(
-              gast.email,
-              kommentar.autorName,
-              kunde.name,
-              post.titel,
-              lesbar,
-              gastUrl,
-            ),
-          ),
-          `Mail an ${gast.email}`,
-        )
+        /*
+          Auch beim Kunden gesammelt — dort fällt es sogar mehr ins Gewicht:
+          Wer als Agentur einen Plan durchkommentiert, schickt ihm sonst
+          binnen Minuten fünf Mails. Die Antwortadresse setzt der Versand.
+        */
+        await merkeKommentarVor(kunde.id, gast.email, kommentar.id, `${gastUrl}#post-${post.id}`)
       }
       if (gast.pushBenachrichtigungen) {
         await stilleZustellung(
@@ -192,6 +208,9 @@ export async function meldeNeuenKommentar(kommentarId: string): Promise<void> {
       postId: kommentar.postId,
     },
     (an) => vorlageNeuerKommentar(an, kommentar.autorName, kunde.name, post.titel, lesbar, url),
+    // Kommentare werden gesammelt: fünf Anmerkungen in einer Durchsicht sind
+    // eine Mail, nicht fünf.
+    { kommentarId: kommentar.id },
   )
 }
 
@@ -253,9 +272,17 @@ async function meldeErwaehnungen(
     const gastUrl = `${env.appUrl}/f/${exp.token}`
     if (gast.mailBenachrichtigungen) {
       await stilleZustellung(
-        sendeMail(
-          vorlageErwaehnung(gast.email, kommentar.autorName, kunde.name, postTitel, lesbar, gastUrl),
-        ),
+        sendeMail({
+          ...vorlageErwaehnung(
+            gast.email,
+            kommentar.autorName,
+            kunde.name,
+            postTitel,
+            lesbar,
+            gastUrl,
+          ),
+          antwortAn: await antwortadresseFuerKunden(kunde.id),
+        }),
         `Erwähnung an ${gast.email}`,
       )
     }
@@ -321,7 +348,12 @@ export async function ladeGastEin(exportId: string, gastId: string): Promise<voi
   if (!gast || !exp) return
 
   await stilleZustellung(
-    sendeMail(vorlageEinladung(gast.email, exp.kunde.name, `${env.appUrl}/f/${exp.token}`)),
+    sendeMail({
+      ...vorlageEinladung(gast.email, exp.kunde.name, `${env.appUrl}/f/${exp.token}`),
+      // Auf eine Einladung wird geantwortet („wer sind Sie?", „geht der Link
+      // nicht auf?") — und zwar bei der Ansprechperson, nicht im Ausgangsfach.
+      antwortAn: await antwortadresseFuerKunden(exp.kundeId),
+    }),
     `Einladung an ${gast.email}`,
   )
 }

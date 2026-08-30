@@ -32,6 +32,7 @@ export async function sendeUeberSmtp(
     await transport.sendMail({
       from: absenderKopf(absender),
       to: mail.an,
+      ...(mail.antwortAn ? { replyTo: mail.antwortAn } : {}),
       subject: mail.betreff,
       text: mail.text,
       html: mail.html,

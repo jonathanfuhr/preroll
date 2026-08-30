@@ -12,4 +12,9 @@ export async function register(): Promise<void> {
 
   const { starteZeitplaner } = await import('./lib/veroeffentlichung-lauf')
   starteZeitplaner()
+
+  // Kommentar-Mails gehen gesammelt raus — auch das braucht einen Takt, der
+  // nicht davon abhängt, ob gerade jemand im Backend arbeitet.
+  const { starteSammelversand } = await import('./lib/kommentar-sammlung')
+  starteSammelversand()
 }

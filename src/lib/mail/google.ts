@@ -53,6 +53,7 @@ function baueNachricht(absender: Absender, mail: Mail): string {
   const kopf = [
     `From: ${kodiereKopfzeile(absenderKopf(absender))}`,
     `To: ${mail.an}`,
+    ...(mail.antwortAn ? [`Reply-To: ${mail.antwortAn}`] : []),
     `Subject: ${kodiereKopfzeile(mail.betreff)}`,
     'MIME-Version: 1.0',
   ]

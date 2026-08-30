@@ -73,6 +73,15 @@ export async function sendeUeberMicrosoft(
               content: mail.html ?? mail.text,
             },
             toRecipients: [{ emailAddress: { address: mail.an } }],
+            /*
+              Kein `from`: Graph sendet aus dem Postfach, auf dem die Anfrage
+              läuft. Ein abweichender Absender bräuchte „Senden als" und
+              scheiterte sonst mit einem Fehler, den niemand am Text erkennt.
+              Wer den Absender wechseln will, wechselt das **Postfach**.
+            */
+            ...(mail.antwortAn
+              ? { replyTo: [{ emailAddress: { address: mail.antwortAn } }] }
+              : {}),
           },
           saveToSentItems: true,
         }),

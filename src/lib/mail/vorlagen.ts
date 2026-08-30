@@ -81,6 +81,89 @@ export function vorlageNeuerKommentar(
   }
 }
 
+export type Sammeleintrag = {
+  autor: string
+  postTitel: string
+  text: string
+  intern: boolean
+  url: string
+}
+
+/**
+ * Mehrere Kommentare in einer Mail — was `kommentar-sammlung.ts` verschickt.
+ *
+ * Warum überhaupt: Wer einen Monatsplan durchgeht, kommentiert fünf Beiträge
+ * in zwei Minuten. Fünf Mails dazu liest niemand einzeln; sie entwerten sich
+ * gegenseitig, und beim sechsten Mal richtet man einen Filter ein.
+ *
+ * Aufgebaut wie die Beitragsliste selbst: je Kommentar der Beitrag, der Name
+ * und der Text, jeder mit eigenem Link. Ein einzelner Knopf am Ende wäre
+ * bequemer zu bauen und führte doch nur zu einem der fünf Beiträge.
+ */
+export function vorlageKommentarSammlung(
+  an: string,
+  kunde: string,
+  eintraege: Sammeleintrag[],
+): Mail {
+  const anzahl = eintraege.length
+  const wieViele = anzahl === 1 ? 'Ein neuer Kommentar' : `${anzahl} neue Kommentare`
+
+  /*
+    Die Namen in den Betreff, solange es wenige sind: „3 neue Kommentare von
+    Anna und Bernd" sagt schon vor dem Öffnen, worum es geht. Ab drei Personen
+    wird die Zeile zur Aufzählung und der Betreff unlesbar.
+  */
+  const namen = [...new Set(eintraege.map((e) => e.autor))]
+  const vonWem =
+    namen.length === 1
+      ? ` von ${namen[0]}`
+      : namen.length === 2
+        ? ` von ${namen[0]} und ${namen[1]}`
+        : ''
+
+  const kuerzen = (text: string) => (text.length > 300 ? `${text.slice(0, 300)} …` : text)
+
+  const text = [
+    `${wieViele}${vonWem} bei ${kunde}:`,
+    '',
+    ...eintraege.flatMap((e) => [
+      `${e.autor} zu „${e.postTitel}"${e.intern ? ' (intern)' : ''}:`,
+      kuerzen(e.text),
+      e.url,
+      '',
+    ]),
+  ].join('\n')
+
+  const html = eintraege
+    .map(
+      (e) => `<div style="margin:0 0 18px;padding:14px 16px;border:1px solid #e6e3df;border-radius:6px;">
+        <div style="font-size:13px;color:#8b8783;margin:0 0 6px;">
+          <strong style="color:#1c1a18;">${e.autor}</strong> zu <strong style="color:#1c1a18;">${e.postTitel}</strong>${
+            e.intern
+              ? ' <span style="background:#eef3f9;color:#3f6ea3;border-radius:3px;padding:1px 6px;font-size:11px;">intern</span>'
+              : ''
+          }
+        </div>
+        <div style="color:#3a3733;">${kuerzen(e.text).replace(/\n/g, '<br>')}</div>
+        <div style="margin:10px 0 0;"><a href="${e.url}" style="color:#b00900;font-size:13px;text-decoration:none;">Beitrag öffnen →</a></div>
+      </div>`,
+    )
+    .join('')
+
+  return {
+    an,
+    betreff: `${wieViele}${vonWem} — ${kunde}`,
+    text,
+    html: huelle(
+      `${wieViele} bei ${kunde}`,
+      html,
+      anzahl > 1
+        ? 'Gesammelt verschickt, damit nicht jede Anmerkung einzeln unterbricht.'
+        : undefined,
+    ),
+  }
+}
+
 /**
  * Eine Erwähnung ist etwas anderes als ein neuer Kommentar: Sie ist an eine
  * Person gerichtet. Das gehört in den Betreff, sonst geht sie im Strom der
