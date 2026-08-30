@@ -319,7 +319,7 @@ function Anleitung() {
   return (
     <details className="rounded-[5px] border border-rahmen bg-flaeche-leise px-3.5 py-2.5">
       <summary className="cursor-pointer text-[12.5px] font-medium text-tinte">
-        Wo finde ich die Session-ID?
+        Wo finde ich die Cookies?
       </summary>
 
       <div className="mt-3 grid gap-4 text-[12px] leading-relaxed text-leise">
@@ -347,8 +347,10 @@ function Anleitung() {
               <code className="font-mono text-[11px]">https://www.instagram.com</code>.
             </li>
             <li>
-              Die Zeile <code className="font-mono text-[11px]">sessionid</code> suchen und den
-              Wert aus der Spalte <strong>Value</strong> kopieren.
+              <strong>Zwei</strong> Zeilen suchen und ihre Werte aus der Spalte{' '}
+              <strong>Value</strong> kopieren:{' '}
+              <code className="font-mono text-[11px]">sessionid</code> und{' '}
+              <code className="font-mono text-[11px]">csrftoken</code>.
             </li>
           </ol>
         </div>
@@ -372,15 +374,42 @@ function Anleitung() {
               <strong>Cookies</strong> → <strong>instagram.com</strong>.
             </li>
             <li>
-              Die Zeile <code className="font-mono text-[11px]">sessionid</code> anklicken und den
-              Wert kopieren.
+              <strong>Zwei</strong> Zeilen brauchen Sie:{' '}
+              <code className="font-mono text-[11px]">sessionid</code> und{' '}
+              <code className="font-mono text-[11px]">csrftoken</code>. Die Spalte{' '}
+              <strong>Wert</strong> schneidet ab — auf den Wert{' '}
+              <strong>doppelklicken</strong>, dann mit <Taste>⌘A</Taste> alles markieren und mit{' '}
+              <Taste>⌘C</Taste> kopieren.
             </li>
           </ol>
         </div>
 
+        <div className="rounded-[5px] border border-rahmen-3 bg-flaeche px-3 py-2.5">
+          <div className="mb-1 text-[12.5px] font-medium text-tinte">So wird es eingefügt</div>
+          <p>
+            Beide Werte in <strong>eine</strong> Zeile, durch Semikolon getrennt:
+          </p>
+          <pre className="mt-1.5 overflow-x-auto rounded-[4px] bg-flaeche-leise px-2.5 py-2 font-mono text-[11px] text-tinte-3">
+            csrftoken=AbCdEf…; sessionid=12345678%3AXyZ…
+          </pre>
+          <p className="mt-1.5">
+            Die Reihenfolge ist gleichgültig. Eine ganze{' '}
+            <code className="font-mono text-[11px]">cookies.txt</code> aus einer
+            Browser-Erweiterung geht genauso — Safari kann so eine Datei nicht ausgeben, die
+            Kurzform oben reicht aber völlig.
+          </p>
+        </div>
+
         <p className="text-stiller">
-          Der Wert ist lang und enthält <code className="font-mono text-[11px]">%3A</code> —
-          das gehört so. Einfach vollständig einfügen.
+          Der <code className="font-mono text-[11px]">sessionid</code>-Wert ist lang und enthält{' '}
+          <code className="font-mono text-[11px]">%3A</code> — das gehört so. Vollständig
+          einfügen, nichts abschneiden.
+        </p>
+
+        <p className="text-stiller">
+          Ohne <code className="font-mono text-[11px]">csrftoken</code> laufen die
+          Reel-Downloads, die <strong>Profil-Kennzahlen</strong> aber nicht: Instagram weist die
+          Anfrage dann ab.
         </p>
       </div>
     </details>
