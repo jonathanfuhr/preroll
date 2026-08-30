@@ -97,6 +97,19 @@ export function deuteFehler(
     )
   }
 
+  /*
+    Eine Umleitung auf diesem Endpunkt ist keine Weiterleitung zu einer
+    Antwort, sondern eine Absage — nachgemessen zeigt sie auf **dieselbe**
+    Adresse. Sie kommt nur beim Versuch mit Sitzung vor und heißt: Instagram
+    nimmt sie hier nicht an.
+  */
+  if (status >= 300 && status < 400) {
+    return (
+      'Instagram nimmt die hinterlegte Sitzung für den Kennzahlen-Abruf nicht an (Umleitung ' +
+      'statt Antwort). Die Reel-Downloads sind davon unberührt.'
+    )
+  }
+
   const zusatz = meldung ? `: ${meldung}` : ''
   return mitSitzung
     ? `Instagram hat die Anfrage abgewiesen (${status}${zusatz}) — auch mit der hinterlegten Sitzung.`

@@ -166,3 +166,18 @@ describe('deuteFehler', () => {
     expect(deuteFehler(403, undefined, 'x', false)).not.toMatch(/hinterlegten Sitzung/)
   })
 })
+
+describe('deuteFehler bei Umleitungen', () => {
+  /*
+    Nachgemessen in Produktion: Mit hinterlegter Sitzung antwortet der
+    Endpunkt mit 302 auf **dieselbe** Adresse. `fetch` folgte dem im Kreis und
+    warf, woraus „Instagram war nicht erreichbar" wurde — während der anonyme
+    Versuch Sekunden vorher sauber geantwortet hatte.
+  */
+  it('erklärt eine Umleitung als abgelehnte Sitzung, nicht als Ausfall', () => {
+    const satz = deuteFehler(302, undefined, 'x', true)
+    expect(satz).toMatch(/Sitzung/)
+    expect(satz).toMatch(/Umleitung/)
+    expect(satz).not.toMatch(/nicht erreichbar/)
+  })
+})

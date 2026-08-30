@@ -56,6 +56,15 @@ async function frage(name: string, kekse: string | null): Promise<Versuch> {
           ? { 'x-csrftoken': cookieWert(kekse, 'csrftoken')! }
           : {}),
       },
+      /*
+        Umleitungen **nicht** verfolgen. Dieser Endpunkt gibt JSON zurück oder
+        gar nichts; ein 302 ist keine Weiterleitung zu einer Antwort, sondern
+        eine Absage — nachgemessen zeigt er dabei auf **dieselbe** Adresse,
+        `fetch` läuft also im Kreis, bis die Grenze greift, und wirft. Daraus
+        wurde die Meldung „Instagram war nicht erreichbar", während der
+        anonyme Versuch Sekunden vorher sauber geantwortet hatte.
+      */
+      redirect: 'manual',
       cache: 'no-store',
       signal: AbortSignal.timeout(20_000),
     },
@@ -96,20 +105,32 @@ export async function holeProfilwerte(handle: string): Promise<Abrufergebnis> {
   let versuch: Versuch
   try {
     versuch = await frage(name, null)
-
-    /*
-      Erst wenn es anonym nicht geht, die Sitzung bemühen — und nur, wenn sie
-      vollständig ist. Eine Sitzung aus bloßem `sessionid` **ohne**
-      `csrftoken` quittiert dieser Endpunkt zuverlässig mit 400; der zweite
-      Versuch wäre dann nicht nur nutzlos, sondern verdeckte den echten Grund
-      des ersten hinter einem zweiten, falschen.
-    */
-    if (!versuch.rohdaten && kekse && cookieWert(kekse, 'csrftoken')) {
-      versuch = await frage(name, kekse)
-    }
   } catch (fehler) {
     const grund = fehler instanceof Error ? fehler.message : String(fehler)
     return { ok: false, fehler: `Instagram war nicht erreichbar: ${grund}` }
+  }
+
+  /*
+    Erst wenn es anonym nicht geht, die Sitzung bemühen — und nur, wenn sie
+    vollständig ist. Eine Sitzung aus bloßem `sessionid` ohne `csrftoken`
+    quittiert dieser Endpunkt zuverlässig mit 400.
+
+    **Übernommen wird sie nur, wenn sie wirklich weiterhilft.** Scheitert auch
+    sie, bleibt die Meldung des anonymen Versuchs stehen: Der ist der
+    Hauptweg, und seine Antwort ist die aussagekräftige — „Instagram hat ein
+    Schema gelöscht" hilft weiter, „mit Sitzung ging es auch nicht" nicht.
+    Vorher überschrieb der zweite Versuch den ersten und machte aus einer
+    brauchbaren Diagnose eine unbrauchbare.
+  */
+  let sitzungVersucht = false
+  if (!versuch.rohdaten && kekse && cookieWert(kekse, 'csrftoken')) {
+    sitzungVersucht = true
+    try {
+      const mitSitzung = await frage(name, kekse)
+      if (mitSitzung.rohdaten) versuch = mitSitzung
+    } catch {
+      // Auch ein Netzwerkfehler hier darf die Diagnose oben nicht wegwischen.
+    }
   }
 
   if (!versuch.rohdaten) {
@@ -120,7 +141,7 @@ export async function holeProfilwerte(handle: string): Promise<Abrufergebnis> {
     */
     return {
       ok: false,
-      fehler: deuteFehler(versuch.status, versuch.meldung, name, Boolean(kekse)),
+      fehler: deuteFehler(versuch.status, versuch.meldung, name, sitzungVersucht),
     }
   }
 
