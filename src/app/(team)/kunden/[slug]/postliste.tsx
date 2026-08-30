@@ -136,6 +136,40 @@ export function Postliste({
 
   return (
     <>
+      {/*
+        Zwei Wege, den Plan am Stück zu sehen — und sie zeigen absichtlich
+        Verschiedenes. Die **Review-Seite** ist die interne Sicht: alle Phasen,
+        immer der aktuelle Stand, interne Freigaben und ein Bearbeiten-Knopf je
+        Beitrag. Die **Kundenvorschau** ist genau das, was der Kunde vor sich
+        hat — mit eingefrorenen Ständen in den Arbeitsphasen. Wer die beiden
+        verwechselt, zieht die falschen Schlüsse; deshalb stehen sie
+        nebeneinander und heißen, was sie sind.
+      */}
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-rahmen bg-flaeche px-4 py-2.5">
+        <span className="mr-1 text-[10.5px] font-medium uppercase tracking-[0.1em] text-still">
+          Ganzer Monat
+        </span>
+        <Link
+          href={`/kunden/${slug}/review`}
+          className="rounded-[5px] border border-rahmen-3 px-3 py-1 text-[12px] font-medium text-tinte hover:border-rahmen-4"
+        >
+          Review-Seite
+        </Link>
+        {freigabeLink && (
+          <a
+            href={`/f/${freigabeLink.token}`}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-[5px] border border-rahmen-3 px-3 py-1 text-[12px] font-medium text-tinte hover:border-rahmen-4"
+          >
+            Kundenvorschau
+          </a>
+        )}
+        <span className="text-[11.5px] text-stiller">
+          Review: intern, alle Phasen, aktueller Stand · Kundenvorschau: was der Kunde sieht
+        </span>
+      </div>
+
       {freigabeLink && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-rahmen bg-flaeche px-4 py-2.5">
           <div className="flex min-w-0 items-baseline gap-2.5">
@@ -149,14 +183,6 @@ export function Postliste({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <a
-              href={`/f/${freigabeLink.token}`}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-[5px] border border-rahmen-3 px-3 py-1 text-[12px] font-medium text-tinte hover:border-rahmen-4"
-            >
-              Ansehen
-            </a>
             <button
               type="button"
               onClick={() => {

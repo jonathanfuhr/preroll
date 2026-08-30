@@ -10,10 +10,9 @@ import { feedVorschau, postsImZeitraum } from '@/lib/export-sicht'
 import { fuerKundensicht } from '@/lib/stand-anwenden'
 import { kalenderwoche } from '@/lib/format'
 import { freigabeFortschritt, freigabeStand, istInterneStufe } from '@/lib/freigabe'
-import { reelVideoQuelle } from '@/lib/reel-video'
 import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { profilKarte } from '@/lib/plattform-profil'
-import { fassungenFuerAnzeige } from '@/lib/varianten'
+import { sektionsdaten } from '@/lib/plan-anzeige'
 import { medienUrl, thumbUrl } from '@/lib/urls'
 import type { Plattform } from '@prisma/client'
 import {
@@ -289,7 +288,7 @@ export default async function ExportSeite({
       Kopfzeile (`MonatsleisteMobil`).
     */
     <div className="flex min-h-screen">
-      <Monatsleiste monate={monate} token={token} aktiv={monat.monat} mitFreigaben={mitFreigaben} />
+      <Monatsleiste monate={monate} basis={`/f/${token}`} aktiv={monat.monat} mitFreigaben={mitFreigaben} />
 
       <div className="min-w-0 flex-1">
       {alsTeam && (
@@ -305,7 +304,7 @@ export default async function ExportSeite({
         </div>
       )}
 
-      <MonatsleisteMobil monate={monate} token={token} aktiv={monat.monat} mitFreigaben={mitFreigaben} />
+      <MonatsleisteMobil monate={monate} basis={`/f/${token}`} aktiv={monat.monat} mitFreigaben={mitFreigaben} />
 
       <ExportTopbar
         kunde={exp.kunde.name}
@@ -433,70 +432,7 @@ export default async function ExportSeite({
       {/* ---------------------------------------------------- Post-Sektionen */}
       <div className="mx-auto max-w-[1440px] px-5 md:px-[72px]">
         {sektionen.map((post) => {
-          const slides = post.medien
-            .filter((m) => m.rolle === 'SLIDE')
-            .sort((a, b) => a.position - b.position)
-            .map((m) => medienUrl(m.medium.id)!)
-          const medium = post.medien.find((m) => m.rolle === 'MEDIUM')
-          const thumb = post.medien.find((m) => m.rolle === 'THUMBNAIL')
-          // Der eine Video-Platz des Reels — Upload, Link-Download und
-          // Klappe-Fassung landen alle hier, nicht in einer Extra-Anzeige.
-          const reelVideo = post.typ === 'REEL' ? reelVideoQuelle(post) : null
-
-          /*
-            Die abweichenden Fassungen. Das Hauptformat steht schon oben im
-            Geräterahmen — hier bleiben nur die Abweichungen, deshalb `slice(1)`.
-
-            Gerechnet wird gegen `angezeigtePlattformen`: eine Variante für eine
-            Plattform ohne Kanal erscheint nicht, sonst versprächen wir dem
-            Kunden eine Fassung, die nie irgendwo auftaucht.
-          */
-          const fassungen = fassungenFuerAnzeige(
-            post,
-            post.varianten,
-            angezeigtePlattformen(post, exp.kunde),
-          )
-            .slice(1)
-            .map((f) => {
-              const eigeneSlides = f.medien
-                .filter((m) => m.rolle === 'SLIDE')
-                .sort((a, b) => a.position - b.position)
-                .map((m) => medienUrl(m.mediumId)!)
-              const eigenesMedium = f.medien.find((m) => m.rolle === 'MEDIUM')
-              const eigenesThumb = f.medien.find((m) => m.rolle === 'THUMBNAIL')
-              const video = Boolean(eigenesMedium?.medium.mimeTyp.startsWith('video/'))
-
-              return {
-                plattformen: f.plattformen,
-                // Der öffentliche Name auf diesen Plattformen — er steht in der
-                // Fassung, weil der Kunde daran erkennt, wo sie erscheint.
-                handles: f.plattformen
-                  .map((pl) => profile[pl].handle)
-                  .filter((h): h is string => Boolean(h))
-                  .map((h) => (h.startsWith('/') ? h : `@${h}`)),
-                caption: f.caption,
-                verhaeltnis: f.verhaeltnis,
-                medien: eigeneSlides.length > 0
-                  ? eigeneSlides
-                  : eigenesMedium
-                    ? [medienUrl(eigenesMedium.mediumId)!]
-                    : post.typ === 'KARUSSELL'
-                      ? slides
-                      : reelVideo
-                        ? [reelVideo.url]
-                        : medium
-                          ? [medienUrl(medium.medium.id)!]
-                          : [],
-                istVideo: f.eigeneMedien ? video : post.typ === 'REEL',
-                thumbnail: eigenesThumb
-                  ? medienUrl(eigenesThumb.mediumId)
-                  : thumb
-                    ? medienUrl(thumb.medium.id)
-                    : null,
-                eigeneCaption: f.eigeneCaption,
-                eigeneMedien: f.eigeneMedien,
-              }
-            })
+          const daten = sektionsdaten(post, angezeigtePlattformen(post, exp.kunde), profile)
 
           return (
             <PostSektion
@@ -505,26 +441,12 @@ export default async function ExportSeite({
               plattformen={angezeigtePlattformen(post, exp.kunde)}
               liFollower={liProfil.follower}
               tiktokHandle={profile.TIKTOK.handle}
-              fassungen={fassungen}
+              fassungen={daten.fassungen}
               kunde={exp.kunde.name}
               logo={thumbUrl(exp.kunde.logoId)}
-              medien={
-                post.typ === 'KARUSSELL'
-                  ? slides
-                  : post.typ === 'REEL'
-                    ? reelVideo
-                      ? [reelVideo.url]
-                      : []
-                    : medium
-                      ? [medienUrl(medium.medium.id)!]
-                      : []
-              }
-              istVideo={
-                post.typ === 'REEL'
-                  ? Boolean(reelVideo)
-                  : (medium?.medium.mimeTyp.startsWith('video/') ?? false)
-              }
-              thumbnail={thumb ? medienUrl(thumb.medium.id) : null}
+              medien={daten.medien}
+              istVideo={daten.istVideo}
+              thumbnail={daten.thumbnail}
               mitFreigaben={mitFreigaben}
               szenen={post.szenen}
               kommentare={

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { merkeAbgelaufen, schreibeCookiedatei } from './instagram'
 import { speichereMedium } from './medien'
-import { thumbnailAusVideoErgaenzen } from './video'
+import { laengeAusVideoUebernehmen, thumbnailAusVideoErgaenzen } from './video'
 import { istPlattformLink, ytDlpVerfuegbar } from './video-links'
 import {
   legeVideoMedium,
@@ -201,6 +201,8 @@ async function fuehreAus(platz: VideoPlatz, url: string, abbruch: AbortControlle
 
     // Wie beim Upload: Ein Reel ohne Thumbnail bekommt ein Standbild.
     await thumbnailAusVideoErgaenzen(platz)
+    // Wie beim Upload: Was ankommt, bringt seine Länge selbst mit.
+    await laengeAusVideoUebernehmen(platz)
   } catch (fehler) {
     const text = fehler instanceof Error ? fehler.message : String(fehler)
 

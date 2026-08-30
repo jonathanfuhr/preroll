@@ -35,11 +35,15 @@ type ZaehlbarerPost = {
  * `ENTWURF` zählt nicht mit: Solche Beiträge verlassen das Haus nie, und ein
  * Monat, der nur aus ihnen besteht, wäre beim Kunden eine leere Seite.
  */
-export function monateAusPosts(posts: ZaehlbarerPost[]): MonatMitStand[] {
+export function monateAusPosts(
+  posts: ZaehlbarerPost[],
+  mitEntwuerfen = false,
+): MonatMitStand[] {
   const gesehen = new Set<string>()
 
   for (const post of posts) {
-    if (!post.postenAm || post.status === 'ENTWURF') continue
+    if (!post.postenAm) continue
+    if (post.status === 'ENTWURF' && !mitEntwuerfen) continue
     gesehen.add(alsMonat(post.postenAm))
   }
 

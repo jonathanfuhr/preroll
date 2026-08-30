@@ -4,6 +4,7 @@ import { kalenderwoche } from '@/lib/format'
 import { formatiereTermin } from '@/lib/datum'
 import { postBeschriftung, postBezeichnung } from '@/lib/verhaeltnis'
 import { abgeleiteteStufe } from '@/lib/status'
+import { laengeAnzeige } from '@/lib/videolaenge'
 import { IPhoneVorschau } from './iphone'
 import { LinkedInRahmen } from './linkedin-rahmen'
 import { TikTokRahmen } from './tiktok-rahmen'
@@ -171,6 +172,8 @@ export function PostSektion({
   liFollower = null,
   tiktokHandle = null,
   fassungen = [],
+  stand = null,
+  kopfAktion = null,
 }: {
   post: {
     id: string
@@ -214,6 +217,19 @@ export function PostSektion({
   /** Das TikTok-Handle — steht in dessen Rahmen über der Caption. */
   tiktokHandle?: string | null
   /**
+   * Was anstelle der Kundenleiste steht. Die Review-Seite setzt hier das
+   * Etikett aus dem Backend ein — es kennt Entwurf, Produktion, Korrektur und
+   * Fehlgeschlagen. Die Leiste beantwortet „bin ich dran?"; im Haus ist die
+   * Frage eine andere, nämlich „wo steht das Ding gerade".
+   *
+   * Als fertiges Bauteil und nicht als Schalter, weil `StatusBadge` die
+   * Veröffentlichungszeilen **verlangt** — die gehören dorthin, wo die Daten
+   * geladen werden, nicht durch diese Anzeige geschleift.
+   */
+  stand?: ReactNode
+  /** Platz in der Kopfzeile — auf der Review-Seite steht dort „Bearbeiten". */
+  kopfAktion?: ReactNode
+  /**
    * Abweichende Fassungen — Caption oder Medien je Plattform. Das Hauptformat
    * steht darüber; hier stehen nur die Abweichungen davon.
    */
@@ -222,12 +238,32 @@ export function PostSektion({
   const { text, hashtags } = teileCaption(post.caption)
   const status = STATUS_STIL[post.status]
 
+  /*
+    Zwei Stellen zeigen denselben Stand — in der Kopfzeile, solange es keine
+    dritte Spalte gibt, und ab `xl` im rechten Block. Einmal ausgerechnet,
+    damit beim nächsten Umbau nicht eine der beiden vergessen wird.
+  */
+  const standAnzeige = stand ?? (
+    <StatusLeiste
+      stufe={abgeleiteteStufe(post.status, post.postenAm)}
+      mitFreigaben={mitFreigaben}
+    />
+  )
+
+  /*
+    In Entwurf und Konzept steht ein „ca." davor: Dort ist die Länge ein
+    Vorhaben, keine Messung — was gemessen wurde, ist bestenfalls ein
+    Vorschnitt. Ab der Produktion fällt es weg. Einmal ausgerechnet, weil die
+    Länge an drei Stellen steht.
+  */
+  const laenge = laengeAnzeige(post.laenge, post.status)
+
   const eckdaten = [
     {
       t: 'Format',
       w: postBeschriftung(post.typ, post.verhaeltnis),
     },
-    ...(post.laenge ? [{ t: 'Länge', w: post.laenge }] : []),
+    ...(laenge ? [{ t: 'Länge', w: laenge }] : []),
     ...(post.ziel ? [{ t: 'Ziel', w: post.ziel }] : []),
     ...(post.stil ? [{ t: 'Stil', w: post.stil }] : []),
   ]
@@ -306,6 +342,7 @@ export function PostSektion({
           <span className="pb-1 text-[13px] text-[#77746f] sm:text-[14px]">
             {postBezeichnung(post.typ, post.verhaeltnis)}
           </span>
+          {kopfAktion}
         </div>
 
         {/*
@@ -320,10 +357,7 @@ export function PostSektion({
           <span className="text-[12.5px] text-[#77746f] sm:text-[13px]">
             {formatiereTermin(post.postenAm, DATUM)} · {formatiereTermin(post.postenAm, UHRZEIT)}
           </span>
-          <StatusLeiste
-            stufe={abgeleiteteStufe(post.status, post.postenAm)}
-            mitFreigaben={mitFreigaben}
-          />
+          {standAnzeige}
         </div>
       </div>
 
@@ -413,7 +447,7 @@ export function PostSektion({
                     )}
 
                     {mitSzenen ? (
-                      <Ablauf szenen={szenen} laenge={post.laenge} />
+                      <Ablauf szenen={szenen} laenge={laenge} />
                     ) : (
                       (post.inhalte || post.kurzbeschreibung) && (
                         <div className="mt-6 overflow-hidden rounded-lg border border-rahmen sm:mt-[34px]">
@@ -421,9 +455,9 @@ export function PostSektion({
                             <span className="text-[10.5px] uppercase tracking-[0.14em] text-leiser sm:text-[11px]">
                               {post.typ === 'REEL' ? 'Inhalte des Reels' : 'Zum Beitrag'}
                             </span>
-                            {post.laenge && (
+                            {laenge && (
                               <span className="text-[11px] text-[#928e89] sm:text-[11.5px]">
-                                {post.laenge}
+                                {laenge}
                               </span>
                             )}
                           </div>
@@ -456,10 +490,7 @@ export function PostSektion({
                 {formatiereTermin(post.postenAm, DATUM)} · {formatiereTermin(post.postenAm, UHRZEIT)}
               </span>
               {/* Ein Etikett sagt nur, wo etwas steht — nicht, was noch kommt. */}
-              <StatusLeiste
-                stufe={abgeleiteteStufe(post.status, post.postenAm)}
-                mitFreigaben={mitFreigaben}
-              />
+              {standAnzeige}
             </div>
             {kommentare}
           </div>

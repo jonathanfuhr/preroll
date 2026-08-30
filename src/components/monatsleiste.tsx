@@ -24,12 +24,13 @@ export type Monatseintrag = {
  */
 export function Monatsleiste({
   monate,
-  token,
+  basis,
   aktiv,
   mitFreigaben,
 }: {
   monate: Monatseintrag[]
-  token: string
+  /** Wohin die Einträge zeigen — `/f/<token>` oder `/kunden/<slug>/review`. */
+  basis: string
   /** Der Monat, der gerade gezeigt wird — `2026-08`. */
   aktiv: string
   /** Bei eigenen Kanälen entfällt der Freigabestand. */
@@ -55,7 +56,7 @@ export function Monatsleiste({
 
       <nav className="grid gap-0.5 overflow-y-auto px-3">
         {monate.map((monat) => (
-          <Eintrag key={monat.monat} monat={monat} token={token} aktiv={aktiv} mitFreigaben={mitFreigaben} />
+          <Eintrag key={monat.monat} monat={monat} basis={basis} aktiv={aktiv} mitFreigaben={mitFreigaben} />
         ))}
       </nav>
     </aside>
@@ -65,12 +66,13 @@ export function Monatsleiste({
 /** Dieselben Monate als waagerechte Reihe — für Telefon und Tablet. */
 export function MonatsleisteMobil({
   monate,
-  token,
+  basis,
   aktiv,
   mitFreigaben,
 }: {
   monate: Monatseintrag[]
-  token: string
+  /** Wohin die Einträge zeigen — `/f/<token>` oder `/kunden/<slug>/review`. */
+  basis: string
   aktiv: string
   mitFreigaben: boolean
 }) {
@@ -82,7 +84,7 @@ export function MonatsleisteMobil({
       className="flex gap-1.5 overflow-x-auto border-b border-rahmen bg-flaeche-leise px-4 py-2 lg:hidden"
     >
       {monate.map((monat) => (
-        <Eintrag key={monat.monat} monat={monat} token={token} aktiv={aktiv} mitFreigaben={mitFreigaben} />
+        <Eintrag key={monat.monat} monat={monat} basis={basis} aktiv={aktiv} mitFreigaben={mitFreigaben} />
       ))}
     </nav>
   )
@@ -90,12 +92,13 @@ export function MonatsleisteMobil({
 
 function Eintrag({
   monat,
-  token,
+  basis,
   aktiv,
   mitFreigaben,
 }: {
   monat: Monatseintrag
-  token: string
+  /** Wohin die Einträge zeigen — `/f/<token>` oder `/kunden/<slug>/review`. */
+  basis: string
   aktiv: string
   mitFreigaben: boolean
 }) {
@@ -104,7 +107,7 @@ function Eintrag({
 
   return (
     <Link
-      href={`/f/${token}?monat=${monat.monat}`}
+      href={`${basis}?monat=${monat.monat}`}
       aria-current={hier ? 'page' : undefined}
       className={`flex shrink-0 items-center gap-2.5 rounded-[5px] px-3 py-2.5 text-[13px] transition-colors lg:justify-between ${
         hier

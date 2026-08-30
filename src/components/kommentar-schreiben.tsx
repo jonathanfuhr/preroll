@@ -21,9 +21,17 @@ import { kommentarVomTeam } from '@/app/(team)/kunden/[slug]/aktionen'
 export function KommentarSchreiben({
   postId,
   erwaehnbar,
+  standardwert = '',
 }: {
   postId: string
   erwaehnbar: Erwaehnbar[]
+  /**
+   * Womit das Feld startet. Auf der Review-Seite steht dort `#intern ` — die
+   * Abstimmung dort ist im Regelfall eine Hausangelegenheit. Als **Text** und
+   * nicht als Schalter: Man sieht, was man schreibt, und kann es
+   * herausnehmen, wenn der Kunde es doch lesen soll.
+   */
+  standardwert?: string
 }) {
   const [runde, setRunde] = useState(0)
 
@@ -38,6 +46,7 @@ export function KommentarSchreiben({
         <KommentarFeld
           key={runde}
           erwaehnbar={erwaehnbar}
+          standardwert={standardwert}
           platzhalter="Anmerkung … @ erwähnt jemanden, #intern bleibt im Haus"
           intern
         />

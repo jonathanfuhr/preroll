@@ -37,10 +37,13 @@ export function KommentarListe({
   postId,
   kommentare,
   erwaehnbar,
+  standardwert,
 }: {
   postId: string
   kommentare: Kommentareintrag[]
   erwaehnbar: Erwaehnbar[]
+  /** Vorbelegung des Eingabefelds — auf der Review-Seite `#intern `. */
+  standardwert?: string
 }) {
   const straenge = kommentare.filter((k) => !k.antwortAufId)
   const antwortenZu = (id: string) => kommentare.filter((k) => k.antwortAufId === id)
@@ -54,7 +57,7 @@ export function KommentarListe({
         gehört an den Anfang, und bei zwanzig Rückmeldungen sucht man es unten
         vergeblich.
       */}
-      <KommentarSchreiben postId={postId} erwaehnbar={erwaehnbar} />
+      <KommentarSchreiben postId={postId} erwaehnbar={erwaehnbar} standardwert={standardwert} />
 
       {straenge.length === 0 && (
         <p className="px-1 text-[12.5px] leading-relaxed text-leiser">

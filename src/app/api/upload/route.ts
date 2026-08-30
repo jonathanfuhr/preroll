@@ -2,7 +2,7 @@ import type { MediumRolle, Verhaeltnis } from '@prisma/client'
 import type { NextRequest } from 'next/server'
 import { aktuellerNutzer } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { thumbnailAusVideoErgaenzen } from '@/lib/video'
+import { laengeAusVideoUebernehmen, thumbnailAusVideoErgaenzen } from '@/lib/video'
 import { brichVideoDownloadAb } from '@/lib/video-download'
 import { platzAus, schreibeVideoPlatz } from '@/lib/video-platz'
 import { pruefeFormat, transparenzHinweis } from '@/lib/format'
@@ -285,6 +285,12 @@ async function verarbeite({
     if (erzeugt) {
       hinweise.push('Kein Thumbnail hinterlegt — Preroll hat ein Standbild aus dem Video gezogen.')
     }
+
+    // Die Länge kommt aus der Datei statt aus dem Gedächtnis. Gemeldet wird
+    // sie, damit niemand rätselt, warum im Freifeld plötzlich etwas anderes
+    // steht als vorher.
+    const laenge = await laengeAusVideoUebernehmen(platz)
+    if (laenge) hinweise.push(`Länge aus dem Video übernommen: ${laenge}.`)
   }
 
   return Response.json({ ok: true, hinweise })

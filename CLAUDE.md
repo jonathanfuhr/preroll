@@ -478,6 +478,21 @@ Seite zu bewachen wäre die schlechtere Regel.
   angelegte Posts starten dort. Das ersetzt den früheren Schalter „Konzepte
   mitzeigen" am Link — ob ein Beitrag vorzeigbar ist, hängt am Beitrag, nicht
   am Monat.
+- **Zwei Seiten zeigen den Plan am Stück, und sie zeigen Verschiedenes.**
+  Die **Review-Seite** (`/kunden/<slug>/review`) ist die interne Sicht: alle
+  Phasen inklusive Entwurf, immer der **aktuelle** Stand statt der
+  eingefrorenen, das Etikett aus dem Backend statt der vierstufigen
+  Kundenleiste, interne Freigaben und je Beitrag ein „Bearbeiten". Die
+  **Kundenvorschau** (`/f/<token>`) ist genau das, was der Kunde sieht. Beide
+  stehen nebeneinander in der Beitragsliste und heißen, was sie sind — wer sie
+  verwechselt, zieht die falschen Schlüsse. Der **Beitrag selbst** wird in
+  beiden mit derselben Rechnung und demselben Bauteil gezeigt
+  (`sektionsdaten`, `PostSektion`): Welches Medium für welche Plattform gilt
+  und was eine Fassung erbt, ist die kniffligste Stelle der Anzeige — zweimal
+  geschrieben liefen die Seiten auseinander, und eine Review-Seite, die etwas
+  anderes zeigt als der Kunde sieht, ist schlimmer als keine. Verschieden ist
+  nur der Rahmen. Kommentare beginnen dort mit `#intern ` — als **Text**, nicht
+  als Schalter: Man sieht, was man schreibt, und kann es herausnehmen.
 - **Sichtbare Phasen und Arbeitsphasen** (`src/lib/phasen.ts`). Sichtbar sind
   Konzept, Vorschau und Final — dort liest die Kundenseite **live**. Arbeit
   sind Entwurf, Produktion und Korrektur; dort steht der **eingefrorene
@@ -817,6 +832,16 @@ Seite zu bewachen wäre die schlechtere Regel.
 - **Reel ohne Thumbnail bekommt ein Standbild.** Beim Video-Upload zieht
   `ffmpeg` ein Bild bei Sekunde 1 — Sekunde 0 ist oft schwarz. Nur wenn noch
   keins hinterlegt ist.
+- **Die Länge eines Reels kommt aus der Datei.** Beim Hochladen und beim
+  Link-Download misst `ffprobe` sie und schreibt sie ins Freifeld
+  (`laengeAusVideoUebernehmen`) — überschreibend, denn wer ein Video
+  austauscht, hat eine neue Länge. Nur beim **Reel** und nur am **Beitrag**:
+  Eine Fassung hat kein solches Feld, ihr Video überschriebe sonst die Länge
+  des Hauptvideos. Angezeigt wird sie in Entwurf und Konzept mit **„ca."**, ab
+  der Produktion ohne (`laengeAnzeige`): Dort ist sie ein Vorhaben, hier eine
+  Tatsache. Ein schon eingeschränkter Wert („etwa eine Minute") bleibt, wie er
+  ist. Für eine **Klappe-Fassung** wird nichts gemessen — die Datei liegt
+  nicht lokal.
 - **Link-Download und Länge nur beim Reel.** Beides ergibt bei Standbildern
   keinen Sinn. Das Link-Feld lebt im Medien-Dialog mit eigener Aktion
   (`videoVonLinkLaden`) — `postSpeichern` fasst es nie an.

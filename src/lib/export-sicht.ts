@@ -19,6 +19,13 @@ function nurGeplante<T extends SichtPost>(posts: T[]): Array<Geplant<T>> {
 export type Sichtregeln = {
   zeitraumVon: Date
   zeitraumBis: Date
+  /**
+   * Entwürfe mitnehmen. Nur für die **interne** Review-Seite: Beim Kunden
+   * verlässt ein Entwurf das Haus nie. Ausdrücklich ein Schalter und keine
+   * zweite Funktion — sonst stünden zwei fast gleiche Filter nebeneinander,
+   * und eine Änderung an der Sichtbarkeit müsste an beide gedacht werden.
+   */
+  mitEntwuerfen?: boolean
 }
 
 // Zeiträume sind reine Datumswerte; Posting-Termine echte Zeitstempel.
@@ -33,8 +40,8 @@ const tagesende = endeLokal
  * Einstellung an der falschen Stelle, denn ob ein Beitrag vorzeigbar ist,
  * hängt am Beitrag, nicht am Monat.
  */
-function sichtbarerStatus(status: PostStatus): boolean {
-  return status !== 'ENTWURF'
+function sichtbarerStatus(status: PostStatus, mitEntwuerfen = false): boolean {
+  return mitEntwuerfen || status !== 'ENTWURF'
 }
 
 /**
@@ -50,7 +57,7 @@ export function postsImZeitraum<T extends SichtPost>(
 
   return nurGeplante(posts)
     .filter((p) => p.postenAm >= von && p.postenAm <= bis)
-    .filter((p) => sichtbarerStatus(p.status))
+    .filter((p) => sichtbarerStatus(p.status, regeln.mitEntwuerfen))
     .sort((a, b) => a.postenAm.getTime() - b.postenAm.getTime())
 }
 
@@ -85,6 +92,6 @@ export function feedVorschau<T extends SichtPost>(
     .filter((p) => p.postenAm <= letzterImZeitraum)
     // Vor dem Zeitraum: alles zeigen, das ist bereits veröffentlicht.
     // Im Zeitraum: nur, was freigegeben ist.
-    .filter((p) => p.postenAm < von || sichtbarerStatus(p.status))
+    .filter((p) => p.postenAm < von || sichtbarerStatus(p.status, regeln.mitEntwuerfen))
     .sort((a, b) => b.postenAm.getTime() - a.postenAm.getTime())
 }
