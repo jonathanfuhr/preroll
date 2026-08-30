@@ -349,6 +349,23 @@ model PlattformProfil {
   standAm DateTime?
   quelle  KennzahlenQuelle @default(MANUELL)
 
+  /**
+   * Wann zuletzt **versucht** wurde — auch erfolglos. `standAm` sagt nur, wann
+   * es zuletzt geklappt hat; ohne einen zweiten Zeitstempel zog der Lauf ein
+   * dauerhaft scheiterndes Profil alle zwanzig Minuten wieder heran und kam
+   * bei den anderen nie an. Schlimmer noch: Instagram drosselt irgendwann die
+   * ganze Adresse, und dann fallen auch die Profile aus, die vorher gingen.
+   */
+  letzterVersuchAm DateTime?
+
+  /**
+   * Warum es zuletzt nicht ging — im Klartext, wie er in den Stammdaten steht.
+   * Vorher hinterließ ein Fehlschlag **keine Spur**: leere Zahlen, kein Grund,
+   * und wer nachsah, konnte nur „ist kaputt" feststellen. Leer heißt: Der
+   * letzte Versuch ging durch.
+   */
+  letzterFehler String?
+
   erstelltAm     DateTime @default(now())
   aktualisiertAm DateTime @updatedAt
 

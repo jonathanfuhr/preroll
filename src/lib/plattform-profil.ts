@@ -27,6 +27,13 @@ export type Profilwerte = {
   likes: number | null
   standAm: Date | null
   quelle: KennzahlenQuelle
+  /**
+   * Wann zuletzt versucht wurde und warum es misslang — leer, wenn der letzte
+   * Abruf durchging. Ohne die beiden war „keine Zahlen" nicht von „scheitert
+   * seit Tagen" zu unterscheiden.
+   */
+  letzterVersuchAm: Date | null
+  letzterFehler: string | null
 }
 
 export type ProfilZeile = Profilwerte & { plattform: Plattform }
@@ -41,6 +48,8 @@ export const LEERES_PROFIL: Profilwerte = {
   likes: null,
   standAm: null,
   quelle: 'MANUELL',
+  letzterVersuchAm: null,
+  letzterFehler: null,
 }
 
 export type ProfilKarte = Record<Plattform, Profilwerte>

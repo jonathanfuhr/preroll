@@ -69,6 +69,27 @@ export function ProfilFelder({
             : 'Noch nichts eingetragen.'}
         </p>
 
+        {/*
+          Warum es zuletzt nicht ging — im Klartext. Vorher stand hier nur
+          „Noch nichts eingetragen", ganz gleich ob niemand gepflegt hat oder
+          der Abruf seit Tagen scheitert. Wer nachsah, konnte nur „ist kaputt"
+          feststellen und nicht, woran es liegt.
+        */}
+        {werte.letzterFehler && (
+          <div className="mb-3 rounded-[5px] border border-vorschau/25 bg-vorschau-flaeche px-3 py-2">
+            <p className="text-[11.5px] font-medium text-vorschau">Letzter Abruf fehlgeschlagen</p>
+            <p className="mt-0.5 text-[11.5px] leading-relaxed text-tinte-3">
+              {werte.letzterFehler}
+            </p>
+            {werte.letzterVersuchAm && (
+              <p className="mt-1 text-[11px] text-stiller">
+                Versucht am {formatiereTag(werte.letzterVersuchAm, { dateStyle: 'long' })}. Der
+                nächste Lauf probiert es später von selbst wieder.
+              </p>
+            )}
+          </div>
+        )}
+
         {nebenKnopf}
 
         <div

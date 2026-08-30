@@ -43,6 +43,22 @@ import { speichereMedium } from './medien'
 const LAUFABSTAND = 20 * 60_000
 const HALTBARKEIT = 20 * 3600_000
 
+/**
+ * Wie lange ein **gescheitertes** Profil in Ruhe gelassen wird.
+ *
+ * Vorher gar nicht: Ein Fehlschlag ließ `standAm` leer, das Profil war damit
+ * sofort wieder das älteste, und der Lauf holte es alle zwanzig Minuten aufs
+ * Neue — rund siebzig aussichtslose Anfragen am Tag gegen dieselbe Adresse.
+ * Instagram drosselt daraufhin **alles**, und dann fallen auch die Profile
+ * aus, die vorher gingen. Genau so sah es aus, als sei „die
+ * Instagram-Verbindung kaputt".
+ *
+ * Zwei Stunden sind der Ausgleich: oft genug, dass eine vorübergehende
+ * Störung binnen eines halben Tages von selbst durchläuft, selten genug, dass
+ * ein dauerhaft kaputtes Profil nicht den Takt frisst.
+ */
+const FEHLERPAUSE = 2 * 3600_000
+
 /** Was ein Abruf zurückgibt — dieselbe Form für alle Plattformen. */
 type Abrufwerte = {
   follower: number | null
@@ -131,7 +147,23 @@ export async function aktualisiereKennzahlen(
   // Fehlschlag sagt also nichts über sie aus. Die erste Fassung meldete hier
   // eine abgelaufene Sitzung — und das rote Band im Backend behauptete, die
   // Referenzvideos gingen nicht, obwohl sie gingen.
-  if (!ergebnis.ok) return { ok: false, fehler: ergebnis.fehler }
+  if (!ergebnis.ok) {
+    /*
+      Der Fehlschlag wird **festgehalten**, nicht verschwiegen. Zwei Dinge
+      hingen daran: In den Stammdaten stand nur „Noch nichts eingetragen",
+      egal ob niemand gepflegt hat oder der Abruf seit Tagen scheitert — und
+      der Lauf zog dasselbe aussichtslose Profil alle zwanzig Minuten wieder
+      heran, weil `standAm` leer blieb. Instagram drosselt daraufhin die ganze
+      Adresse, und dann fallen auch die Profile aus, die vorher gingen.
+    */
+    await prisma.plattformProfil
+      .updateMany({
+        where: { kundeId, plattform },
+        data: { letzterVersuchAm: new Date(), letzterFehler: ergebnis.fehler },
+      })
+      .catch(() => {})
+    return { ok: false, fehler: ergebnis.fehler }
+  }
 
   const { werte } = ergebnis
   const jetzt = new Date()
@@ -156,6 +188,10 @@ export async function aktualisiereKennzahlen(
     ...(werte.bio ? { bio: werte.bio } : {}),
     ...(werte.website ? { website: werte.website } : {}),
     standAm: jetzt,
+    letzterVersuchAm: jetzt,
+    // Geht es wieder, verschwindet der alte Grund — ein Fehler, der stehen
+    // bleibt, obwohl es längst läuft, ist schlimmer als keiner.
+    letzterFehler: null,
     quelle: bedingung.quelle,
   }
   await prisma.plattformProfil.upsert({
@@ -237,9 +273,24 @@ export async function wacheUeberKennzahlen(): Promise<void> {
         ],
         AND: [
           { OR: [{ standAm: null }, { standAm: { lt: new Date(Date.now() - HALTBARKEIT) } }] },
+          // Nach einem Fehlschlag erst einmal Ruhe — sonst frisst ein
+          // aussichtsloses Profil jeden Lauf und drosselt nebenbei die Quelle.
+          {
+            OR: [
+              { letzterVersuchAm: null },
+              { letzterVersuchAm: { lt: new Date(Date.now() - FEHLERPAUSE) } },
+            ],
+          },
         ],
       },
-      orderBy: { standAm: 'asc' },
+      /*
+        Erst die, die noch nie liefen oder deren Zahlen alt sind — und
+        innerhalb dessen die, bei denen es zuletzt am längsten her ist.
+        `letzterVersuchAm` als zweites Kriterium stellt sicher, dass ein
+        Profil mit frischem Fehlschlag hinter eines rutscht, das noch gar
+        nicht dran war.
+      */
+      orderBy: [{ letzterVersuchAm: { sort: 'asc', nulls: 'first' } }, { standAm: 'asc' }],
       select: { kundeId: true, plattform: true },
     })
     if (!faellig || !istAbrufbar(faellig.plattform)) return

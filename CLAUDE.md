@@ -818,6 +818,29 @@ Seite zu bewachen wäre die schlechtere Regel.
   Minuten, jedes Profil höchstens einmal am Tag, angestoßen vom Team-Layout.
   Die Graph API bleibt der Plan, sobald das App Review durch ist
   (`KennzahlenQuelle.GRAPH_API` steht schon).
+- **Ein gescheiterter Kennzahlen-Abruf hinterlässt eine Spur**
+  (`letzterVersuchAm`, `letzterFehler` an `PlattformProfil`). Vorher kehrte
+  `aktualisiereKennzahlen` vor dem Schreiben um: `standAm` blieb leer, in den
+  Stammdaten stand „Noch nichts eingetragen" — und der Lauf zog dasselbe
+  aussichtslose Profil **alle 20 Minuten** wieder heran, weil es damit das
+  älteste blieb. Rund siebzig sinnlose Anfragen am Tag gegen dieselbe Adresse;
+  Instagram drosselt daraufhin **alles**, und dann fallen auch die Profile
+  aus, die vorher gingen. Nach einem Fehlschlag gilt deshalb `FEHLERPAUSE`
+  (zwei Stunden), und die Warteschlange sortiert zuerst nach
+  `letzterVersuchAm`.
+- **Instagram liefert für manche Business-Konten 400 aus eigenem Haus.** Der
+  Rumpf nennt ein gelöschtes Schema (`ig_business_category_subvertical`);
+  betroffen ist eine Teilmenge der Profile — nachgemessen antworteten @adidas
+  und @puma mit 400, während @nike und @thdvideo im selben Moment 200 lieferten.
+  Weder ein anderer Endpunkt (`i.instagram.com`, GraphQL, `?__a=1`) noch eine
+  Anmeldung kommen daran vorbei. `deuteFehler` benennt den Fall ausdrücklich —
+  ohne ihn stand dort „abgewiesen (400)", und man suchte den Fehler beim
+  Handle. Der Rohtext von Instagram reist bei jedem Fehlschlag mit; ohne ihn
+  beginnt das Raten.
+- **Eine Sitzung ohne `csrftoken` wird für Kennzahlen gar nicht erst
+  versucht.** Sie quittiert diesen Endpunkt zuverlässig mit 400 und verdeckte
+  damit den echten Grund des ersten, anonymen Versuchs hinter einem zweiten,
+  falschen.
 - **`#HttpOnly_` gehört zur cookies.txt.** Browser-Erweiterungen schreiben
   HttpOnly-Cookies mit diesem Präfix — und ausgerechnet `sessionid` ist
   HttpOnly. Wer die Zeile für einen Kommentar hält, wirft genau das weg,

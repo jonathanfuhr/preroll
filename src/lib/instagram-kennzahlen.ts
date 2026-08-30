@@ -1,7 +1,7 @@
 import 'server-only'
 import { cookieKopfzeile, cookieWert } from './instagram-cookies'
 import { ladeEinstellungen } from './einstellungen'
-import { normalisiereHandle, werteAusAntwort, type Profilwerte } from './instagram-profil'
+import { deuteFehler, normalisiereHandle, werteAusAntwort, type Profilwerte } from './instagram-profil'
 
 export { normalisiereHandle, werteAusAntwort, type Profilwerte } from './instagram-profil'
 
@@ -36,7 +36,7 @@ const BROWSER =
 
 export type Abrufergebnis = { ok: true; werte: Profilwerte } | { ok: false; fehler: string }
 
-type Versuch = { status: number; rohdaten?: unknown }
+type Versuch = { status: number; rohdaten?: unknown; meldung?: string }
 
 async function frage(name: string, kekse: string | null): Promise<Versuch> {
   const antwort = await fetch(
@@ -61,7 +61,22 @@ async function frage(name: string, kekse: string | null): Promise<Versuch> {
     },
   )
 
-  if (!antwort.ok) return { status: antwort.status }
+  if (!antwort.ok) {
+    /*
+      Instagram legt den Grund in den Rumpf, auch bei 4xx — und der ist hier
+      Gold wert: Er unterscheidet „Handle gibt es nicht" von „bei uns ist
+      gerade etwas kaputt". Ohne ihn steht in den Stammdaten nur eine Zahl,
+      und man sucht den Fehler bei sich.
+    */
+    let meldung: string | undefined
+    try {
+      const rumpf = (await antwort.json()) as { message?: unknown }
+      if (typeof rumpf?.message === 'string') meldung = rumpf.message
+    } catch {
+      // Kein JSON — dann eben nur der Status.
+    }
+    return { status: antwort.status, meldung }
+  }
 
   try {
     return { status: antwort.status, rohdaten: await antwort.json() }
@@ -82,28 +97,30 @@ export async function holeProfilwerte(handle: string): Promise<Abrufergebnis> {
   try {
     versuch = await frage(name, null)
 
-    // Erst wenn es anonym nicht geht, die Sitzung bemühen.
-    if (!versuch.rohdaten && kekse) versuch = await frage(name, kekse)
+    /*
+      Erst wenn es anonym nicht geht, die Sitzung bemühen — und nur, wenn sie
+      vollständig ist. Eine Sitzung aus bloßem `sessionid` **ohne**
+      `csrftoken` quittiert dieser Endpunkt zuverlässig mit 400; der zweite
+      Versuch wäre dann nicht nur nutzlos, sondern verdeckte den echten Grund
+      des ersten hinter einem zweiten, falschen.
+    */
+    if (!versuch.rohdaten && kekse && cookieWert(kekse, 'csrftoken')) {
+      versuch = await frage(name, kekse)
+    }
   } catch (fehler) {
     const grund = fehler instanceof Error ? fehler.message : String(fehler)
     return { ok: false, fehler: `Instagram war nicht erreichbar: ${grund}` }
   }
 
   if (!versuch.rohdaten) {
-    if (versuch.status === 404) {
-      return { ok: false, fehler: `Das Profil @${name} gibt es nicht (mehr).` }
-    }
-    if (versuch.status === 429) {
-      return { ok: false, fehler: 'Instagram bremst gerade ab. Später noch einmal versuchen.' }
-    }
+    /*
+      Bewusst **nicht** als abgelaufene Sitzung gemeldet: Der erste Versuch
+      läuft ohne Sitzung, ein Fehlschlag sagt also nichts über sie aus. Das
+      rote Warnband gehört dem Video-Download, nicht hier.
+    */
     return {
       ok: false,
-      // Bewusst **nicht** als abgelaufene Sitzung gemeldet: Der erste Versuch
-      // läuft ohne Sitzung, ein Fehlschlag sagt also nichts über sie aus.
-      // Das rote Warnband gehört dem Video-Download, nicht hier.
-      fehler: kekse
-        ? `Instagram hat die Anfrage abgewiesen (${versuch.status}) — auch mit der hinterlegten Sitzung.`
-        : `Instagram hat die Anfrage abgewiesen (${versuch.status}).`,
+      fehler: deuteFehler(versuch.status, versuch.meldung, name, Boolean(kekse)),
     }
   }
 

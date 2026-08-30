@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { cookieKopfzeile, cookieWert } from './instagram-cookies'
-import { normalisiereHandle, werteAusAntwort } from './instagram-profil'
+import { deuteFehler, normalisiereHandle, werteAusAntwort } from './instagram-profil'
 
 describe('normalisiereHandle', () => {
   it('nimmt den blanken Namen', () => {
@@ -123,5 +123,46 @@ describe('cookieWert', () => {
 
   it('zerlegt Werte mit Gleichheitszeichen nicht', () => {
     expect(cookieWert('sessionid=abc==def', 'sessionid')).toBe('abc==def')
+  })
+})
+
+describe('deuteFehler', () => {
+  const SCHEMA =
+    'Asset asset://laser.provider/ig_business_category_subvertical has been deleted. You cannot use this schema'
+
+  /*
+    Der Fall, der diese Funktion nötig gemacht hat: Instagram liefert für einen
+    Teil der Business-Konten 400 mit einem Fehler aus dem eigenen Haus —
+    nachgemessen an @adidas und @puma, während @nike im selben Moment
+    einwandfrei antwortete. Vorher stand in den Stammdaten „abgewiesen (400)",
+    und man suchte den Fehler beim Handle oder bei der hinterlegten Sitzung.
+  */
+  it('erkennt Instagrams eigenen Schema-Fehler und sagt, dass der Handle stimmt', () => {
+    const satz = deuteFehler(400, SCHEMA, 'adensports', false)
+    expect(satz).toMatch(/@adensports/)
+    expect(satz).toMatch(/Fehler aus dem eigenen Haus/)
+    expect(satz).toMatch(/Handle stimmt/)
+    expect(satz).not.toMatch(/abgewiesen \(400\)/)
+  })
+
+  it('nennt Drosselung als vorübergehend — als Status wie im Text', () => {
+    expect(deuteFehler(429, undefined, 'x', false)).toMatch(/bremst/)
+    expect(deuteFehler(401, 'Please wait a few minutes before you try again.', 'x', false)).toMatch(
+      /bremst/,
+    )
+  })
+
+  it('unterscheidet ein fehlendes Profil von einem abgewiesenen Abruf', () => {
+    expect(deuteFehler(404, undefined, 'gibtsnicht', false)).toMatch(/gibt es nicht/)
+  })
+
+  /* Der Rohtext von Instagram reist mit — ohne ihn beginnt das Raten. */
+  it('hängt die Meldung an den allgemeinen Fall an', () => {
+    expect(deuteFehler(403, 'useragent mismatch', 'x', false)).toMatch(/403: useragent mismatch/)
+  })
+
+  it('sagt dazu, wenn auch die hinterlegte Sitzung nicht half', () => {
+    expect(deuteFehler(403, undefined, 'x', true)).toMatch(/hinterlegten Sitzung/)
+    expect(deuteFehler(403, undefined, 'x', false)).not.toMatch(/hinterlegten Sitzung/)
   })
 })
