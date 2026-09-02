@@ -452,11 +452,52 @@ Seite zu bewachen wäre die schlechtere Regel.
   vorkommen und nur der Ordner sie auseinanderhält. Je Plattform gilt ihre
   Fassung (`fassungFuer` — dieselbe Regel wie auf der Kundenseite), und ein
   Beitrag, der eine Plattform nicht ansteuert, fehlt in deren Ordner.
+- **Der Kunde wird nur gefragt, wenn es etwas zu entscheiden gibt**
+  (`zipPlattformwahl`). Sind die Beiträge des Monats überall gleich, führt sein
+  Knopf ohne Umweg zum Archiv — ein Fenster mit Kästchen, die alle dasselbe
+  liefern, ist ein Klick ohne Entscheidung. Weicht dagegen eine Fassung ab,
+  hängt es an der Plattform, welche Datei die richtige ist; dann kommt das
+  Fenster, alle Plattformen vorgehakt. Bei **einer** Plattform mit eigener
+  Fassung wird ebenfalls nicht gefragt, ihre Fassung aber genommen — sonst
+  läge das Hauptformat im Archiv, das dort nirgends erscheint. Ob überhaupt
+  etwas abweicht, entscheidet `fassungFuer` und keine zweite Regel: Eine leere
+  Fassung erbt alles und zählt nicht.
+- **Ein Knopf oben rechts, einer an jedem Beitrag.** Der obere nimmt den Monat,
+  den der Kunde gerade sieht (der Monat steht in der Adresse — ohne ihn läge
+  der neueste im Archiv). Der am Beitrag steht in dessen Kopfzeile und liefert
+  nur ihn, ohne Ordner je Beitrag: Bei einem Beitrag wäre das dieselbe Ebene
+  ohne Aussage wie die Plattformebene bei einer Plattform. Die zwei Haken des
+  Teams gibt es beim Kunden nicht — **Captions kommen immer mit**, der
+  Kommentarverlauf nie. Das gilt auch für die Adresse: Was nicht wählbar ist,
+  soll nicht über einen Parameter wählbar sein. In der **Team-Vorschau** der
+  Kundenseite fehlen beide Knöpfe; das Team lädt in der Verwaltung.
+- **Herunterladen darf der Kunde alles, was er sieht — mit Hinweis**
+  (`nichtFinalZusatz`). Bis zur Freigabe tragen Ordner **und** Dateien ein
+  `_nichtFinal`; erst ein finaler Beitrag verliert es. Der Ordner allein
+  genügt nicht: Wer eine Datei daraus in seinen Zeitplaner zieht, sieht ihn
+  nicht mehr. Ein **Entwurf** bleibt auch hier draußen — er steht auf keiner
+  Kundenseite, also gibt es ihn im Archiv nicht.
+- **Das Archiv des Kunden zeigt, was seine Seite zeigt.** In einer
+  Arbeitsphase kommt der **eingefrorene** Stand ins ZIP, nicht der
+  halbfertige (`fuerKundensicht`, dieselbe Stelle wie auf der Seite) — ein
+  Archiv, das etwas anderes enthält als die Seite, fällt erst auf, wenn der
+  Beitrag schon draußen ist. Das Team lädt weiter live. Pfad und Dateiname
+  kommen dabei für **beide** aus einer Nachschlagetabelle über `mediumId`:
+  Ein eingefrorener Stand hält nur Kennungen, seine Medien tragen keinen
+  Pfad. In der Textdatei stehen dem Kunden seine **vier** Stufen —
+  „Produktion" und „Korrektur" gehören nicht in eine Datei, die er auf die
+  Platte legt.
 - **Der ZIP-Zeitraum ist frei wählbar, der des Kunden nicht.** Das Team gibt
   `von`/`bis` in der Adresse mit — „von der Konzeptrunde bis zum Dreh" hält
-  sich nicht an Monatsgrenzen. Ein Gast bekommt immer genau einen Monat und
-  nur `FINAL`: Ihm einen freien Zeitraum zu erlauben hieße, ihm über die
-  Adresse den ganzen Bestand zu geben.
+  sich nicht an Monatsgrenzen. Ein Gast bekommt immer genau **einen Monat**:
+  Ihm einen freien Zeitraum zu erlauben hieße, ihm über die Adresse den ganzen
+  Bestand zu geben. Auf `FINAL` war er zusätzlich beschränkt, solange es den
+  Hinweis im Dateinamen nicht gab; wer eine Konzeptrunde durchgeht, will die
+  Entwürfe aber weiterreichen können.
+- **Ob der Kunde herunterladen darf, steht in den Stammdaten**
+  (`Kunde.zipFuerKunden`, Abschnitt *Profil*). Aus heißt: keine Knöpfe auf
+  seiner Seite **und** 403 auf beiden Routen — die Anzeige ist Bequemlichkeit,
+  geprüft wird am Server.
 - **Export ist eine Live-Sicht — solange die Phase sichtbar ist.** In Konzept,
   Vorschau und Final erscheinen Änderungen sofort im Freigabe-Link. In den
   Arbeitsphasen steht dort der eingefrorene Stand; das ist der einzige Fall,
@@ -478,7 +519,10 @@ Seite zu bewachen wäre die schlechtere Regel.
 - **ZIP-Dateinamen.** `JJMMTT_HHMM_Post`, `_Reel` bzw. `_Video`,
   `_Reel_Thumbnail`,
   `_Carousel_Slide1` … Da nie zwei Posts exakt zeitgleich erscheinen, sind sie
-  ohne Zusatz eindeutig.
+  ohne Zusatz eindeutig. Hinten hängt `_nichtFinal`, solange der Beitrag es
+  nicht ist. Ein **ungeplanter** Beitrag hat keinen Zeitstempel — dann tritt
+  sein Titel an dessen Stelle; das gibt es nur im Haus, denn ohne Termin
+  erscheint er auf keiner Kundenseite.
 - **Status-Farben.** Konzept grau, Vorschau orange, Final grün, Gepostet
   dunkelgrün und als **volle** Fläche statt zarter — überall identisch. Zwei
   ähnlich helle Grüntöne wären schlechter zu unterscheiden als hell gegen

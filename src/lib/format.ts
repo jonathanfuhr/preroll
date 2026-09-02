@@ -108,6 +108,29 @@ export function zipStempel(postenAm: Date): string {
   return `${jj}${mm}${tt}_${hh}${mi}`
 }
 
+/**
+ * Was ein Medium im Dateinamen ist: `Post`, `Reel`, `Carousel_Slide2` …
+ *
+ * Getrennt vom Zeitstempel, weil ein Beitrag ohne Termin keinen hat — dann
+ * trägt sein Titel den Namen, die Rolle bleibt dieselbe.
+ */
+export function zipRollenname(
+  typ: PostTyp,
+  rolle: MediumRolle,
+  position = 0,
+  verhaeltnis: Verhaeltnis = 'HOCH_4_5',
+): string {
+  // Ein hochkantes Video heißt Reel, dasselbe quer nur Video — im Dateinamen
+  // wie in der Oberfläche. Wer die ZIP in den Scheduler zieht, soll am Namen
+  // sehen, wohin die Datei gehört.
+  const videowort = verhaeltnis === 'VERTIKAL_9_16' ? 'Reel' : 'Video'
+
+  if (rolle === 'THUMBNAIL') return `${videowort}_Thumbnail`
+  if (typ === 'REEL') return videowort
+  if (typ === 'KARUSSELL') return `Carousel_Slide${position + 1}`
+  return 'Post'
+}
+
 /** Dateiname eines Mediums fürs ZIP: JJMMTT_HHMM_Typ. */
 export function zipDateiname(
   postenAm: Date,
@@ -116,17 +139,7 @@ export function zipDateiname(
   position = 0,
   verhaeltnis: Verhaeltnis = 'HOCH_4_5',
 ): string {
-  const stempel = zipStempel(postenAm)
-
-  // Ein hochkantes Video heißt Reel, dasselbe quer nur Video — im Dateinamen
-  // wie in der Oberfläche. Wer die ZIP in den Scheduler zieht, soll am Namen
-  // sehen, wohin die Datei gehört.
-  const videowort = verhaeltnis === 'VERTIKAL_9_16' ? 'Reel' : 'Video'
-
-  if (rolle === 'THUMBNAIL') return `${stempel}_${videowort}_Thumbnail`
-  if (typ === 'REEL') return `${stempel}_${videowort}`
-  if (typ === 'KARUSSELL') return `${stempel}_Carousel_Slide${position + 1}`
-  return `${stempel}_Post`
+  return `${zipStempel(postenAm)}_${zipRollenname(typ, rolle, position, verhaeltnis)}`
 }
 
 /** ISO-Kalenderwoche — die Export-Seite gliedert nach KW. */

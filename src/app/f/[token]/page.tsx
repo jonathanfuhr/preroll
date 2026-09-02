@@ -14,6 +14,7 @@ import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { profilKarte } from '@/lib/plattform-profil'
 import { sektionsdaten } from '@/lib/plan-anzeige'
 import { medienUrl, thumbUrl } from '@/lib/urls'
+import { zipPlattformwahl } from '@/lib/zip'
 import type { Plattform } from '@prisma/client'
 import {
   angezeigtePlattformen,
@@ -27,6 +28,7 @@ import { VorschauWahl } from '@/components/vorschau-wahl'
 import { Monatskalender, type Kalendereintrag } from '@/components/kalender'
 import { Monatsleiste, MonatsleisteMobil, type Monatseintrag } from '@/components/monatsleiste'
 import { PostSektion } from '@/components/post-sektion'
+import { ZipKnopf } from '@/components/zip-knopf'
 import { Freigabefortschritt, KommentarBereich, PostFreigabe } from './interaktion'
 
 export const dynamic = 'force-dynamic'
@@ -254,20 +256,39 @@ export default async function ExportSeite({
 
   /*
     Darf der Kunde die Dateien selbst holen, steht der Knopf oben in der Leiste.
-    Nur wenn es in den Stammdaten eingeschaltet ist und wenigstens ein Beitrag
-    final ist — ein Knopf, der ein leeres Archiv liefert, sieht wie ein Fehler
-    aus. In der Team-Vorschau bleibt er weg: Das Team hat den vollständigen
-    Export in der Verwaltung, und hier wäre er die falsche Auskunft darüber,
-    was der Kunde vor sich hat.
+    Nur wenn es in den Stammdaten eingeschaltet ist und der Monat überhaupt
+    etwas enthält — ein Knopf, der ein leeres Archiv liefert, sieht wie ein
+    Fehler aus. In der Team-Vorschau bleibt er weg: Das Team hat den
+    vollständigen Export in der Verwaltung, und hier wäre er die falsche
+    Auskunft darüber, was der Kunde vor sich hat.
+
+    Heruntergeladen wird alles, was auf der Seite steht — nicht nur das
+    Finale. Wer die Konzeptrunde durchgeht, will die Entwürfe auch
+    weiterreichen können; damit daraus niemand versehentlich einen
+    Zwischenstand einplant, trägt jede Datei bis zur Freigabe ein
+    `_nichtFinal` im Namen.
   */
+  const darfLaden = exp.kunde.zipFuerKunden && !alsTeam
+
+  /*
+    Braucht der Download eine Plattformwahl? Nur, wenn sich im Monat
+    tatsächlich etwas je Plattform unterscheidet — sonst führt der Knopf ohne
+    Fenster direkt zum Archiv. Gerechnet über das, was wirklich rausgeht.
+  */
+  const monatsWahl = zipPlattformwahl(
+    sektionen.map((p) => ({ ...p, plattformen: angezeigtePlattformen(p, exp.kunde) })),
+  )
+
   const download =
-    exp.kunde.zipFuerKunden && !alsTeam && sektionen.some((p) => p.status === 'FINAL') ? (
-      <a
-        href={`/api/export/${exp.id}/zip`}
-        className="rounded-[5px] border border-rahmen-3 px-3 py-1.5 text-[12px] font-medium text-tinte hover:border-rahmen-4"
-      >
-        Finale Beiträge herunterladen
-      </a>
+    darfLaden && sektionen.length > 0 ? (
+      <ZipKnopf
+        /* Der Monat gehört in die Adresse: Sonst läge im Archiv der neueste
+           statt des Monats, den der Kunde gerade vor sich hat. */
+        url={`/api/export/${exp.id}/zip?monat=${monat.monat}`}
+        wahl={monatsWahl.wahl}
+        plattformen={monatsWahl.plattformen}
+        text="Beiträge herunterladen"
+      />
     ) : null
 
   const freigabeleiste =
@@ -433,12 +454,28 @@ export default async function ExportSeite({
       <div className="mx-auto max-w-[1440px] px-5 md:px-[72px]">
         {sektionen.map((post) => {
           const daten = sektionsdaten(post, angezeigtePlattformen(post, exp.kunde), profile)
+          // Dieselbe Frage wie oben, nur für diesen einen Beitrag: Weicht bei
+          // ihm nichts ab, führt der Knopf ohne Fenster zum Archiv.
+          const wahl = zipPlattformwahl([
+            { ...post, plattformen: angezeigtePlattformen(post, exp.kunde) },
+          ])
 
           return (
             <PostSektion
               key={post.id}
               post={post}
               plattformen={angezeigtePlattformen(post, exp.kunde)}
+              kopfAktion={
+                darfLaden ? (
+                  <ZipKnopf
+                    url={`/api/posts/${post.id}/zip`}
+                    wahl={wahl.wahl}
+                    plattformen={wahl.plattformen}
+                    text="Herunterladen"
+                    art="zeile"
+                  />
+                ) : null
+              }
               liFollower={liProfil.follower}
               tiktokHandle={profile.TIKTOK.handle}
               fassungen={daten.fassungen}

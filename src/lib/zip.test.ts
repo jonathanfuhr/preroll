@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { zipEintraege, zipPostOrdner } from './zip'
+import { zipEintraege, zipPlattformwahl, zipPostOrdner } from './zip'
 import type { ZipPost } from './zip'
 import type { MediumRolle, Plattform } from '@prisma/client'
 
@@ -221,5 +221,192 @@ describe('zipEintraege je Plattform', () => {
     })
     expect(e.every((x) => x.pfad.startsWith('Facebook/'))).toBe(true)
     expect(e).toHaveLength(1)
+  })
+})
+
+/**
+ * Der Kunde darf herunterladen, was er sieht — auch das Konzept. Ohne
+ * Kennzeichnung wäre das die Einladung, einen Zwischenstand einzuplanen: Wer
+ * eine Datei aus dem Ordner in seinen Zeitplaner zieht, sieht den Ordnernamen
+ * nicht mehr.
+ */
+describe('nichtFinal im Namen', () => {
+  it('markiert Ordner und Dateien eines Beitrags, der noch nicht final ist', () => {
+    const e = zipEintraege([post({ status: 'KONZEPT' })], { mitCaptions: true })
+
+    expect(e.map((x) => x.pfad)).toEqual([
+      '260805_1100_Beitrag_nichtFinal/260805_1100_Post_nichtFinal.jpg',
+      '260805_1100_Beitrag_nichtFinal/260805_1100_Caption_nichtFinal.txt',
+    ])
+  })
+
+  it('lässt den Hinweis weg, sobald der Beitrag final ist', () => {
+    const e = zipEintraege([post({ status: 'FINAL' })], { mitCaptions: false })
+    expect(e[0].pfad).not.toContain('nichtFinal')
+  })
+
+  it('markiert auch eine Klappe-Fassung, deren Endung erst später dazukommt', () => {
+    const e = zipEintraege(
+      [post({ status: 'VORSCHAU', typ: 'REEL', verhaeltnis: 'VERTIKAL_9_16', klappeVersionId: 'f-1', medien: [] })],
+      { mitCaptions: false },
+    )
+    expect(e[0].pfad).toBe('260805_1100_Reel_nichtFinal/260805_1100_Reel_nichtFinal')
+  })
+
+  it('trägt den Hinweis auch im Ordnernamen', () => {
+    expect(zipPostOrdner(post({ status: 'PRODUKTION' }))).toBe('260805_1100_Beitrag_nichtFinal')
+  })
+})
+
+describe('ein einzelner Beitrag', () => {
+  it('kommt ohne Ordner je Beitrag — bei einem wäre er eine Ebene ohne Aussage', () => {
+    const e = zipEintraege([post()], { mitCaptions: true, ohnePostOrdner: true })
+    expect(e.map((x) => x.pfad)).toEqual(['260805_1100_Post.jpg', '260805_1100_Caption.txt'])
+  })
+
+  it('behält die Plattformebene, sobald zwei gewählt sind', () => {
+    const e = zipEintraege(
+      [{ ...post(), plattformen: ['FACEBOOK', 'INSTAGRAM'] as Plattform[] }],
+      { mitCaptions: false, ohnePostOrdner: true, plattformen: ['FACEBOOK', 'INSTAGRAM'] },
+    )
+    expect(e.map((x) => x.pfad)).toEqual([
+      'Facebook/260805_1100_Post.jpg',
+      'Instagram/260805_1100_Post.jpg',
+    ])
+  })
+
+  it('nimmt den Titel, wenn der Beitrag ungeplant ist', () => {
+    // Aus dem Editor heraus lässt sich auch ein Beitrag ohne Termin holen —
+    // dann gibt es keinen Zeitstempel, der die Dateien benennen könnte.
+    const e = zipEintraege([post({ postenAm: null, titel: 'Vorher / Nachher' })], {
+      mitCaptions: false,
+      ohnePostOrdner: true,
+    })
+    expect(e[0].pfad).toBe('Vorher_Nachher_Post.jpg')
+  })
+})
+
+describe('die Textdatei zur Caption', () => {
+  it('nennt dem Kunden seine vier Stufen, nicht unsere sechs', () => {
+    // „Produktion" und „Korrektur" stehen auf seiner Seite nirgends — in einer
+    // Datei, die er auf die Platte legt, erst recht nicht.
+    const e = zipEintraege([post({ status: 'PRODUKTION' })], {
+      mitCaptions: true,
+      alsKundensicht: true,
+    })
+    const text = e.find((x) => x.art === 'text')
+    expect(text?.art === 'text' && text.inhalt).toContain('Status: Konzept')
+  })
+
+  it('nennt dem Haus die wirkliche Phase', () => {
+    const e = zipEintraege([post({ status: 'PRODUKTION' })], { mitCaptions: true })
+    const text = e.find((x) => x.art === 'text')
+    expect(text?.art === 'text' && text.inhalt).toContain('Status: Produktion')
+  })
+})
+
+/**
+ * Gefragt wird nur, wenn es etwas zu entscheiden gibt. Ein Fenster mit
+ * Kästchen, die alle dasselbe liefern, wäre ein Klick ohne Entscheidung.
+ */
+describe('zipPlattformwahl', () => {
+  const basis = {
+    caption: 'Haupttext',
+    verhaeltnis: 'HOCH_4_5' as const,
+    medien: [{}],
+    klappeVersionId: null,
+  }
+
+  it('fragt nicht, wenn alle Plattformen dasselbe bekommen', () => {
+    const wahl = zipPlattformwahl([
+      { ...basis, plattformen: ['INSTAGRAM', 'FACEBOOK'] as Plattform[], varianten: [] },
+    ])
+    expect(wahl).toEqual({ wahl: false, plattformen: [] })
+  })
+
+  it('fragt, sobald eine Fassung abweicht', () => {
+    const wahl = zipPlattformwahl([
+      {
+        ...basis,
+        plattformen: ['INSTAGRAM', 'LINKEDIN'] as Plattform[],
+        varianten: [
+          {
+            id: 'v1',
+            plattformen: ['LINKEDIN'] as Plattform[],
+            caption: 'Anders auf LinkedIn',
+            verhaeltnis: null,
+            klappeVersionId: null,
+            position: 0,
+            medien: [],
+          },
+        ],
+      },
+    ])
+    expect(wahl).toEqual({ wahl: true, plattformen: ['INSTAGRAM', 'LINKEDIN'] })
+  })
+
+  it('fragt nicht bei einer leeren Fassung — sie erbt ohnehin alles', () => {
+    const wahl = zipPlattformwahl([
+      {
+        ...basis,
+        plattformen: ['INSTAGRAM', 'LINKEDIN'] as Plattform[],
+        varianten: [
+          {
+            id: 'v1',
+            plattformen: ['LINKEDIN'] as Plattform[],
+            caption: '  ',
+            verhaeltnis: null,
+            klappeVersionId: null,
+            position: 0,
+            medien: [],
+          },
+        ],
+      },
+    ])
+    expect(wahl).toEqual({ wahl: false, plattformen: [] })
+  })
+
+  it('nimmt bei nur einer Plattform deren Fassung, ohne zu fragen', () => {
+    // Ein Fenster mit einem Kästchen ist ein Klick ohne Entscheidung — die
+    // Adresse trägt die Plattform trotzdem, sonst käme das Hauptformat.
+    const wahl = zipPlattformwahl([
+      {
+        ...basis,
+        plattformen: ['LINKEDIN'] as Plattform[],
+        varianten: [
+          {
+            id: 'v1',
+            plattformen: ['LINKEDIN'] as Plattform[],
+            caption: 'Anders auf LinkedIn',
+            verhaeltnis: null,
+            klappeVersionId: null,
+            position: 0,
+            medien: [],
+          },
+        ],
+      },
+    ])
+    expect(wahl).toEqual({ wahl: false, plattformen: ['LINKEDIN'] })
+  })
+
+  it('übergeht eine Fassung für eine Plattform, die der Beitrag nicht ansteuert', () => {
+    const wahl = zipPlattformwahl([
+      {
+        ...basis,
+        plattformen: ['INSTAGRAM'] as Plattform[],
+        varianten: [
+          {
+            id: 'v1',
+            plattformen: ['LINKEDIN'] as Plattform[],
+            caption: 'Anders auf LinkedIn',
+            verhaeltnis: null,
+            klappeVersionId: null,
+            position: 0,
+            medien: [],
+          },
+        ],
+      },
+    ])
+    expect(wahl).toEqual({ wahl: false, plattformen: [] })
   })
 })

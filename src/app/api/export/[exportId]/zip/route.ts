@@ -5,9 +5,10 @@ import { prisma } from '@/lib/db'
 import { postsImZeitraum } from '@/lib/export-sicht'
 import { gewaehlterMonat, monateAusPosts } from '@/lib/monate'
 import { kommentarPdf } from '@/lib/pdf'
-import { zipEintraege } from '@/lib/zip'
+import { fuerKundensicht } from '@/lib/stand-anwenden'
+import { zipEintraege, type ZipMedium } from '@/lib/zip'
 import { archivAntwort, schreibeArchiv } from '@/lib/zip-schreiben'
-import { GEBAUTE_PLATTFORMEN } from '@/lib/plattformen'
+import { angezeigtePlattformen, GEBAUTE_PLATTFORMEN } from '@/lib/plattformen'
 
 /**
  * Alle Medien eines Zeitraums als ZIP — der Weg für alles, was Preroll nicht
@@ -18,8 +19,11 @@ import { GEBAUTE_PLATTFORMEN } from '@/lib/plattformen'
  * einen Zeitplaner zog, musste sie am Namen auseinanderhalten.
  *
  * Zwei Zugänge: Das Team lädt den ganzen Stand, wahlweise über einen frei
- * gewählten Zeitraum. Der Kunde lädt nur die **finalen** Beiträge seines
- * Monats, und nur wenn es in den Stammdaten eingeschaltet ist.
+ * gewählten Zeitraum. Der Kunde lädt seinen Monat — und zwar **alles, was er
+ * auf der Seite sieht**, nicht nur das Finale: Wer die Konzeptrunde
+ * durchgeht, will die Entwürfe auch weiterreichen können. Damit daraus
+ * niemand versehentlich einen Zwischenstand einplant, tragen Ordner und
+ * Dateien bis zur Freigabe ein `_nichtFinal` im Namen.
  */
 export async function GET(
   anfrage: NextRequest,
@@ -51,37 +55,35 @@ export async function GET(
   }
 
   const suche = anfrage.nextUrl.searchParams
-  const mitCaptions = suche.get('captions') !== '0'
+  // Dem Kunden werden die beiden Haken gar nicht erst angeboten: Captions
+  // gehören dazu, der Kommentarverlauf ist eine Hausangelegenheit. Was nicht
+  // wählbar ist, soll auch über die Adresse nicht wählbar sein.
+  const mitCaptions = Boolean(alsGast) || suche.get('captions') !== '0'
   const mitKommentaren = suche.get('kommentare') === '1' && !alsGast
 
-  const alle = await prisma.post.findMany({
-    where: {
-      kundeId: exp.kundeId,
-      // Der Kunde bekommt ausschließlich Finales. Beim Team zählt der Zeitraum
-      // und nicht der Freigabestand — es exportiert auch, was der Kunde noch
-      // nicht gesehen hat.
-      //
-      // Eingefrorene Stände spielen hier deshalb keine Rolle: `FINAL` ist eine
-      // sichtbare Phase und wird live gelesen, und was in Produktion oder
-      // Korrektur steht, ist nie final — es kommt gar nicht erst bis hierher.
-      ...(alsGast ? { status: 'FINAL' as const } : {}),
-    },
+  const roh = await prisma.post.findMany({
+    where: { kundeId: exp.kundeId },
     orderBy: { postenAm: 'asc' },
     include: {
       medien: POST_MEDIEN,
+      // Für den eingefrorenen Stand — er trägt auch die Szenen, und ohne sie
+      // passt der Beitrag nicht in `fuerKundensicht`.
+      szenen: { orderBy: { position: 'asc' } },
+      staende: true,
       // Die Fassungen kommen mit, weil das ZIP je Plattform die ihre nimmt —
       // dieselbe Regel, nach der die Kundenseite anzeigt.
-      varianten: {
-        orderBy: { position: 'asc' },
-        include: {
-          medien: {
-            orderBy: { position: 'asc' },
-            include: { medium: { select: { pfad: true, dateiname: true } } },
-          },
-        },
-      },
+      varianten: { orderBy: { position: 'asc' }, include: { medien: POST_MEDIEN } },
     },
   })
+
+  /*
+    Dieselbe Sicht wie auf der Seite: Solange die Phase sichtbar ist, gilt der
+    aktuelle Inhalt; wird gerade gearbeitet, der eingefrorene Stand davor. Ein
+    Archiv, das etwas anderes enthält als die Seite zeigt, wäre die schlimmste
+    Art von Abweichung — sie fällt erst auf, wenn der Beitrag schon draußen
+    ist. Das Team liest weiterhin live: Es exportiert seinen Arbeitsstand.
+  */
+  const alle = alsGast ? roh.map((p) => fuerKundensicht(p, p.staende)) : roh
 
   /*
     Der Zeitraum steht nicht mehr am Zugang — ein Zugang umfasst alle Monate.
@@ -98,7 +100,51 @@ export async function GET(
     return new Response('Der Zeitraum endet vor seinem Beginn.', { status: 400 })
   }
 
+  // `postsImZeitraum` siebt Entwürfe aus — auch für den Kunden bleibt es
+  // dabei, dass ein Entwurf das Haus nicht verlässt.
   const posts = postsImZeitraum(alle, { zeitraumVon, zeitraumBis })
+
+  /*
+    Pfad und Dateiname kommen aus **einer** Nachschlagetabelle, nicht aus dem
+    geladenen Beitrag: Ein eingefrorener Stand hält nur Kennungen, seine
+    Medien tragen keinen Pfad. Zwei Wege — live aus dem Beitrag, eingefroren
+    aus der Tabelle — liefen beim nächsten Umbau auseinander.
+  */
+  const kennungen = new Set<string>()
+  for (const post of posts) {
+    for (const m of post.medien) kennungen.add(m.mediumId)
+    for (const v of post.varianten) for (const m of v.medien) kennungen.add(m.mediumId)
+  }
+  const dateien = new Map(
+    (
+      await prisma.medium.findMany({
+        where: { id: { in: [...kennungen] } },
+        select: { id: true, pfad: true, dateiname: true },
+      })
+    ).map((m) => [m.id, m]),
+  )
+
+  const alsZipMedien = (
+    medien: Array<{ rolle: ZipMedium['rolle']; position: number; mediumId: string }>,
+  ): ZipMedium[] =>
+    medien.flatMap((m) => {
+      const datei = dateien.get(m.mediumId)
+      // Eine gelöschte Datei bleibt hier still — `schreibeArchiv` nimmt
+      // fehlende Einträge ohnehin in seine `Hinweise.txt` auf.
+      return datei
+        ? [{ rolle: m.rolle, position: m.position, medium: { pfad: datei.pfad, dateiname: datei.dateiname } }]
+        : []
+    })
+
+  const zipPosts = posts.map((post) => ({
+    ...post,
+    // Nicht die rohe Wahl, sondern das, was wirklich rausgeht — dieselbe
+    // Rechnung wie auf der Seite. Eine abgeschaltete Plattform hat auch im
+    // Archiv keinen Ordner.
+    plattformen: angezeigtePlattformen(post, exp.kunde),
+    medien: alsZipMedien(post.medien),
+    varianten: post.varianten.map((v) => ({ ...v, medien: alsZipMedien(v.medien) })),
+  }))
 
   /*
     Für welche Plattformen. Ohne Angabe bleibt es beim Hauptformat und einem
@@ -110,7 +156,13 @@ export async function GET(
     suche.getAll('plattform').includes(p),
   )
 
-  const eintraege = zipEintraege(posts, { mitCaptions, plattformen: gewaehlt })
+  const eintraege = zipEintraege(zipPosts, {
+    mitCaptions,
+    plattformen: gewaehlt,
+    // Das Team bekommt aus Klappe das Original, der Kunde die Abspielfassung.
+    klappeFassung: alsGast ? 'proxy' : 'original',
+    alsKundensicht: Boolean(alsGast),
+  })
 
   if (mitKommentaren) {
     const kommentare = await prisma.kommentar.findMany({

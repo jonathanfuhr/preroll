@@ -139,7 +139,7 @@ export default async function StammdatenSeite({
             <Schalter
               name="zipFuerKunden"
               beschriftung="Kunde darf die Dateien herunterladen"
-              hinweis="Setzt auf der Freigabe-Seite einen Knopf, der die finalen Beiträge des Monats als ZIP liefert. Nur Finales — ein Konzept, das noch umgebaut wird, gehört nicht in fremde Ordner."
+              hinweis="Setzt auf der Freigabe-Seite einen Knopf für den ganzen Monat und einen an jedem Beitrag. Der Kunde bekommt alles, was er dort sieht; was noch nicht final ist, trägt nichtFinal im Datei- und Ordnernamen."
               defaultChecked={kunde.zipFuerKunden}
             />
 
